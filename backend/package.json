@@ -1,0 +1,49 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/main.js",
+    "dev": "nodemon src/main.js",
+    "seed": "node prisma/seed.js",
+    "test": "jest --forceExit",
+    "test:watch": "jest --watch --forceExit"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/test/**/*.test.js"
+    ],
+    "transform": {
+      "^.+\\.[t|j]sx?$": "babel-jest"
+    }
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "author": "Muhammad Adib Prasetiya Aji",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/adapter-mariadb": "^7.4.2",
+    "@prisma/client": "^7.4.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
+    "joi": "^18.0.2",
+    "jsonwebtoken": "^9.0.3",
+    "otpauth": "^9.5.0",
+    "qrcode": "^1.5.4",
+    "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.29.0",
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.14",
+    "prisma": "^7.4.2",
+    "supertest": "^7.2.2"
+  }
+}
