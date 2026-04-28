@@ -1242,7 +1242,6 @@ const loadMoreSentinel = ref<HTMLElement | null>(null)
 
 // ─── Expand Entry ─────────────────────────────────────────────────────────────
 
-const expandedEntryId = ref<string | null>(null)
 const expandedEntryDetail = ref<RiskEntry | null>(null)
 const expandedEntryLoading = ref(false)
 const expandedEntryError = ref('')
