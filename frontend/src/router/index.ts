@@ -50,10 +50,70 @@ const router = createRouter({
           meta: { breadcrumb: 'Manajemen Proses Bisnis', showBack: true, backTo: 'home' },
         },
         {
+          path: 'frameworks',
+          name: 'frameworks',
+          component: () => import('@/views/FrameworksView.vue'),
+          meta: { breadcrumb: 'Framework Risiko', showBack: true, backTo: 'home' },
+        },
+        {
+          path: 'frameworks/:frameworkId/contexts',
+          name: 'framework-contexts',
+          component: () => import('@/views/FrameworkContextsView.vue'),
+          meta: { breadcrumb: 'Konteks Framework', showBack: true, backTo: 'frameworks' },
+        },
+        {
+          path: 'frameworks/:frameworkId/contexts/create',
+          name: 'framework-context-create',
+          component: () => import('@/views/RiskContextCreateView.vue'),
+          meta: { breadcrumb: 'Tambah Konteks Template', showBack: true, backTo: 'framework-contexts' },
+        },
+        {
           path: 'risk-programs',
           name: 'risk-programs',
           component: () => import('@/views/RiskProgramView.vue'),
           meta: { breadcrumb: 'Program Risiko', showBack: true, backTo: 'home' },
+        },
+        {
+          path: 'risk-programs/:id',
+          name: 'risk-program-detail',
+          component: () => import('@/views/RiskProgramDetailView.vue'),
+          meta: { breadcrumb: 'Detail Program Risiko', showBack: true, backTo: 'risk-programs' },
+        },
+        {
+          path: 'risk-programs/:id/frameworks/:frameworkId',
+          name: 'risk-context-list',
+          component: () => import('@/views/RiskContextListView.vue'),
+          meta: { breadcrumb: 'Konteks Risiko', showBack: true, backTo: 'risk-program-detail' },
+        },
+        {
+          path: 'contexts/:contextId',
+          name: 'risk-context-detail',
+          component: () => import('@/views/RiskContextDetailView.vue'),
+          meta: { breadcrumb: 'Detail Konteks Risiko', showBack: true },
+        },
+        {
+          path: 'working-papers',
+          name: 'working-papers',
+          component: () => import('@/views/WorkingPaperView.vue'),
+          meta: { breadcrumb: 'Kertas Kerja', showBack: true, backTo: 'home' },
+        },
+        {
+          path: 'working-papers/:id',
+          name: 'working-paper-detail',
+          component: () => import('@/views/WorkingPaperDetailView.vue'),
+          meta: { breadcrumb: 'Detail Kertas Kerja', showBack: true, backTo: 'working-papers', fullWidth: true },
+        },
+        {
+          path: 'working-papers/:id/entries/create',
+          name: 'risk-entry-create',
+          component: () => import('@/views/RiskEntryCreateView.vue'),
+          meta: { breadcrumb: 'Input Entri Risiko', showBack: true, backTo: 'working-paper-detail' },
+        },
+        {
+          path: 'dashboard',
+          name: 'dashboard',
+          component: () => import('@/views/DashboardView.vue'),
+          meta: { breadcrumb: 'Dashboard Monitoring Risiko', showBack: true, backTo: 'home' },
         },
         {
           path: 'admin/settings',
@@ -143,6 +203,10 @@ router.beforeEach((to) => {
   }
 
   if (to.meta.requiresAdmin && !auth.isAdmin) {
+    return { name: 'home' }
+  }
+
+  if (to.name === 'dashboard' && !auth.canViewDashboard) {
     return { name: 'home' }
   }
 

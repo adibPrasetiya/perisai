@@ -7,15 +7,15 @@ import {
 } from "./risk-program.validation.js";
 import { prismaClient } from "../../core/lib/database.lib.js";
 import { NotFoundError } from "../../error/not-found.error.js";
-import { BadRequestError } from "../../error/bad-request.error.js";
 import { ConflictError } from "../../error/conflict.error.js";
+import { BadRequestError } from "../../error/bad-request.error.js";
+import { RISK_PROGRAM_STATUSES } from "../../core/config/enum.config.js";
 
 const riskProgramSelect = {
   id: true,
   name: true,
   description: true,
   year: true,
-  frameworkId: true,
   status: true,
   createdAt: true,
   updatedAt: true,
@@ -39,21 +39,12 @@ const verifyRiskProgramExists = async (id) => {
 const create = async (reqBody, userId) => {
   reqBody = validate(createRiskProgramSchema, reqBody);
 
-  const framework = await prismaClient.framework.findUnique({
-    where: { id: reqBody.frameworkId },
-  });
-
-  if (!framework) {
-    throw new BadRequestError("Framework tidak ditemukan.");
-  }
-
   const program = await prismaClient.riskProgram.create({
     data: {
       name: reqBody.name,
       description: reqBody.description || null,
       year: reqBody.year,
-      frameworkId: reqBody.frameworkId,
-      status: reqBody.status,
+      status: RISK_PROGRAM_STATUSES.DRAFT,
       createdBy: userId || null,
       updatedBy: userId || null,
     },
@@ -70,7 +61,7 @@ const create = async (reqBody, userId) => {
 
 const search = async (queryParams) => {
   const params = validate(searchRiskProgramSchema, queryParams);
-  const { name, year, frameworkId, status, page, limit } = params;
+  const { name, year, status, page, limit } = params;
 
   const where = {};
 
@@ -80,10 +71,6 @@ const search = async (queryParams) => {
 
   if (year !== undefined) {
     where.year = year;
-  }
-
-  if (frameworkId) {
-    where.frameworkId = frameworkId;
   }
 
   if (status) {
@@ -100,15 +87,8 @@ const search = async (queryParams) => {
     orderBy: [{ year: "desc" }, { createdAt: "desc" }],
     select: {
       ...riskProgramSelect,
-      framework: {
-        select: {
-          id: true,
-          code: true,
-          name: true,
-        },
-      },
       _count: {
-        select: { contexts: true },
+        select: { programFrameworks: true },
       },
     },
   });
@@ -136,24 +116,22 @@ const getById = async (id) => {
     where: { id: validId },
     select: {
       ...riskProgramSelect,
-      framework: {
+      programFrameworks: {
         select: {
           id: true,
-          code: true,
-          name: true,
-          version: true,
-        },
-      },
-      contexts: {
-        select: {
-          id: true,
-          name: true,
-          code: true,
-          contextType: true,
-          periodStart: true,
-          periodEnd: true,
+          frameworkId: true,
           status: true,
-          unitKerjaId: true,
+          framework: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+              version: true,
+            },
+          },
+          _count: {
+            select: { programFrameworkContexts: true },
+          },
         },
         orderBy: { createdAt: "asc" },
       },
@@ -175,16 +153,6 @@ const update = async (id, reqBody, userId) => {
   reqBody = validate(updateRiskProgramSchema, reqBody);
 
   await verifyRiskProgramExists(validId);
-
-  if (reqBody.frameworkId) {
-    const framework = await prismaClient.framework.findUnique({
-      where: { id: reqBody.frameworkId },
-    });
-
-    if (!framework) {
-      throw new BadRequestError("Framework tidak ditemukan.");
-    }
-  }
 
   const updated = await prismaClient.riskProgram.update({
     where: { id: validId },
@@ -210,13 +178,13 @@ const remove = async (id) => {
   const { id: validId } = validate(riskProgramIdSchema, { id });
   await verifyRiskProgramExists(validId);
 
-  const contextCount = await prismaClient.riskContext.count({
-    where: { riskProgramId: validId },
+  const frameworkCount = await prismaClient.programFramework.count({
+    where: { programId: validId },
   });
 
-  if (contextCount > 0) {
+  if (frameworkCount > 0) {
     throw new ConflictError(
-      `Program risiko tidak dapat dihapus karena masih memiliki ${contextCount} konteks risiko yang terkait.`,
+      `Program risiko tidak dapat dihapus karena masih memiliki ${frameworkCount} framework yang terdaftar.`,
     );
   }
 
@@ -229,4 +197,89 @@ const remove = async (id) => {
   };
 };
 
-export default { create, search, getById, update, remove };
+const activate = async (id, userId) => {
+  const { id: validId } = validate(riskProgramIdSchema, { id });
+  const program = await verifyRiskProgramExists(validId);
+
+  if (program.status === RISK_PROGRAM_STATUSES.ACTIVE) {
+    throw new BadRequestError("Program risiko sudah dalam status Aktif.");
+  }
+
+  const frameworkCount = await prismaClient.programFramework.count({
+    where: { programId: validId },
+  });
+
+  if (frameworkCount === 0) {
+    throw new BadRequestError(
+      "Program risiko tidak dapat diaktifkan. Tambahkan minimal satu framework terlebih dahulu.",
+    );
+  }
+
+  const updated = await prismaClient.riskProgram.update({
+    where: { id: validId },
+    data: {
+      status: RISK_PROGRAM_STATUSES.ACTIVE,
+      updatedBy: userId || null,
+    },
+    select: riskProgramSelect,
+  });
+
+  console.log("ACTION_TYPES.RISK_PROGRAM_ACTIVATED", { riskProgramId: validId });
+
+  return {
+    message: "Program risiko berhasil diaktifkan",
+    data: updated,
+  };
+};
+
+const deactivate = async (id, userId) => {
+  const { id: validId } = validate(riskProgramIdSchema, { id });
+  const program = await verifyRiskProgramExists(validId);
+
+  if (program.status !== RISK_PROGRAM_STATUSES.ACTIVE) {
+    throw new BadRequestError("Hanya program risiko dengan status Aktif yang dapat dinonaktifkan.");
+  }
+
+  const updated = await prismaClient.riskProgram.update({
+    where: { id: validId },
+    data: {
+      status: RISK_PROGRAM_STATUSES.CLOSED,
+      updatedBy: userId || null,
+    },
+    select: riskProgramSelect,
+  });
+
+  console.log("ACTION_TYPES.RISK_PROGRAM_DEACTIVATED", { riskProgramId: validId });
+
+  return {
+    message: "Program risiko berhasil dinonaktifkan",
+    data: updated,
+  };
+};
+
+const setDraft = async (id, userId) => {
+  const { id: validId } = validate(riskProgramIdSchema, { id });
+  const program = await verifyRiskProgramExists(validId);
+
+  if (program.status === RISK_PROGRAM_STATUSES.DRAFT) {
+    throw new BadRequestError("Program risiko sudah dalam status Draft.");
+  }
+
+  const updated = await prismaClient.riskProgram.update({
+    where: { id: validId },
+    data: {
+      status: RISK_PROGRAM_STATUSES.DRAFT,
+      updatedBy: userId || null,
+    },
+    select: riskProgramSelect,
+  });
+
+  console.log("ACTION_TYPES.RISK_PROGRAM_SET_DRAFT", { riskProgramId: validId });
+
+  return {
+    message: "Program risiko berhasil dikembalikan ke status Draft",
+    data: updated,
+  };
+};
+
+export default { create, search, getById, update, remove, activate, deactivate, setDraft };

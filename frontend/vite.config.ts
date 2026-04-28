@@ -35,7 +35,31 @@ export default defineConfig({
         target: "http://localhost:3000",
         changeOrigin: true,
       },
+      "/risk-programs": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
+      "/program-frameworks": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
+      "/contexts": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
+      "/working-papers": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
+      "/entries": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
       "/system-config": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
+      "/dashboard": {
         target: "http://localhost:3000",
         changeOrigin: true,
       },

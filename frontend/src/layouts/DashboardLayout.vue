@@ -5,7 +5,7 @@
       :show-back="route.meta.showBack"
       :back-to="route.meta.backTo"
     />
-    <div class="dashboard-main">
+    <div class="dashboard-main" :class="{ 'full-width': route.meta.fullWidth }">
       <RouterView />
     </div>
   </div>

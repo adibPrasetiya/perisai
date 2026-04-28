@@ -261,35 +261,31 @@
       </template>
     </Dialog>
 
-    <Toast />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import ProgressSpinner from "primevue/progressspinner";
-import Toast from "primevue/toast";
 import { useToast } from "primevue/usetoast";
 import { extractApiError } from "@/utils/apiError";
 import {
   unitKerjaApi,
   type UnitKerja,
-  type PaginationMeta,
 } from "@/api/unitKerja";
+import { usePagination } from "@/composables/usePagination";
 
 const toast = useToast();
 
 // ─── List state ───────────────────────────────────────────────────────────────
 
 const unitKerjas = ref<UnitKerja[]>([]);
-const pagination = ref<PaginationMeta | null>(null);
 const loading = ref(false);
 const fetchError = ref("");
 const searchQuery = ref("");
-const currentPage = ref(1);
-const PAGE_LIMIT = 10;
+const { currentPage, pagination, pageNumbers, PAGE_LIMIT } = usePagination(10);
 
 let searchTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -346,23 +342,6 @@ function changePage(page: number) {
   currentPage.value = page;
   fetchData();
 }
-
-// ─── Pagination numbers ───────────────────────────────────────────────────────
-
-const pageNumbers = computed<(number | string)[]>(() => {
-  if (!pagination.value) return [];
-  const total = pagination.value.totalPages;
-  const cur = currentPage.value;
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
-
-  const pages: (number | string)[] = [1];
-  if (cur > 3) pages.push("...");
-  for (let i = Math.max(2, cur - 1); i <= Math.min(total - 1, cur + 1); i++)
-    pages.push(i);
-  if (cur < total - 2) pages.push("...");
-  pages.push(total);
-  return pages;
-});
 
 // ─── Create / Edit ────────────────────────────────────────────────────────────
 
@@ -703,34 +682,6 @@ onMounted(fetchData);
   margin: 1rem;
 }
 
-/* ─── Row action buttons ──────────────────────────────────────────────────── */
-
-.btn-icon {
-  width: 28px;
-  height: 28px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-text-dim);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  transition: all 0.15s;
-}
-
-.btn-icon:hover {
-  background: var(--color-accent-glow);
-  border-color: rgba(0, 229, 184, 0.2);
-  color: var(--color-accent);
-}
-
-.btn-icon-danger:hover {
-  background: var(--color-danger-dim);
-  border-color: rgba(255, 77, 109, 0.3);
-  color: var(--color-danger);
-}
 
 /* ─── Pagination ──────────────────────────────────────────────────────────── */
 
@@ -878,44 +829,4 @@ onMounted(fetchData);
   margin-top: 0.5rem;
 }
 
-/* ─── Delete dialog ───────────────────────────────────────────────────────── */
-
-.del-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 0.5rem 0 1rem;
-  gap: 0.75rem;
-}
-
-.del-icon-wrap {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: var(--color-danger-dim);
-  border: 1px solid rgba(255, 77, 109, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.del-icon-wrap .pi {
-  font-size: 1.4rem;
-  color: var(--color-danger);
-}
-
-.del-text {
-  font-size: 14px;
-  color: var(--color-text);
-  margin: 0;
-}
-
-.del-warn {
-  font-size: 12px;
-  color: var(--color-text-dim);
-  margin: 0;
-  line-height: 1.6;
-  max-width: 340px;
-}
 </style>

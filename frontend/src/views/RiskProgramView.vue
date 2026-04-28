@@ -6,7 +6,7 @@
       <div>
         <h1 class="rp-page-title">Program Risiko</h1>
         <p class="rp-page-desc">
-          Kelola program manajemen risiko berdasarkan framework dan tahun pelaksanaan.
+          Kelola program manajemen risiko tahunan institusi. Setiap program dapat menggunakan beberapa framework sekaligus.
         </p>
       </div>
       <Button label="Tambah Program" icon="pi pi-plus" size="small" @click="openCreate" />
@@ -33,13 +33,6 @@
         <option v-for="y in yearOptions" :key="y" :value="y">{{ y }}</option>
       </select>
 
-      <select v-model="filterFrameworkId" class="rp-select" @change="onFilterChange">
-        <option value="">Semua Framework</option>
-        <option v-for="fw in frameworks" :key="fw.id" :value="fw.id">
-          {{ fw.name }}
-        </option>
-      </select>
-
       <select v-model="filterStatus" class="rp-select" @change="onFilterChange">
         <option value="">Semua Status</option>
         <option v-for="(label, val) in RISK_PROGRAM_STATUS_LABELS" :key="val" :value="val">
@@ -62,16 +55,15 @@
           <thead>
             <tr>
               <th>Nama Program</th>
-              <th>Framework</th>
               <th class="rp-th-center">Tahun</th>
-              <th class="rp-th-center">Konteks</th>
+              <th class="rp-th-center">Framework</th>
               <th class="rp-th-center">Status</th>
               <th class="rp-th-center">Aksi</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="programs.length === 0">
-              <td colspan="6">
+              <td colspan="5">
                 <div class="rp-empty">
                   <i class="pi pi-inbox" />
                   <span>Tidak ada program risiko ditemukan</span>
@@ -83,15 +75,14 @@
                 <span class="rp-name">{{ rp.name }}</span>
                 <span v-if="rp.description" class="rp-desc-snippet">{{ rp.description }}</span>
               </td>
-              <td class="rp-td-framework">
-                <span class="rp-fw-badge">{{ rp.framework?.code }}</span>
-                <span class="rp-fw-name">{{ rp.framework?.name }}</span>
-              </td>
               <td class="rp-td-center">
                 <span class="rp-year-badge">{{ rp.year }}</span>
               </td>
               <td class="rp-td-center">
-                <span class="rp-count-badge">{{ rp._count?.contexts ?? 0 }}</span>
+                <span class="rp-count-badge">
+                  {{ rp._count?.programFrameworks ?? 0 }}
+                  <span class="rp-count-label">framework</span>
+                </span>
               </td>
               <td class="rp-td-center">
                 <span class="rp-status-chip" :class="`chip-${rp.status.toLowerCase()}`">
@@ -99,8 +90,46 @@
                 </span>
               </td>
               <td class="rp-td-center rp-td-actions">
+                <button
+                  class="btn-icon"
+                  type="button"
+                  title="Kelola Framework"
+                  @click="goToDetail(rp.id)"
+                >
+                  <i class="pi pi-sitemap" />
+                </button>
                 <button class="btn-icon" type="button" title="Edit" @click="openEdit(rp)">
                   <i class="pi pi-pencil" />
+                </button>
+                <button
+                  v-if="rp.status === 'DRAFT'"
+                  class="btn-icon btn-icon-success"
+                  type="button"
+                  title="Aktifkan"
+                  :disabled="statusActionLoading === rp.id"
+                  @click="doActivate(rp)"
+                >
+                  <i class="pi pi-play" />
+                </button>
+                <button
+                  v-if="rp.status === 'ACTIVE'"
+                  class="btn-icon btn-icon-warn"
+                  type="button"
+                  title="Nonaktifkan"
+                  :disabled="statusActionLoading === rp.id"
+                  @click="doDeactivate(rp)"
+                >
+                  <i class="pi pi-pause" />
+                </button>
+                <button
+                  v-if="rp.status === 'ACTIVE' || rp.status === 'CLOSED'"
+                  class="btn-icon"
+                  type="button"
+                  title="Kembalikan ke Draft"
+                  :disabled="statusActionLoading === rp.id"
+                  @click="doSetDraft(rp)"
+                >
+                  <i class="pi pi-undo" />
                 </button>
                 <button
                   class="btn-icon btn-icon-danger"
@@ -157,7 +186,7 @@
       v-model:visible="showFormDialog"
       modal
       :header="editTarget ? 'Edit Program Risiko' : 'Tambah Program Risiko'"
-      :style="{ width: '540px' }"
+      :style="{ width: '520px' }"
     >
       <form class="rp-form" @submit.prevent="submitForm">
 
@@ -174,45 +203,19 @@
           <span v-if="formErrors.name" class="form-err">{{ formErrors.name }}</span>
         </div>
 
-        <div class="form-row-2">
-          <div class="form-group">
-            <label class="form-label">Tahun <span class="req">*</span></label>
-            <input
-              v-model.number="form.year"
-              class="rp-field-input"
-              :class="{ 'is-error': formErrors.year }"
-              type="number"
-              placeholder="2025"
-              min="2000"
-              max="2100"
-              autocomplete="off"
-            />
-            <span v-if="formErrors.year" class="form-err">{{ formErrors.year }}</span>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Status</label>
-            <select v-model="form.status" class="rp-field-input rp-field-select">
-              <option v-for="(label, val) in RISK_PROGRAM_STATUS_LABELS" :key="val" :value="val">
-                {{ label }}
-              </option>
-            </select>
-          </div>
-        </div>
-
         <div class="form-group">
-          <label class="form-label">Framework <span class="req">*</span></label>
-          <select
-            v-model="form.frameworkId"
-            class="rp-field-input rp-field-select"
-            :class="{ 'is-error': formErrors.frameworkId }"
-          >
-            <option value="">— Pilih Framework —</option>
-            <option v-for="fw in activeFrameworks" :key="fw.id" :value="fw.id">
-              {{ fw.code }} — {{ fw.name }}
-            </option>
-          </select>
-          <span v-if="formErrors.frameworkId" class="form-err">{{ formErrors.frameworkId }}</span>
+          <label class="form-label">Tahun <span class="req">*</span></label>
+          <input
+            v-model.number="form.year"
+            class="rp-field-input"
+            :class="{ 'is-error': formErrors.year }"
+            type="number"
+            placeholder="2025"
+            min="2000"
+            max="2100"
+            autocomplete="off"
+          />
+          <span v-if="formErrors.year" class="form-err">{{ formErrors.year }}</span>
         </div>
 
         <div class="form-group">
@@ -224,6 +227,11 @@
             rows="3"
             autocomplete="off"
           />
+        </div>
+
+        <div v-if="!editTarget" class="rp-info-box">
+          <i class="pi pi-info-circle" />
+          <span>Setelah program dibuat, tambahkan framework melalui halaman detail program.</span>
         </div>
 
         <div v-if="formApiError" class="rp-alert-error">
@@ -240,7 +248,7 @@
             @click="showFormDialog = false"
           />
           <Button
-            :label="editTarget ? 'Simpan Perubahan' : 'Tambah'"
+            :label="editTarget ? 'Simpan Perubahan' : 'Buat Program'"
             type="submit"
             :loading="formLoading"
           />
@@ -263,8 +271,8 @@
           Hapus program <strong>{{ deleteTarget?.name }}</strong>?
         </p>
         <p class="del-warn">
-          Tindakan ini tidak dapat dibatalkan. Program tidak dapat dihapus jika masih memiliki
-          konteks risiko yang terkait.
+          Tindakan ini tidak dapat dibatalkan. Program hanya dapat dihapus jika belum memiliki
+          framework yang terdaftar.
         </p>
         <div v-if="deleteApiError" class="rp-alert-error">
           <i class="pi pi-exclamation-triangle" />
@@ -287,42 +295,26 @@
       </template>
     </Dialog>
 
-    <Toast />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import ProgressSpinner from 'primevue/progressspinner'
-import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
 import {
   riskProgramApi,
   RISK_PROGRAM_STATUS_LABELS,
   type RiskProgram,
-  type PaginationMeta,
 } from '@/api/riskProgram'
-import { frameworkApi, type Framework } from '@/api/framework'
 import { extractApiError } from '@/utils/apiError'
+import { usePagination } from '@/composables/usePagination'
 
 const toast = useToast()
-
-// ─── Framework list (for dropdowns) ──────────────────────────────────────────
-
-const frameworks = ref<Framework[]>([])
-
-const activeFrameworks = computed(() => frameworks.value.filter((fw) => fw.isActive))
-
-async function loadFrameworks() {
-  try {
-    const res = await frameworkApi.search({ limit: 100 })
-    frameworks.value = res.data.data ?? []
-  } catch {
-    // non-critical; dropdown will be empty
-  }
-}
+const router = useRouter()
 
 // ─── Year options ─────────────────────────────────────────────────────────────
 
@@ -336,15 +328,12 @@ const yearOptions = computed(() => {
 // ─── List state ───────────────────────────────────────────────────────────────
 
 const programs = ref<RiskProgram[]>([])
-const pagination = ref<PaginationMeta | null>(null)
 const loading = ref(false)
 const fetchError = ref('')
 const searchQuery = ref('')
 const filterYear = ref<number | ''>('')
-const filterFrameworkId = ref('')
 const filterStatus = ref('')
-const currentPage = ref(1)
-const PAGE_LIMIT = 15
+const { currentPage, pagination, pageNumbers, PAGE_LIMIT } = usePagination()
 
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -358,15 +347,21 @@ const form = reactive({
   name: '',
   description: '',
   year: currentYear,
-  frameworkId: '',
-  status: 'DRAFT' as RiskProgram['status'],
 })
-const formErrors = reactive({ name: '', year: '', frameworkId: '' })
+
+const statusActionLoading = ref<string | null>(null)
+const formErrors = reactive({ name: '', year: '' })
 
 const showDeleteDialog = ref(false)
 const deleteTarget = ref<RiskProgram | null>(null)
 const deleteLoading = ref(false)
 const deleteApiError = ref('')
+
+// ─── Navigation ───────────────────────────────────────────────────────────────
+
+function goToDetail(id: string) {
+  router.push({ name: 'risk-program-detail', params: { id } })
+}
 
 // ─── Fetch ────────────────────────────────────────────────────────────────────
 
@@ -377,7 +372,6 @@ async function fetchData() {
     const params: Record<string, any> = { page: currentPage.value, limit: PAGE_LIMIT }
     if (searchQuery.value) params.name = searchQuery.value
     if (filterYear.value !== '') params.year = filterYear.value
-    if (filterFrameworkId.value) params.frameworkId = filterFrameworkId.value
     if (filterStatus.value) params.status = filterStatus.value
 
     const res = await riskProgramApi.search(params)
@@ -414,33 +408,14 @@ function changePage(page: number) {
   fetchData()
 }
 
-// ─── Pagination numbers ───────────────────────────────────────────────────────
-
-const pageNumbers = computed<(number | string)[]>(() => {
-  if (!pagination.value) return []
-  const total = pagination.value.totalPages
-  const cur = currentPage.value
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-
-  const pages: (number | string)[] = [1]
-  if (cur > 3) pages.push('...')
-  for (let i = Math.max(2, cur - 1); i <= Math.min(total - 1, cur + 1); i++) pages.push(i)
-  if (cur < total - 2) pages.push('...')
-  pages.push(total)
-  return pages
-})
-
 // ─── Create / Edit ────────────────────────────────────────────────────────────
 
 function resetForm() {
   form.name = ''
   form.description = ''
   form.year = currentYear
-  form.frameworkId = ''
-  form.status = 'DRAFT'
   formErrors.name = ''
   formErrors.year = ''
-  formErrors.frameworkId = ''
   formApiError.value = ''
 }
 
@@ -455,11 +430,8 @@ function openEdit(rp: RiskProgram) {
   form.name = rp.name
   form.description = rp.description ?? ''
   form.year = rp.year
-  form.frameworkId = rp.frameworkId
-  form.status = rp.status
   formErrors.name = ''
   formErrors.year = ''
-  formErrors.frameworkId = ''
   formApiError.value = ''
   showFormDialog.value = true
 }
@@ -467,7 +439,6 @@ function openEdit(rp: RiskProgram) {
 function validateForm(): boolean {
   formErrors.name = ''
   formErrors.year = ''
-  formErrors.frameworkId = ''
   let valid = true
 
   if (!form.name.trim()) {
@@ -486,11 +457,6 @@ function validateForm(): boolean {
     valid = false
   }
 
-  if (!form.frameworkId) {
-    formErrors.frameworkId = 'Framework wajib dipilih'
-    valid = false
-  }
-
   return valid
 }
 
@@ -503,16 +469,17 @@ async function submitForm() {
       name: form.name.trim(),
       description: form.description.trim() || undefined,
       year: form.year,
-      frameworkId: form.frameworkId,
-      status: form.status,
     }
 
     if (editTarget.value) {
       await riskProgramApi.update(editTarget.value.id, payload)
       toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Program risiko berhasil diperbarui', life: 3000 })
     } else {
-      await riskProgramApi.create(payload)
-      toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Program risiko berhasil ditambahkan', life: 3000 })
+      const res = await riskProgramApi.create(payload)
+      toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Program risiko berhasil dibuat', life: 3000 })
+      showFormDialog.value = false
+      router.push({ name: 'risk-program-detail', params: { id: res.data.data.id } })
+      return
     }
     showFormDialog.value = false
     fetchData()
@@ -520,6 +487,47 @@ async function submitForm() {
     formApiError.value = extractApiError(err, 'Terjadi kesalahan. Coba lagi.')
   } finally {
     formLoading.value = false
+  }
+}
+
+// ─── Status actions ───────────────────────────────────────────────────────────
+
+async function doActivate(rp: RiskProgram) {
+  statusActionLoading.value = rp.id
+  try {
+    await riskProgramApi.activate(rp.id)
+    toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Program risiko berhasil diaktifkan', life: 3000 })
+    fetchData()
+  } catch (err: any) {
+    toast.add({ severity: 'error', summary: 'Gagal', detail: extractApiError(err, 'Gagal mengaktifkan program risiko.'), life: 5000 })
+  } finally {
+    statusActionLoading.value = null
+  }
+}
+
+async function doDeactivate(rp: RiskProgram) {
+  statusActionLoading.value = rp.id
+  try {
+    await riskProgramApi.deactivate(rp.id)
+    toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Program risiko berhasil dinonaktifkan', life: 3000 })
+    fetchData()
+  } catch (err: any) {
+    toast.add({ severity: 'error', summary: 'Gagal', detail: extractApiError(err, 'Gagal menonaktifkan program risiko.'), life: 5000 })
+  } finally {
+    statusActionLoading.value = null
+  }
+}
+
+async function doSetDraft(rp: RiskProgram) {
+  statusActionLoading.value = rp.id
+  try {
+    await riskProgramApi.setDraft(rp.id)
+    toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Program risiko dikembalikan ke Draft', life: 3000 })
+    fetchData()
+  } catch (err: any) {
+    toast.add({ severity: 'error', summary: 'Gagal', detail: extractApiError(err, 'Gagal mengubah status program risiko.'), life: 5000 })
+  } finally {
+    statusActionLoading.value = null
   }
 }
 
@@ -551,7 +559,6 @@ async function submitDelete() {
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 onMounted(() => {
-  loadFrameworks()
   fetchData()
 })
 </script>
@@ -722,7 +729,7 @@ onMounted(() => {
 }
 
 .rp-td-name {
-  max-width: 280px;
+  max-width: 360px;
 }
 
 .rp-name {
@@ -738,31 +745,7 @@ onMounted(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 260px;
-}
-
-.rp-td-framework {
-  min-width: 160px;
-}
-
-.rp-fw-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 1px 7px;
-  font-size: 10px;
-  font-family: var(--font-mono);
-  font-weight: 500;
-  background: var(--color-bg-input);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-accent);
-  letter-spacing: 0.05em;
-  margin-right: 6px;
-}
-
-.rp-fw-name {
-  font-size: 12px;
-  color: var(--color-text-dim);
+  max-width: 340px;
 }
 
 .rp-td-center {
@@ -783,17 +766,22 @@ onMounted(() => {
 .rp-count-badge {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   justify-content: center;
-  min-width: 24px;
-  height: 20px;
-  padding: 0 6px;
+  padding: 2px 10px;
   font-size: 11px;
   font-family: var(--font-mono);
-  font-weight: 500;
+  font-weight: 600;
   background: var(--color-bg-input);
   border: 1px solid var(--color-border);
   border-radius: 100px;
   color: var(--color-text-dim);
+}
+
+.rp-count-label {
+  font-family: var(--font-body);
+  font-weight: 400;
+  color: var(--color-text-muted);
 }
 
 .rp-status-chip {
@@ -830,34 +818,6 @@ onMounted(() => {
   border: 1px solid var(--color-border);
 }
 
-/* ─── Row action buttons ──────────────────────────────────────────────────── */
-
-.btn-icon {
-  width: 28px;
-  height: 28px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-text-dim);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  transition: all 0.15s;
-}
-
-.btn-icon:hover {
-  background: var(--color-accent-glow);
-  border-color: rgba(0, 229, 184, 0.2);
-  color: var(--color-accent);
-}
-
-.btn-icon-danger:hover {
-  background: var(--color-danger-dim);
-  border-color: rgba(255, 77, 109, 0.3);
-  color: var(--color-danger);
-}
 
 /* ─── Pagination ──────────────────────────────────────────────────────────── */
 
@@ -1032,6 +992,26 @@ onMounted(() => {
   color: #ff8fa3;
 }
 
+.rp-info-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.65rem 0.875rem;
+  font-size: 12px;
+  color: var(--color-text-dim);
+  background: rgba(0, 229, 184, 0.05);
+  border: 1px solid rgba(0, 229, 184, 0.15);
+  border-radius: var(--radius-sm);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.rp-info-box .pi {
+  color: var(--color-accent);
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
 .rp-alert-error {
   display: flex;
   align-items: flex-start;
@@ -1053,44 +1033,22 @@ onMounted(() => {
   margin-top: 0.5rem;
 }
 
-/* ─── Delete dialog ───────────────────────────────────────────────────────── */
-
-.del-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 0.5rem 0 1rem;
-  gap: 0.75rem;
+.btn-icon-success {
+  color: var(--color-accent);
 }
 
-.del-icon-wrap {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: var(--color-danger-dim);
-  border: 1px solid rgba(255, 77, 109, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.btn-icon-success:hover {
+  background: rgba(0, 229, 184, 0.1);
+  border-color: rgba(0, 229, 184, 0.3);
 }
 
-.del-icon-wrap .pi {
-  font-size: 1.4rem;
-  color: var(--color-danger);
+.btn-icon-warn {
+  color: #fb923c;
 }
 
-.del-text {
-  font-size: 14px;
-  color: var(--color-text);
-  margin: 0;
+.btn-icon-warn:hover {
+  background: rgba(251, 146, 60, 0.1);
+  border-color: rgba(251, 146, 60, 0.3);
 }
 
-.del-warn {
-  font-size: 12px;
-  color: var(--color-text-dim);
-  margin: 0;
-  line-height: 1.6;
-  max-width: 340px;
-}
 </style>

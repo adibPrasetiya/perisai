@@ -1,4 +1,7 @@
 import apiClient from './client'
+import type { PaginationMeta } from '@/types'
+
+export type { PaginationMeta }
 
 export interface AssetCategory {
   id: string
@@ -9,15 +12,6 @@ export interface AssetCategory {
   _count?: {
     assets: number
   }
-}
-
-export interface PaginationMeta {
-  page: number
-  limit: number
-  totalItems: number
-  totalPages: number
-  hasNextPage: boolean
-  hasPrevPage: boolean
 }
 
 export const assetCategoryApi = {

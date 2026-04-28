@@ -1,38 +1,38 @@
 import apiClient from './client'
+import type { PaginationMeta } from '@/types'
+
+export type { PaginationMeta }
+
+export interface ProgramFrameworkSummary {
+  id: string
+  frameworkId: string
+  status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'
+  framework: {
+    id: string
+    code: string
+    name: string
+    version?: string | null
+  }
+  _count?: { riskContexts: number }
+}
 
 export interface RiskProgram {
   id: string
   name: string
   description: string | null
   year: number
-  frameworkId: string
   status: 'DRAFT' | 'ACTIVE' | 'CLOSED' | 'ARCHIVED'
   createdAt: string
   updatedAt: string
   createdBy: string | null
   updatedBy: string | null
-  framework?: {
-    id: string
-    code: string
-    name: string
-    version?: string | null
-  }
-  _count?: { contexts: number }
-}
-
-export interface PaginationMeta {
-  page: number
-  limit: number
-  totalItems: number
-  totalPages: number
-  hasNextPage: boolean
-  hasPrevPage: boolean
+  programFrameworks?: ProgramFrameworkSummary[]
+  _count?: { programFrameworks: number }
 }
 
 export interface RiskProgramSearchParams {
   name?: string
   year?: number
-  frameworkId?: string
   status?: string
   page?: number
   limit?: number
@@ -57,30 +57,27 @@ export const riskProgramApi = {
     return apiClient.get<{ message: string; data: RiskProgram }>(`/risk-programs/${id}`)
   },
 
-  create(data: {
-    name: string
-    description?: string
-    year: number
-    frameworkId: string
-    status?: string
-  }) {
+  create(data: { name: string; description?: string; year: number }) {
     return apiClient.post<{ message: string; data: RiskProgram }>('/risk-programs', data)
   },
 
-  update(
-    id: string,
-    data: {
-      name?: string
-      description?: string
-      year?: number
-      frameworkId?: string
-      status?: string
-    },
-  ) {
+  update(id: string, data: { name?: string; description?: string; year?: number }) {
     return apiClient.patch<{ message: string; data: RiskProgram }>(`/risk-programs/${id}`, data)
   },
 
   remove(id: string) {
     return apiClient.delete<{ message: string }>(`/risk-programs/${id}`)
+  },
+
+  activate(id: string) {
+    return apiClient.post<{ message: string; data: RiskProgram }>(`/risk-programs/${id}/activate`)
+  },
+
+  deactivate(id: string) {
+    return apiClient.post<{ message: string; data: RiskProgram }>(`/risk-programs/${id}/deactivate`)
+  },
+
+  setDraft(id: string) {
+    return apiClient.post<{ message: string; data: RiskProgram }>(`/risk-programs/${id}/set-draft`)
   },
 }

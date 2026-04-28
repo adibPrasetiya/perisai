@@ -1,5 +1,5 @@
 import { prismaClient } from "../src/core/lib/database.lib.js";
-import { hash } from "../src/utils/password.lib.js";
+import { hash } from "../src/core/lib/password.lib.js";
 
 async function main() {
   console.log("🌱 Memulai seeding database...\n");
@@ -10,7 +10,6 @@ async function main() {
   await prismaClient.businessProcess.deleteMany();
   await prismaClient.asset.deleteMany();
   await prismaClient.assetCategory.deleteMany();
-  await prismaClient.konteks.deleteMany();
   await prismaClient.profile.deleteMany();
   await prismaClient.session.deleteMany();
   await prismaClient.userRole.deleteMany();

@@ -11,19 +11,30 @@
     </p>
   </div>
 
-  <div class="menu-grid">
-    <div
-      v-for="item in menuItems"
-      :key="item.label"
-      class="menu-card"
-      :class="{ 'is-clickable': !!item.to, 'is-disabled': item.adminOnly && !auth.isAdmin }"
-      @click="item.to && !item.adminOnly || (item.adminOnly && auth.isAdmin) ? router.push(item.to!) : undefined"
-    >
-      <i :class="item.icon" class="menu-icon" />
-      <div class="menu-label">{{ item.label }}</div>
-      <div class="menu-desc">{{ item.desc }}</div>
-      <div v-if="item.adminOnly && !auth.isAdmin" class="menu-lock">
-        <i class="pi pi-lock" /> Hanya Administrator
+  <div class="menu-sections">
+    <div v-for="section in menuSections" :key="section.role" class="menu-section">
+      <div class="section-label">{{ section.label }}</div>
+      <div class="menu-grid">
+        <div
+          v-for="item in section.items"
+          :key="item.label"
+          class="menu-card"
+          :class="{
+            'is-clickable': hasRole(section.role) && !!item.to,
+            'is-disabled': !hasRole(section.role) || !item.to,
+          }"
+          @click="hasRole(section.role) && item.to ? router.push(item.to) : undefined"
+        >
+          <i :class="item.icon" class="menu-icon" />
+          <div class="menu-label">{{ item.label }}</div>
+          <div class="menu-desc">{{ item.desc }}</div>
+          <div v-if="!hasRole(section.role)" class="menu-lock">
+            <i class="pi pi-lock" /> Hanya {{ section.label }}
+          </div>
+          <div v-else-if="!item.to" class="menu-lock">
+            <i class="pi pi-clock" /> Segera hadir
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -39,53 +50,105 @@ const auth = useAuthStore()
 
 const displayName = computed(() => auth.user?.name || auth.user?.username || 'Pengguna')
 
-const menuItems = [
+function hasRole(role: string): boolean {
+  if (auth.user?.roles?.includes('ADMINISTRATOR')) return true
+  return auth.user?.roles?.includes(role) ?? false
+}
+
+const menuSections = [
   {
-    icon: 'pi pi-shield',
-    label: 'Manajemen Risiko',
-    desc: 'Identifikasi dan pantau risiko organisasi.',
-    to: '/risk-programs',
-    adminOnly: false,
+    role: 'KOMITE_PUSAT',
+    label: 'Komite Pusat',
+    items: [
+      {
+        icon: 'pi pi-gauge',
+        label: 'Dashboard Monitoring',
+        desc: 'Pantau dan monitoring daftar risiko keamanan di seluruh unit kerja secara terpusat.',
+        to: '/dashboard',
+      },
+      {
+        icon: 'pi pi-list-check',
+        label: 'Framework Risiko',
+        desc: 'Kelola framework standar analisis risiko yang digunakan dalam program kerja.',
+        to: '/frameworks',
+      },
+      {
+        icon: 'pi pi-briefcase',
+        label: 'Program Kerja Risiko',
+        desc: 'Susun program kerja, tetapkan framework, dan konfigurasikan konteks penilaian risiko.',
+        to: '/risk-programs',
+      },
+      {
+        icon: 'pi pi-chart-bar',
+        label: 'Laporan',
+        desc: 'Laporan dan analitik risiko terkini lintas unit kerja.',
+        to: null,
+      },
+    ],
   },
   {
-    icon: 'pi pi-server',
-    label: 'Aset',
-    desc: 'Kelola dan pantau aset organisasi per unit kerja.',
-    to: '/assets',
-    adminOnly: false,
+    role: 'PENGELOLA_RISIKO_UKER',
+    label: 'Pengelola Risiko Unit Kerja',
+    items: [
+      {
+        icon: 'pi pi-server',
+        label: 'Aset',
+        desc: 'Kelola dan pantau aset organisasi per unit kerja.',
+        to: '/assets',
+      },
+      {
+        icon: 'pi pi-sitemap',
+        label: 'Proses Bisnis',
+        desc: 'Kelola dan pantau proses bisnis organisasi per unit kerja.',
+        to: '/proses-bisnis',
+      },
+      {
+        icon: 'pi pi-file-edit',
+        label: 'Kertas Kerja',
+        desc: 'Buat dan kelola kertas kerja manajemen risiko berdasarkan program kerja aktif.',
+        to: '/working-papers',
+      },
+    ],
   },
   {
-    icon: 'pi pi-sitemap',
-    label: 'Proses Bisnis',
-    desc: 'Kelola dan pantau proses bisnis organisasi per unit kerja.',
-    to: '/proses-bisnis',
-    adminOnly: false,
-  },
-  {
-    icon: 'pi pi-chart-bar',
-    label: 'Laporan',
-    desc: 'Laporan dan analitik risiko terkini.',
-    to: null,
-    adminOnly: false,
-  },
-  {
-    icon: 'pi pi-users',
-    label: 'Pengguna',
-    desc: 'Kelola akun dan hak akses pengguna.',
-    to: '/admin/users',
-    adminOnly: true,
-  },
-  {
-    icon: 'pi pi-cog',
-    label: 'Pengaturan',
-    desc: 'Konfigurasi sistem dan preferensi.',
-    to: '/admin/settings',
-    adminOnly: true,
+    role: 'ADMINISTRATOR',
+    label: 'Administrator',
+    items: [
+      {
+        icon: 'pi pi-users',
+        label: 'Pengguna',
+        desc: 'Kelola akun dan hak akses pengguna.',
+        to: '/admin/users',
+      },
+      {
+        icon: 'pi pi-cog',
+        label: 'Pengaturan',
+        desc: 'Konfigurasi sistem dan preferensi.',
+        to: '/admin/settings',
+      },
+    ],
   },
 ]
 </script>
 
 <style scoped>
+.menu-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.menu-section {}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  margin-bottom: 0.75rem;
+}
+
 .menu-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));

@@ -1,4 +1,7 @@
 import apiClient from './client'
+import type { PaginationMeta } from '@/types'
+
+export type { PaginationMeta }
 
 export type ProsesBisnisStatus = 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'
 
@@ -12,15 +15,6 @@ export interface ProsesBisnis {
   createdAt: string
   updatedAt: string
   unitKerja: { id: string; name: string; code: string }
-}
-
-export interface PaginationMeta {
-  page: number
-  limit: number
-  totalItems: number
-  totalPages: number
-  hasNextPage: boolean
-  hasPrevPage: boolean
 }
 
 export interface ProsesBisnisSearchParams {

@@ -20,18 +20,7 @@ const createRiskProgramSchema = Joi.object({
     "number.max": "Tahun maksimal 2100",
     "any.required": "Tahun wajib diisi",
   }),
-
-  frameworkId: Joi.string().required().messages({
-    "string.empty": "ID framework tidak boleh kosong",
-    "any.required": "ID framework wajib diisi",
-  }),
-
-  status: Joi.string()
-    .valid(...Object.values(RISK_PROGRAM_STATUSES))
-    .default(RISK_PROGRAM_STATUSES.DRAFT)
-    .messages({
-      "any.only": `Status harus salah satu dari: ${Object.values(RISK_PROGRAM_STATUSES).join(", ")}`,
-    }),
+  // status intentionally excluded — new programs always start as DRAFT
 });
 
 const updateRiskProgramSchema = Joi.object({
@@ -51,16 +40,7 @@ const updateRiskProgramSchema = Joi.object({
     "number.min": "Tahun minimal 2000",
     "number.max": "Tahun maksimal 2100",
   }),
-
-  frameworkId: Joi.string().messages({
-    "string.empty": "ID framework tidak boleh kosong",
-  }),
-
-  status: Joi.string()
-    .valid(...Object.values(RISK_PROGRAM_STATUSES))
-    .messages({
-      "any.only": `Status harus salah satu dari: ${Object.values(RISK_PROGRAM_STATUSES).join(", ")}`,
-    }),
+  // status intentionally excluded — use dedicated activate/deactivate/set-draft endpoints
 }).min(1);
 
 const searchRiskProgramSchema = Joi.object({
@@ -71,10 +51,6 @@ const searchRiskProgramSchema = Joi.object({
   year: Joi.number().integer().min(2000).max(2100).messages({
     "number.base": "Tahun harus berupa angka",
     "number.integer": "Tahun harus berupa bilangan bulat",
-  }),
-
-  frameworkId: Joi.string().messages({
-    "string.empty": "ID framework tidak boleh kosong",
   }),
 
   status: Joi.string()

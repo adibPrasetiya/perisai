@@ -9,6 +9,15 @@ const create = async (req, res, next) => {
   }
 };
 
+const getById = async (req, res, next) => {
+  try {
+    const result = await frameworkService.getById(req.params.frameworkId);
+    res.status(200).json({ message: result.message, data: result.data }).end();
+  } catch (error) {
+    next(error);
+  }
+};
+
 const search = async (req, res, next) => {
   try {
     const result = await frameworkService.search(req.query);
@@ -64,4 +73,4 @@ const remove = async (req, res, next) => {
   }
 };
 
-export default { create, search, update, activate, deactivate, remove };
+export default { create, search, getById, update, activate, deactivate, remove };

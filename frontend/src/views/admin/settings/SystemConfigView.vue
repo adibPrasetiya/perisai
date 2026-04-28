@@ -108,14 +108,12 @@
       </div>
     </template>
 
-    <Toast />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import ProgressSpinner from 'primevue/progressspinner'
-import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
 import { systemConfigApi, type SystemConfig } from '@/api/systemConfig'
 import { extractApiError } from '@/utils/apiError'

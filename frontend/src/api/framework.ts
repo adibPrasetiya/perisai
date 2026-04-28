@@ -1,4 +1,7 @@
 import apiClient from './client'
+import type { PaginationMeta } from '@/types'
+
+export type { PaginationMeta }
 
 export interface Framework {
   id: string
@@ -9,16 +12,7 @@ export interface Framework {
   isActive: boolean
   createdAt: string
   updatedAt: string
-  _count?: { riskPrograms: number }
-}
-
-export interface PaginationMeta {
-  page: number
-  limit: number
-  totalItems: number
-  totalPages: number
-  hasNextPage: boolean
-  hasPrevPage: boolean
+  _count?: { programFrameworks: number; riskContexts: number }
 }
 
 export interface FrameworkSearchParams {
@@ -30,6 +24,10 @@ export interface FrameworkSearchParams {
 }
 
 export const frameworkApi = {
+  getById(id: string) {
+    return apiClient.get<{ message: string; data: Framework }>(`/frameworks/${id}`)
+  },
+
   search(params?: FrameworkSearchParams) {
     return apiClient.get<{ message: string; data: Framework[]; pagination: PaginationMeta }>(
       '/frameworks',
@@ -58,5 +56,11 @@ export const frameworkApi = {
 
   remove(id: string) {
     return apiClient.delete<{ message: string }>(`/frameworks/${id}`)
+  },
+
+  listProgramFrameworks(frameworkId: string) {
+    return apiClient.get<{ message: string; data: any[] }>(
+      `/frameworks/${frameworkId}/program-frameworks`,
+    )
   },
 }

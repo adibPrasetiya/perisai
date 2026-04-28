@@ -1,4 +1,7 @@
 import apiClient from './client'
+import type { PaginationMeta } from '@/types'
+
+export type { PaginationMeta }
 
 export type AssetStatus = 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'
 
@@ -13,15 +16,6 @@ export interface Asset {
   updatedAt: string
   unitKerja: { id: string; name: string; code: string }
   category: { id: string; name: string }
-}
-
-export interface PaginationMeta {
-  page: number
-  limit: number
-  totalItems: number
-  totalPages: number
-  hasNextPage: boolean
-  hasPrevPage: boolean
 }
 
 export interface AssetSearchParams {

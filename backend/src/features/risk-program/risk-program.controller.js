@@ -56,4 +56,31 @@ const remove = async (req, res, next) => {
   }
 };
 
-export default { create, search, getById, update, remove };
+const activate = async (req, res, next) => {
+  try {
+    const result = await riskProgramService.activate(req.params.riskProgramId, req.user?.id);
+    res.status(200).json({ message: result.message, data: result.data }).end();
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deactivate = async (req, res, next) => {
+  try {
+    const result = await riskProgramService.deactivate(req.params.riskProgramId, req.user?.id);
+    res.status(200).json({ message: result.message, data: result.data }).end();
+  } catch (error) {
+    next(error);
+  }
+};
+
+const setDraft = async (req, res, next) => {
+  try {
+    const result = await riskProgramService.setDraft(req.params.riskProgramId, req.user?.id);
+    res.status(200).json({ message: result.message, data: result.data }).end();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export default { create, search, getById, update, remove, activate, deactivate, setDraft };

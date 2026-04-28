@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -12,6 +9,10 @@ generator client {
 datasource db {
   provider = "mysql"
 }
+
+// =============================================================================
+// AUTH & USER MODELS
+// =============================================================================
 
 model User {
   id                 String     @id @default(cuid())
@@ -44,7 +45,7 @@ model Role {
   description String?    @db.Text
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
-  userRoles   UserRole[] // Many-to-many dengan User
+  userRoles   UserRole[]
 
   @@map("roles")
 }
@@ -65,13 +66,13 @@ model UserRole {
 
 model Session {
   id           String   @id @default(cuid())
-  userId       String   @unique // User hanya bisa punya 1 session aktif
+  userId       String   @unique
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  refreshToken String   @unique @db.VarChar(500) // Refresh token (hashed)
-  deviceId     String   @db.VarChar(255) // Device identifier untuk tracking
-  deviceName   String?  @db.VarChar(255) // Nama device (misal: "Chrome on Windows")
-  userAgent    String?  @db.Text // User agent string
-  ipAddress    String?  @db.VarChar(45) // IPv4 atau IPv6
+  refreshToken String   @unique @db.VarChar(500)
+  deviceId     String   @db.VarChar(255)
+  deviceName   String?  @db.VarChar(255)
+  userAgent    String?  @db.Text
+  ipAddress    String?  @db.VarChar(45)
   expiresAt    DateTime
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -81,17 +82,21 @@ model Session {
   @@map("sessions")
 }
 
+// =============================================================================
+// ORGANIZATION MODELS
+// =============================================================================
+
 model UnitKerja {
-  id                String            @id @default(cuid())
-  name              String            @db.VarChar(255)
-  code              String            @unique @db.VarChar(100)
-  email             String            @db.VarChar(255)
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  id                String             @id @default(cuid())
+  name              String             @db.VarChar(255)
+  code              String             @unique @db.VarChar(100)
+  email             String             @db.VarChar(255)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
   profiles          Profile[]
   assets            Asset[]
   businessProcesses BusinessProcess[]
-  riskContexts      RiskContext[]
+  workingPapers     WorkingPaper[]
 
   @@index([code])
   @@map("unit_kerja")
@@ -99,26 +104,27 @@ model UnitKerja {
 
 model Profile {
   id          String    @id @default(cuid())
-  userId      String    @unique // One-to-one dengan User
+  userId      String    @unique
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   jabatan     String    @db.VarChar(255)
   unitKerjaId String
   unitKerja   UnitKerja @relation(fields: [unitKerjaId], references: [id], onDelete: Restrict)
-  nomorHP     String?   @db.VarChar(20) // Optional
-
-  // Verification fields
-  isVerified Boolean   @default(false)
-  verifiedAt DateTime?
-  verifiedBy String? // userId admin yang memverifikasi
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  nomorHP     String?   @db.VarChar(20)
+  isVerified  Boolean   @default(false)
+  verifiedAt  DateTime?
+  verifiedBy  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([userId])
   @@index([unitKerjaId])
   @@index([isVerified])
   @@map("profiles")
 }
+
+// =============================================================================
+// ASSET & PROCESS MODELS
+// =============================================================================
 
 model AssetCategory {
   id          String   @id @default(cuid())
@@ -132,23 +138,22 @@ model AssetCategory {
 }
 
 model Asset {
-  id          String        @id @default(cuid())
-  unitKerjaId String
-  unitKerja   UnitKerja     @relation(fields: [unitKerjaId], references: [id], onDelete: Restrict)
-  categoryId  String
-  category    AssetCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-
-  name        String      @db.VarChar(255)
-  code        String      @db.VarChar(100)
-  description String?     @db.Text
-  owner       String?     @db.VarChar(255)
-  status      AssetStatus @default(ACTIVE)
-
+  id            String         @id @default(cuid())
+  unitKerjaId   String
+  unitKerja     UnitKerja      @relation(fields: [unitKerjaId], references: [id], onDelete: Restrict)
+  categoryId    String
+  category      AssetCategory  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  name          String         @db.VarChar(255)
+  code          String         @db.VarChar(100)
+  description   String?        @db.Text
+  owner         String?        @db.VarChar(255)
+  status        AssetStatus    @default(ACTIVE)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   createdBy     String?
   updatedBy     String?
   contextAssets ContextAsset[]
+  riskEntries   RiskEntry[]
 
   @@unique([unitKerjaId, code])
   @@index([unitKerjaId])
@@ -158,22 +163,20 @@ model Asset {
 }
 
 model BusinessProcess {
-  id          String    @id @default(cuid())
-  unitKerjaId String
-  unitKerja   UnitKerja @relation(fields: [unitKerjaId], references: [id], onDelete: Restrict)
-
-  name        String  @db.VarChar(255)
-  code        String  @db.VarChar(100)
-  description String? @db.Text
-
-  owner  String?       @db.VarChar(255)
-  status ProcessStatus @default(ACTIVE)
-
+  id               String           @id @default(cuid())
+  unitKerjaId      String
+  unitKerja        UnitKerja        @relation(fields: [unitKerjaId], references: [id], onDelete: Restrict)
+  name             String           @db.VarChar(255)
+  code             String           @db.VarChar(100)
+  description      String?          @db.Text
+  owner            String?          @db.VarChar(255)
+  status           ProcessStatus    @default(ACTIVE)
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
   createdBy        String?
   updatedBy        String?
   contextProcesses ContextProcess[]
+  riskEntries      RiskEntry[]
 
   @@unique([unitKerjaId, code])
   @@index([unitKerjaId])
@@ -181,123 +184,501 @@ model BusinessProcess {
   @@map("business_processes")
 }
 
+// =============================================================================
+// RISK MANAGEMENT MODELS
+// =============================================================================
+
+/// Master daftar framework manajemen risiko yang tersedia di sistem.
+/// Bersifat reusable — satu Framework dapat digunakan di banyak RiskProgram.
+/// Contoh: ISO 31000, ISO 27005, SPBE, SPIP
 model Framework {
-  id          String  @id @default(cuid())
-  code        String  @unique @db.VarChar(100)
-  name        String  @db.VarChar(255)
-  version     String? @db.VarChar(50)
-  description String? @db.Text
-  isActive    Boolean @default(true)
-
-  riskPrograms RiskProgram[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String             @id @default(cuid())
+  code              String             @unique @db.VarChar(100)
+  name              String             @db.VarChar(255)
+  version           String?            @db.VarChar(50)
+  description       String?            @db.Text
+  isActive          Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  programFrameworks ProgramFramework[]
+  riskContexts      RiskContext[]
 
   @@index([code])
+  @@index([isActive])
   @@map("frameworks")
 }
 
+/// Program manajemen risiko tahunan institusi.
+/// Satu program dapat menggunakan BANYAK framework sekaligus via ProgramFramework.
+/// Contoh: "Manajemen Risiko Instansi 2026" → SPBE + SPIP + ISO 27001
 model RiskProgram {
-  id String @id @default(cuid())
+  id                String             @id @default(cuid())
+  name              String             @db.VarChar(255)
+  description       String?            @db.Text
+  year              Int
+  status            RiskProgramStatus  @default(DRAFT)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  createdBy         String?
+  updatedBy         String?
+  programFrameworks ProgramFramework[]
+  workingPapers     WorkingPaper[]
 
-  name        String  @db.VarChar(255)
-  description String? @db.Text
-  year        Int
-
-  frameworkId String
-  framework   Framework @relation(fields: [frameworkId], references: [id], onDelete: Restrict)
-
-  status RiskProgramStatus @default(DRAFT)
-
-  contexts RiskContext[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  createdBy String?
-  updatedBy String?
-
-  @@index([frameworkId])
   @@index([year])
+  @@index([status])
   @@map("risk_programs")
 }
 
-model RiskContext {
-  id          String  @id @default(cuid())
-  name        String  @db.VarChar(255)
-  code        String  @unique @db.VarChar(100)
-  description String? @db.Text
+/// Join table antara RiskProgram dan Framework.
+/// Menyimpan konfigurasi matrix spesifik per framework dalam satu program.
+/// Contoh: Program 2026 + SPBE = matrix 5x5, Program 2026 + ISO = matrix 4x4
+model ProgramFramework {
+  id          String                 @id @default(cuid())
+  programId   String
+  program     RiskProgram            @relation(fields: [programId], references: [id], onDelete: Cascade)
+  frameworkId String
+  framework   Framework              @relation(fields: [frameworkId], references: [id], onDelete: Restrict)
 
-  riskProgramId String
-  riskProgram   RiskProgram @relation(fields: [riskProgramId], references: [id], onDelete: Cascade)
+  status       ProgramFrameworkStatus @default(ACTIVE)
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  createdBy    String?
+  updatedBy    String?
+  programFrameworkContexts ProgramFrameworkContext[]
 
-  unitKerjaId String?
-  unitKerja   UnitKerja? @relation(fields: [unitKerjaId], references: [id], onDelete: Restrict)
-
-  contextType ContextType
-
-  // Periode konteks
-  periodStart Int
-  periodEnd   Int
-
-  // Matrix size
-  matrixSize Int @default(5)
-
-  // System default
-  isSystemDefault Boolean @default(false)
-
-  // Risk Appetite
-  riskAppetiteLevel       String? @db.VarChar(100)
-  riskAppetiteDescription String? @db.Text
-
-  status RiskContextStatus @default(INACTIVE)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  createdBy String?
-  updatedBy String?
-
-  contextAssets    ContextAsset[]
-  contextProcesses ContextProcess[]
-
-  @@index([riskProgramId])
-  @@index([unitKerjaId])
+  /// Satu program tidak boleh mendaftarkan framework yang sama dua kali
+  @@unique([programId, frameworkId])
+  @@index([programId])
+  @@index([frameworkId])
   @@index([status])
+  @@map("program_frameworks")
+}
+
+/// Template konteks risiko yang dimiliki oleh Framework (global).
+/// Contoh: SPBE context → "Infrastruktur Server", "Aplikasi Internal"
+///         ISO 27001 context → "Information Asset", "Business Process"
+model RiskContext {
+  id                      String             @id @default(cuid())
+  name                    String             @db.VarChar(255)
+  /// Kode unik di dalam scope framework yang sama
+  code                    String             @db.VarChar(100)
+  description             String?            @db.Text
+
+  frameworkId             String
+  framework               Framework          @relation(fields: [frameworkId], references: [id], onDelete: Restrict)
+
+  contextType             ContextType
+
+  periodStart             Int
+  periodEnd               Int
+
+  matrixRows              Int
+  matrixCols              Int
+
+  isSystemDefault         Boolean            @default(false)
+
+  riskAppetiteLevel       String?            @db.VarChar(100)
+  riskAppetiteDescription String?            @db.Text
+
+  status                  RiskContextStatus  @default(INACTIVE)
+
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
+  createdBy               String?
+  updatedBy               String?
+
+  riskCategories           RiskCategory[]
+  impactAreas              ImpactArea[]
+  likelihoodCriteria       LikelihoodCriteria[]
+  treatmentOptions         TreatmentOption[]
+  riskLevels               RiskLevel[]
+  matrixCells              MatrixCell[]
+  contextAssets            ContextAsset[]
+  contextProcesses         ContextProcess[]
+  programFrameworkContexts ProgramFrameworkContext[]
+
+  /// Kode hanya unik dalam satu Framework
+  @@unique([frameworkId, code])
+  @@index([frameworkId])
+  @@index([status])
+  @@index([contextType])
   @@index([periodStart, periodEnd])
   @@map("risk_contexts")
 }
 
-model ContextAsset {
-  id String @id @default(cuid())
+model ProgramFrameworkContext {
+  id                 String           @id @default(cuid())
+  programFrameworkId String
+  programFramework   ProgramFramework @relation(fields: [programFrameworkId], references: [id], onDelete: Cascade)
+  riskContextId      String
+  riskContext        RiskContext      @relation(fields: [riskContextId], references: [id], onDelete: Restrict)
+  addedAt            DateTime         @default(now())
+  addedBy            String?
 
+  riskEntries        RiskEntry[]
+
+  @@unique([programFrameworkId, riskContextId])
+  @@index([programFrameworkId])
+  @@index([riskContextId])
+  @@map("program_framework_contexts")
+}
+
+model ContextAsset {
+  id        String      @id @default(cuid())
   contextId String
   context   RiskContext @relation(fields: [contextId], references: [id], onDelete: Cascade)
-
-  assetId String
-  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
+  assetId   String
+  asset     Asset       @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now())
 
   @@unique([contextId, assetId])
+  @@index([contextId])
   @@index([assetId])
   @@map("context_assets")
 }
 
-model ContextProcess {
-  id String @id @default(cuid())
+/// Kategori/jenis risiko dalam konteks (misal: Risiko Operasional, Risiko Keuangan)
+model RiskCategory {
+  id          String      @id @default(cuid())
+  contextId   String
+  context     RiskContext @relation(fields: [contextId], references: [id], onDelete: Cascade)
+  name        String      @db.VarChar(255)
+  description String?     @db.Text
+  color       String?     @db.VarChar(7)
+  code        String?     @db.VarChar(50)
+  order       Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
+  riskEntries RiskEntry[]
+
+  @@index([contextId])
+  @@map("risk_categories")
+}
+
+/// Area dampak dalam konteks (misal: Keuangan, Reputasi, Operasional)
+model ImpactArea {
+  id                 String               @id @default(cuid())
+  contextId          String
+  context            RiskContext          @relation(fields: [contextId], references: [id], onDelete: Cascade)
+  name               String               @db.VarChar(255)
+  description        String?              @db.Text
+  order              Int                  @default(0)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  impactCriteria     ImpactCriteria[]
+  likelihoodCriteria LikelihoodCriteria[]
+  areaScores         AreaScore[]
+  treatmentPlans     RiskTreatmentPlan[]
+
+  @@index([contextId])
+  @@map("impact_areas")
+}
+
+/// Kriteria dampak per area per level/kolom (level 1..matrixCols)
+model ImpactCriteria {
+  id           String     @id @default(cuid())
+  impactAreaId String
+  impactArea   ImpactArea @relation(fields: [impactAreaId], references: [id], onDelete: Cascade)
+  level        Int
+  name         String     @db.VarChar(255)
+  description  String?    @db.Text
+  score        Int
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([impactAreaId, level])
+  @@index([impactAreaId])
+  @@map("impact_criteria")
+}
+
+/// Kriteria kemungkinan per level/baris per area dampak (level 1..matrixRows)
+/// Setiap ImpactArea memiliki kriteria kemungkinannya sendiri.
+model LikelihoodCriteria {
+  id           String     @id @default(cuid())
+  contextId    String
+  context      RiskContext @relation(fields: [contextId], references: [id], onDelete: Cascade)
+  impactAreaId String
+  impactArea   ImpactArea @relation(fields: [impactAreaId], references: [id], onDelete: Cascade)
+  level        Int
+  name         String     @db.VarChar(255)
+  description  String?    @db.Text
+  score        Int
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([impactAreaId, level])
+  @@index([contextId])
+  @@index([impactAreaId])
+  @@map("likelihood_criteria")
+}
+
+/// Opsi penanganan risiko (Mitigasi, Transfer, Terima, Hindari, dll)
+model TreatmentOption {
+  id            String      @id @default(cuid())
+  contextId     String
+  context       RiskContext @relation(fields: [contextId], references: [id], onDelete: Cascade)
+  name          String      @db.VarChar(255)
+  description   String?     @db.Text
+  isAcceptance  Boolean     @default(false)
+  order         Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  treatmentPlans RiskTreatmentPlan[]
+
+  @@index([contextId])
+  @@map("treatment_options")
+}
+
+/// Level/peringkat risiko dalam konteks (misal: Rendah, Sedang, Tinggi, Kritikal).
+/// Setiap level memiliki rentang skor yang dipetakan ke nilai MatrixCell.
+model RiskLevel {
+  id          String      @id @default(cuid())
+  contextId   String
+  context     RiskContext @relation(fields: [contextId], references: [id], onDelete: Cascade)
+  name        String      @db.VarChar(100)
+  description String?     @db.Text
+  minScore    Int
+  maxScore    Int
+  color       String?     @db.VarChar(7)
+  order       Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  riskAssessments RiskAssessment[]
+
+  /// Urutan dan nama harus unik per konteks
+  @@unique([contextId, order])
+  @@unique([contextId, name])
+  @@index([contextId])
+  @@map("risk_levels")
+}
+
+/// Nilai setiap cell dalam matriks risiko (row=likelihood level, col=impact level)
+model MatrixCell {
+  id        String      @id @default(cuid())
   contextId String
   context   RiskContext @relation(fields: [contextId], references: [id], onDelete: Cascade)
+  row       Int
+  col       Int
+  value     Int
+  label     String?     @db.VarChar(100)
+  color     String?     @db.VarChar(7)
 
+  areaScores AreaScore[]
+
+  @@unique([contextId, row, col])
+  @@index([contextId])
+  @@map("matrix_cells")
+}
+
+model ContextProcess {
+  id        String          @id @default(cuid())
+  contextId String
+  context   RiskContext     @relation(fields: [contextId], references: [id], onDelete: Cascade)
   processId String
   process   BusinessProcess @relation(fields: [processId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
+  createdAt DateTime        @default(now())
 
   @@unique([contextId, processId])
+  @@index([contextId])
   @@index([processId])
   @@map("context_processes")
 }
+
+// =============================================================================
+// KERTAS KERJA MODELS
+// =============================================================================
+
+/// Satu kertas kerja per Unit Kerja per Program.
+/// Menampung semua risiko lintas framework dalam satu dokumen.
+model WorkingPaper {
+  id          String             @id @default(cuid())
+  programId   String
+  program     RiskProgram        @relation(fields: [programId], references: [id], onDelete: Restrict)
+  unitKerjaId String
+  unitKerja   UnitKerja          @relation(fields: [unitKerjaId], references: [id], onDelete: Restrict)
+
+  title       String             @db.VarChar(255)
+  status      WorkingPaperStatus @default(DRAFT)
+
+  submittedAt DateTime?
+  submittedBy String?
+  reviewedAt  DateTime?
+  reviewedBy  String?
+  reviewNote  String?            @db.Text
+  approvedAt  DateTime?
+  approvedBy  String?
+
+  createdBy   String?
+  updatedBy   String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  riskEntries RiskEntry[]
+
+  /// Satu UnitKerja hanya boleh punya 1 kertas kerja per program
+  @@unique([programId, unitKerjaId])
+  @@index([programId])
+  @@index([unitKerjaId])
+  @@index([status])
+  @@map("working_papers")
+}
+
+/// Identifikasi risiko individual dalam kertas kerja.
+/// Setiap entry tahu framework & context-nya via programFrameworkContextId.
+model RiskEntry {
+  id                        String                  @id @default(cuid())
+  workingPaperId            String
+  workingPaper              WorkingPaper            @relation(fields: [workingPaperId], references: [id], onDelete: Cascade)
+  programFrameworkContextId String
+  programFrameworkContext   ProgramFrameworkContext @relation(fields: [programFrameworkContextId], references: [id], onDelete: Restrict)
+
+  assetId                   String?
+  asset                     Asset?                  @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  businessProcessId         String?
+  businessProcess           BusinessProcess?        @relation(fields: [businessProcessId], references: [id], onDelete: SetNull)
+
+  code                      String                  @db.VarChar(50)
+  name                      String                  @db.VarChar(500)
+  description               String?                 @db.Text
+  riskCategoryId            String?
+  riskCategory              RiskCategory?           @relation(fields: [riskCategoryId], references: [id], onDelete: SetNull)
+  order                     Int                     @default(0)
+  createdAt                 DateTime                @default(now())
+  updatedAt                 DateTime                @updatedAt
+
+  inherentAssessment        RiskAssessment?         @relation("InherentAssessment")
+  controls                  RiskControl[]
+  residualAssessment        RiskAssessment?         @relation("ResidualAssessment")
+  treatmentPlans            RiskTreatmentPlan[]
+
+  @@index([workingPaperId])
+  @@index([programFrameworkContextId])
+  @@index([assetId])
+  @@index([businessProcessId])
+  @@map("risk_entries")
+}
+
+/// Penilaian risiko (inherent atau residual).
+model RiskAssessment {
+  id              String         @id @default(cuid())
+
+  inherentEntryId String?        @unique
+  inherentEntry   RiskEntry?     @relation("InherentAssessment", fields: [inherentEntryId], references: [id], onDelete: Cascade)
+  residualEntryId String?        @unique
+  residualEntry   RiskEntry?     @relation("ResidualAssessment", fields: [residualEntryId], references: [id], onDelete: Cascade)
+
+  type            AssessmentType
+
+  finalScore      Int?
+  riskLevelId     String?
+  riskLevel       RiskLevel?     @relation(fields: [riskLevelId], references: [id], onDelete: SetNull)
+  notes           String?        @db.Text
+
+  assessedAt      DateTime       @default(now())
+  assessedBy      String?
+
+  areaScores      AreaScore[]
+
+  @@index([riskLevelId])
+  @@map("risk_assessments")
+}
+
+/// Skor per area dampak dalam satu penilaian.
+/// Fleksibel untuk berbagai konfigurasi matrix di setiap context/framework.
+model AreaScore {
+  id              String         @id @default(cuid())
+  assessmentId    String
+  assessment      RiskAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  impactAreaId    String
+  impactArea      ImpactArea     @relation(fields: [impactAreaId], references: [id], onDelete: Restrict)
+
+  likelihoodLevel         Int
+  impactLevel             Int
+  likelihoodDescription   String? @db.Text
+  impactDescription       String? @db.Text
+
+  matrixCellId    String?
+  matrixCell      MatrixCell?    @relation(fields: [matrixCellId], references: [id], onDelete: SetNull)
+  score           Int
+
+  @@unique([assessmentId, impactAreaId])
+  @@index([assessmentId])
+  @@map("area_scores")
+}
+
+/// Pengendalian yang sudah ada sebelum treatment.
+model RiskControl {
+  id            String               @id @default(cuid())
+  riskEntryId   String
+  riskEntry     RiskEntry            @relation(fields: [riskEntryId], references: [id], onDelete: Cascade)
+
+  name          String               @db.VarChar(500)
+  description   String?              @db.Text
+  effectiveness ControlEffectiveness
+
+  order         Int                  @default(0)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  @@index([riskEntryId])
+  @@map("risk_controls")
+}
+
+/// Rencana penanganan untuk risiko yang melampaui risk appetite.
+/// Setiap rencana terkait dengan satu area dampak yang dinilai.
+model RiskTreatmentPlan {
+  id                String              @id @default(cuid())
+  riskEntryId       String
+  riskEntry         RiskEntry           @relation(fields: [riskEntryId], references: [id], onDelete: Cascade)
+  impactAreaId      String?
+  impactArea        ImpactArea?         @relation(fields: [impactAreaId], references: [id], onDelete: SetNull)
+  treatmentOptionId String?
+  treatmentOption   TreatmentOption?    @relation(fields: [treatmentOptionId], references: [id], onDelete: SetNull)
+
+  description       String?             @db.Text
+  targetDate        DateTime?
+  picUserId         String?
+
+  status            TreatmentStatus     @default(PLANNED)
+  needsKomiteReview Boolean             @default(false)
+  completedAt       DateTime?
+  progressNote      String?             @db.Text
+  evidenceUrl       String?             @db.VarChar(1000)
+
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  monitoringLogs    TreatmentMonitoring[]
+
+  @@index([riskEntryId])
+  @@index([impactAreaId])
+  @@index([status])
+  @@map("risk_treatment_plans")
+}
+
+/// Log monitoring realisasi rencana penanganan per periode.
+model TreatmentMonitoring {
+  id          String            @id @default(cuid())
+  planId      String
+  plan        RiskTreatmentPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  period      String            @db.VarChar(50)
+  progress    Int
+  note        String?           @db.Text
+  evidenceUrl String?           @db.VarChar(1000)
+  reportedBy  String?
+  reportedAt  DateTime          @default(now())
+
+  @@index([planId])
+  @@map("treatment_monitoring")
+}
+
+// =============================================================================
+// SYSTEM MODELS
+// =============================================================================
 
 model SystemConfig {
   key         String         @id @db.VarChar(100)
@@ -314,6 +695,10 @@ model SystemConfig {
   @@map("system_configs")
 }
 
+// =============================================================================
+// ENUMS
+// =============================================================================
+
 enum ConfigDataType {
   STRING
   INTEGER
@@ -328,12 +713,6 @@ enum RoleName {
 }
 
 enum AssetStatus {
-  ACTIVE
-  INACTIVE
-  ARCHIVED
-}
-
-enum KonteksStatus {
   ACTIVE
   INACTIVE
   ARCHIVED
@@ -357,8 +736,42 @@ enum RiskProgramStatus {
   ARCHIVED
 }
 
+enum ProgramFrameworkStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
 enum RiskContextStatus {
   ACTIVE
   INACTIVE
   ARCHIVED
+}
+
+enum WorkingPaperStatus {
+  DRAFT
+  SUBMITTED
+  REVISION
+  APPROVED
+  LOCKED
+}
+
+enum AssessmentType {
+  INHERENT
+  RESIDUAL
+}
+
+enum ControlEffectiveness {
+  ADEQUATE
+  PARTIAL
+  INADEQUATE
+}
+
+enum TreatmentStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  SUBMITTED_FOR_REVIEW
+  VERIFIED
 }

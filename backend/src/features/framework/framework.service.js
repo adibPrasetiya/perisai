@@ -94,7 +94,7 @@ const search = async (queryParams) => {
     select: {
       ...frameworkSelect,
       _count: {
-        select: { riskPrograms: true },
+        select: { programFrameworks: true, riskContexts: true },
       },
     },
   });
@@ -113,6 +113,19 @@ const search = async (queryParams) => {
       hasPrevPage: page > 1,
     },
   };
+};
+
+const getById = async (id) => {
+  const { id: validId } = validate(frameworkIdSchema, { id });
+  const framework = await prismaClient.framework.findUnique({
+    where: { id: validId },
+    select: {
+      ...frameworkSelect,
+      _count: { select: { programFrameworks: true, riskContexts: true } },
+    },
+  });
+  if (!framework) throw new NotFoundError("Framework tidak ditemukan.");
+  return { message: "Framework berhasil ditemukan", data: framework };
 };
 
 const update = async (id, reqBody) => {
@@ -158,6 +171,16 @@ const activate = async (id) => {
     throw new BadRequestError("Framework sudah dalam keadaan aktif.");
   }
 
+  const activeContextCount = await prismaClient.riskContext.count({
+    where: { frameworkId: validId, status: "ACTIVE" },
+  });
+
+  if (activeContextCount === 0) {
+    throw new BadRequestError(
+      "Framework tidak dapat diaktifkan karena belum memiliki konteks risiko yang aktif. Aktifkan minimal satu konteks risiko terlebih dahulu.",
+    );
+  }
+
   const updated = await prismaClient.framework.update({
     where: { id: validId },
     data: { isActive: true },
@@ -194,13 +217,23 @@ const remove = async (id) => {
   const { id: validId } = validate(frameworkIdSchema, { id });
   await verifyFrameworkExists(validId);
 
-  const programCount = await prismaClient.riskProgram.count({
+  const programCount = await prismaClient.programFramework.count({
     where: { frameworkId: validId },
   });
 
   if (programCount > 0) {
     throw new ConflictError(
-      `Framework tidak dapat dihapus karena masih memiliki ${programCount} program risiko yang terkait.`,
+      `Framework tidak dapat dihapus karena masih digunakan dalam ${programCount} program risiko.`,
+    );
+  }
+
+  const contextCount = await prismaClient.riskContext.count({
+    where: { frameworkId: validId },
+  });
+
+  if (contextCount > 0) {
+    throw new ConflictError(
+      `Framework tidak dapat dihapus karena masih memiliki ${contextCount} konteks risiko.`,
     );
   }
 
@@ -213,4 +246,4 @@ const remove = async (id) => {
   };
 };
 
-export default { create, search, update, activate, deactivate, remove };
+export default { create, search, getById, update, activate, deactivate, remove };

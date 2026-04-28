@@ -317,7 +317,6 @@
       </template>
     </Dialog>
 
-    <Toast />
   </div>
 </template>
 
@@ -326,7 +325,6 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import ProgressSpinner from 'primevue/progressspinner'
-import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
 import { frameworkApi, type Framework, type PaginationMeta } from '@/api/framework'
 import { extractApiError } from '@/utils/apiError'
@@ -858,46 +856,6 @@ onMounted(fetchData)
   margin: 1rem;
 }
 
-/* ─── Row action buttons ──────────────────────────────────────────────────── */
-
-.btn-icon {
-  width: 28px;
-  height: 28px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-text-dim);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  transition: all 0.15s;
-}
-
-.btn-icon:hover {
-  background: var(--color-accent-glow);
-  border-color: rgba(0, 229, 184, 0.2);
-  color: var(--color-accent);
-}
-
-.btn-icon-success:hover {
-  background: rgba(0, 229, 184, 0.08);
-  border-color: rgba(0, 229, 184, 0.3);
-  color: var(--color-accent);
-}
-
-.btn-icon-warn:hover {
-  background: rgba(255, 185, 0, 0.08);
-  border-color: rgba(255, 185, 0, 0.3);
-  color: #ffb900;
-}
-
-.btn-icon-danger:hover {
-  background: var(--color-danger-dim);
-  border-color: rgba(255, 77, 109, 0.3);
-  color: var(--color-danger);
-}
 
 /* ─── Pagination ──────────────────────────────────────────────────────────── */
 
@@ -1052,62 +1010,4 @@ onMounted(fetchData)
   margin-top: 0.5rem;
 }
 
-/* ─── Confirm dialogs ─────────────────────────────────────────────────────── */
-
-.del-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 0.5rem 0 1rem;
-  gap: 0.75rem;
-}
-
-.del-icon-wrap {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: var(--color-danger-dim);
-  border: 1px solid rgba(255, 77, 109, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.del-icon-wrap .pi {
-  font-size: 1.4rem;
-  color: var(--color-danger);
-}
-
-.del-icon-success {
-  background: rgba(0, 229, 184, 0.08);
-  border-color: rgba(0, 229, 184, 0.25);
-}
-
-.del-icon-success .pi {
-  color: var(--color-accent);
-}
-
-.del-icon-warn {
-  background: rgba(255, 185, 0, 0.08);
-  border-color: rgba(255, 185, 0, 0.25);
-}
-
-.del-icon-warn .pi {
-  color: #ffb900;
-}
-
-.del-text {
-  font-size: 14px;
-  color: var(--color-text);
-  margin: 0;
-}
-
-.del-warn {
-  font-size: 12px;
-  color: var(--color-text-dim);
-  margin: 0;
-  line-height: 1.6;
-  max-width: 340px;
-}
 </style>

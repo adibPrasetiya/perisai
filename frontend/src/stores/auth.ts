@@ -19,6 +19,15 @@ export const useAuthStore = defineStore(
 
     const isAdmin = computed(() => user.value?.roles?.includes('ADMINISTRATOR') ?? false)
 
+    const isKomitePusat = computed(() => user.value?.roles?.includes('KOMITE_PUSAT') ?? false)
+
+    const canViewDashboard = computed(
+      () =>
+        (user.value?.roles?.includes('ADMINISTRATOR') ||
+          user.value?.roles?.includes('KOMITE_PUSAT')) ??
+        false,
+    )
+
     function setUser(u: User) {
       user.value = u
       isAuthenticated.value = true
@@ -42,6 +51,8 @@ export const useAuthStore = defineStore(
       user,
       isAuthenticated,
       isAdmin,
+      isKomitePusat,
+      canViewDashboard,
       totpToken,
       setUser,
       setTotpToken,

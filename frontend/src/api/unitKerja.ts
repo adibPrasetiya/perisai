@@ -1,4 +1,7 @@
 import apiClient from './client'
+import type { PaginationMeta } from '@/types'
+
+export type { PaginationMeta }
 
 export interface UnitKerja {
   id: string
@@ -7,15 +10,6 @@ export interface UnitKerja {
   email: string
   createdAt?: string
   updatedAt?: string
-}
-
-export interface PaginationMeta {
-  page: number
-  limit: number
-  totalItems: number
-  totalPages: number
-  hasNextPage: boolean
-  hasPrevPage: boolean
 }
 
 export const unitKerjaApi = {

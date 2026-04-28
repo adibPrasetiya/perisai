@@ -14,6 +14,11 @@ export const frameworkRoutes = [
     handler: frameworkController.search,
   },
   {
+    method: "get",
+    path: "/frameworks/:frameworkId",
+    handler: frameworkController.getById,
+  },
+  {
     method: "patch",
     path: "/frameworks/:frameworkId",
     handler: frameworkController.update,

@@ -1,4 +1,7 @@
 import apiClient from './client'
+import type { PaginationMeta } from '@/types'
+
+export type { PaginationMeta }
 
 export interface UserSearchParams {
   name?: string
@@ -48,15 +51,6 @@ export interface UserItem {
   roles: string[]
   profile: UserProfile | null
   session: UserSession | null
-}
-
-export interface PaginationMeta {
-  page: number
-  limit: number
-  totalItems: number
-  totalPages: number
-  hasNextPage: boolean
-  hasPrevPage: boolean
 }
 
 export const usersApi = {
