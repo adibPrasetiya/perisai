@@ -212,8 +212,8 @@ async function saveAll() {
 
   for (const key of keys) {
     try {
-      await systemConfigApi.update(key, localValues[key])
-      originalValues[key] = localValues[key]
+      await systemConfigApi.update(key, localValues[key]!)
+      originalValues[key] = localValues[key]!
       dirtyKeys.delete(key)
     } catch (err: any) {
       errors.push(extractApiError(err, `Gagal menyimpan "${key}"`))

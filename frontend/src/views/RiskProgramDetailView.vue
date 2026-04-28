@@ -412,7 +412,6 @@ async function submitEditProgram() {
       name: programForm.name.trim(),
       description: programForm.description.trim() || undefined,
       year: programForm.year,
-      status: programForm.status,
     })
     program.value = res.data.data
     showEditProgram.value = false

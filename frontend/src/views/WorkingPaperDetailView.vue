@@ -1173,7 +1173,7 @@ import WpStatsPanel from '@/components/WpStatsPanel.vue'
 import { programFrameworkApi, type ProgramFramework } from '@/api/programFramework'
 import { riskContextApi, type RiskContext, type RiskCategory, type RiskContextDetail, type ImpactArea } from '@/api/riskContext'
 import { programFrameworkContextApi, type ProgramFrameworkContext } from '@/api/programFrameworkContext'
-import { riskEntryApi, TREATMENT_STATUS_LABELS, CONTROL_EFFECTIVENESS_LABELS, type RiskEntry, type RiskTreatmentPlan } from '@/api/riskEntry'
+import { riskEntryApi, TREATMENT_STATUS_LABELS, CONTROL_EFFECTIVENESS_LABELS, type RiskEntry } from '@/api/riskEntry'
 import { extractApiError } from '@/utils/apiError'
 import { useAuthStore } from '@/stores/auth'
 
@@ -1446,25 +1446,7 @@ async function submitEdit() {
   }
 }
 
-async function toggleExpandEntry(entry: RiskEntry) {
-  if (expandedEntryId.value === entry.id) {
-    expandedEntryId.value = null
-    expandedEntryDetail.value = null
-    return
-  }
-  expandedEntryId.value = entry.id
-  expandedEntryDetail.value = null
-  expandedEntryError.value = ''
-  expandedEntryLoading.value = true
-  try {
-    const res = await riskEntryApi.getById(entry.id)
-    expandedEntryDetail.value = res.data.data
-  } catch (err: any) {
-    expandedEntryError.value = extractApiError(err, 'Gagal memuat detail penilaian.')
-  } finally {
-    expandedEntryLoading.value = false
-  }
-}
+
 
 async function loadEntries() {
   currentPage.value = 0
@@ -1516,7 +1498,7 @@ function _setupObserver() {
   _observer?.disconnect()
   if (!loadMoreSentinel.value) return
   _observer = new IntersectionObserver(
-    ([entry]) => { if (entry.isIntersecting) loadMoreEntries() },
+    (entries) => { if (entries[0]?.isIntersecting) loadMoreEntries() },
     { rootMargin: '0px 0px 300px 0px' },
   )
   _observer.observe(loadMoreSentinel.value)
@@ -1755,7 +1737,7 @@ const editingAreaScoreIndex = ref<number | null>(null)
 const areaScoreSubForm = ref({ impactAreaId: '', likelihoodLevel: 0, impactLevel: 0 })
 const areaScoreSubErrors = ref<{ impactAreaId?: string; likelihoodLevel?: string; impactLevel?: string }>({})
 
-function calcScore(impactAreaId: string, likelihoodLevel: number, impactLevel: number): number {
+function calcScore(_impactAreaId: string, likelihoodLevel: number, impactLevel: number): number {
   if (!inherentContextDetail.value) return likelihoodLevel * impactLevel
   const cell = inherentContextDetail.value.matrixCells?.find(
     c => c.row === likelihoodLevel && c.col === impactLevel
@@ -1824,6 +1806,7 @@ function openAddAreaScore() {
 function openEditAreaScore(idx: number) {
   editingAreaScoreIndex.value = idx
   const item = inherentScoresList.value[idx]
+  if (!item) return
   areaScoreSubForm.value = { impactAreaId: item.impactAreaId, likelihoodLevel: item.likelihoodLevel, impactLevel: item.impactLevel }
   areaScoreSubErrors.value = {}
   showAreaScoreSubModal.value = true
@@ -1967,7 +1950,7 @@ const residualPreviewScore = computed<number | null>(() => {
   return calcResidualScore(residualSelectedPlan.value.impactAreaId, likelihoodLevel, impactLevel)
 })
 
-function calcResidualScore(impactAreaId: string, likelihoodLevel: number, impactLevel: number): number {
+function calcResidualScore(_impactAreaId: string, likelihoodLevel: number, impactLevel: number): number {
   const cell = residualContextDetail.value?.matrixCells?.find(
     c => c.row === likelihoodLevel && c.col === impactLevel,
   )
@@ -2127,7 +2110,7 @@ watch(() => treatmentSubForm.value.impactAreaId, (newAreaId) => {
   // Auto-select if below appetite and exactly one acceptance option exists
   if (score <= appetiteThreshold.value.maxScore && !treatmentSubForm.value.treatmentOptionId) {
     const acceptanceOpts = (treatmentModalContextDetail.value?.treatmentOptions ?? []).filter(o => o.isAcceptance)
-    if (acceptanceOpts.length === 1) treatmentSubForm.value.treatmentOptionId = acceptanceOpts[0].id
+    if (acceptanceOpts.length === 1) treatmentSubForm.value.treatmentOptionId = acceptanceOpts[0]!.id
   }
 })
 
@@ -2158,7 +2141,9 @@ function openAddTreatmentPlan() {
 
 function openEditTreatmentPlan(idx: number) {
   editingTreatmentPlanIndex.value = idx
-  treatmentSubForm.value = { ...treatmentPlansForm.value[idx] }
+  const plan = treatmentPlansForm.value[idx]
+  if (!plan) return
+  treatmentSubForm.value = { ...plan }
   treatmentSubErrors.value = {}
   // Clear treatmentOptionId if it violates the appetite rule for the pre-filled area
   const threshold = appetiteThreshold.value
@@ -2220,7 +2205,7 @@ async function openTreatmentModal(entry: RiskEntry) {
       treatmentOptionId: p.treatmentOption?.id ?? p.treatmentOptionId ?? '',
       description: p.description ?? '',
       picUserId: p.picUserId ?? '',
-      targetDate: p.targetDate ? p.targetDate.split('T')[0] : '',
+      targetDate: p.targetDate ? (p.targetDate.split('T')[0] ?? '') : '',
     }))
   } catch (err: any) {
     treatmentModalError.value = extractApiError(err, 'Gagal memuat data.')

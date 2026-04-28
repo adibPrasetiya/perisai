@@ -79,7 +79,7 @@
                 <span v-else class="fw-td-empty">—</span>
               </td>
               <td class="fw-td-count">
-                <span class="fw-count-badge">{{ fw._count?.riskPrograms ?? 0 }}</span>
+                <span class="fw-count-badge">{{ fw._count?.programFrameworks ?? 0 }}</span>
               </td>
               <td class="fw-td-status">
                 <span class="fw-status-chip" :class="fw.isActive ? 'chip-active' : 'chip-inactive'">

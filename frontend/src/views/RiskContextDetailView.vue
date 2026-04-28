@@ -236,7 +236,7 @@
                 <span class="ov-mx-size-badge">{{ context.matrixRows }}×{{ context.matrixCols }}</span>
               </div>
               <div v-if="ovAppetiteLevel" class="ov-mx-appetite-chip"
-                :style="{ background: ovAppetiteLevel.color + '22', color: ovAppetiteLevel.color, borderColor: ovAppetiteLevel.color + '55' }"
+                :style="{ background: (ovAppetiteLevel.color ?? '') + '22', color: ovAppetiteLevel.color ?? undefined, borderColor: (ovAppetiteLevel.color ?? '') + '55' }"
               >
                 <i class="pi pi-flag" />
                 Selera: {{ ovAppetiteLevel.name }}
@@ -299,11 +299,11 @@
                               class="ov-mx-val"
                               :style="{
                                 color: ovCellMatchesAppetite(r, c) && ovAppetiteLevel
-                                  ? ovAppetiteLevel.color
-                                  : (matchingRiskLevel(ovGetCell(r, c)?.value ?? 0)?.color || 'var(--color-text-muted)'),
+                                  ? (ovAppetiteLevel.color ?? undefined)
+                                  : (matchingRiskLevel(ovGetCell(r, c)?.value ?? 0)?.color ?? 'var(--color-text-muted)'),
                                 opacity: ovCellAboveAppetite(r, c) ? 0.4 : 1,
                                 textShadow: ovCellMatchesAppetite(r, c) && ovAppetiteLevel
-                                  ? `0 0 8px ${ovAppetiteLevel.color}`
+                                  ? `0 0 8px ${ovAppetiteLevel.color ?? ''}`
                                   : 'none',
                               }"
                             >
@@ -343,10 +343,10 @@
                       </div>
                     </div>
                   </div>
-                  <div v-if="ovAppetiteLevel" class="ov-mx-sidebar-appetite" :style="{ borderColor: ovAppetiteLevel.color + '55', background: ovAppetiteLevel.color + '0d' }">
-                    <span class="ov-mx-sidebar-appetite-dot" :style="{ background: ovAppetiteLevel.color, boxShadow: `0 0 6px ${ovAppetiteLevel.color}` }" />
+                  <div v-if="ovAppetiteLevel" class="ov-mx-sidebar-appetite" :style="{ borderColor: (ovAppetiteLevel.color ?? '') + '55', background: (ovAppetiteLevel.color ?? '') + '0d' }">
+                    <span class="ov-mx-sidebar-appetite-dot" :style="{ background: ovAppetiteLevel.color ?? undefined, boxShadow: `0 0 6px ${ovAppetiteLevel.color ?? ''}` }" />
                     <div>
-                      <div class="ov-mx-sidebar-appetite-label" :style="{ color: ovAppetiteLevel.color }">Selera Risiko</div>
+                      <div class="ov-mx-sidebar-appetite-label" :style="{ color: ovAppetiteLevel.color ?? undefined }">Selera Risiko</div>
                       <div class="ov-mx-sidebar-appetite-name">{{ ovAppetiteLevel.name }}</div>
                     </div>
                   </div>
@@ -902,7 +902,7 @@
                             <span
                               v-if="matchingRiskLevel(impGetCell(r,c)?.value ?? 0)"
                               class="imp-cell-lbl"
-                              :style="{ color: matchingRiskLevel(impGetCell(r,c)!.value)!.color }"
+                              :style="{ color: matchingRiskLevel(impGetCell(r,c)!.value)!.color ?? undefined }"
                             >
                               {{ matchingRiskLevel(impGetCell(r,c)!.value)!.name }}
                             </span>
@@ -1009,11 +1009,11 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="row in matrixGrid" :key="`row-${row[0].row}`">
+                <tr v-for="row in matrixGrid" :key="`row-${row[0]!.row}`">
                   <!-- Row (likelihood) header -->
                   <td class="mx-row-header">
-                    <div class="mx-row-level">L{{ row[0].row }}</div>
-                    <div class="mx-row-name">{{ getLikelihoodName(row[0].row) }}</div>
+                    <div class="mx-row-level">L{{ row[0]!.row }}</div>
+                    <div class="mx-row-name">{{ getLikelihoodName(row[0]!.row) }}</div>
                   </td>
                   <!-- Cells -->
                   <td
@@ -1853,25 +1853,6 @@ function impGetCell(r: number, c: number) {
   return impCellMap.value.get(`${r}-${c}`) ?? null
 }
 
-function impGetCellStyle(r: number, c: number) {
-  const cell = impGetCell(r, c)
-  const color = matchingRiskLevel(cell?.value ?? 0)?.color ?? null
-  const isColHl = hoveredImpactLevel.value === c
-  const isRowHl = hoveredLikelihoodLevel.value === r
-  const isBoth = isColHl && isRowHl
-  if (isBoth) return { background: color ? color + '55' : 'rgba(255,255,255,0.18)', borderColor: color || 'var(--color-accent)' }
-  if (color) return { background: isColHl || isRowHl ? color + '44' : color + '22', borderColor: color }
-  return {}
-}
-
-function getLikelihoodNameForMatrix(level: number): string {
-  // Find first area that has a likelihood criteria at this level
-  for (const area of context.value?.impactAreas ?? []) {
-    const lc = area.likelihoodCriteria.find((l) => l.level === level)
-    if (lc) return lc.name
-  }
-  return ''
-}
 
 // ─── Likelihood Criteria ──────────────────────────────────────────────────────
 
@@ -2257,14 +2238,6 @@ function getLikelihoodName(level: number): string {
   return ''
 }
 
-function getLikelihoodDesc(level: number): string {
-  for (const area of context.value?.impactAreas ?? []) {
-    const lc = area.likelihoodCriteria.find((l) => l.level === level)
-    if (lc?.description) return lc.description
-  }
-  return ''
-}
-
 function getImpactLevelHint(col: number): string {
   // Collect unique impact criteria names at this col level across all impact areas
   const names = context.value?.impactAreas
@@ -2273,15 +2246,6 @@ function getImpactLevelHint(col: number): string {
   if (names.length === 0) return ''
   // If all areas use the same name at this level, show it; otherwise just show the level
   const unique = [...new Set(names)]
-  return unique.length === 1 ? unique[0] : ''
-}
-
-function getImpactLevelDesc(col: number): string {
-  const descs = context.value?.impactAreas
-    .flatMap((a) => a.impactCriteria.filter((ic) => ic.level === col).map((ic) => ic.description))
-    .filter(Boolean) ?? []
-  if (descs.length === 0) return ''
-  const unique = [...new Set(descs)]
   return unique.length === 1 ? unique[0]! : ''
 }
 

@@ -317,27 +317,27 @@
                           class="mc-cell"
                           :style="{
                             background: matrixGrid[r-1]?.[c-1]
-                              ? (cellMatchingLevel(matrixGrid[r-1][c-1].value)?.color || 'transparent') + (matrixGrid[r-1][c-1].value ? '33' : '11')
+                              ? (cellMatchingLevel(matrixGrid[r-1]![c-1]!.value)?.color || 'transparent') + (matrixGrid[r-1]![c-1]!.value ? '33' : '11')
                               : 'transparent',
                             borderColor: matrixGrid[r-1]?.[c-1]
-                              ? (cellMatchingLevel(matrixGrid[r-1][c-1].value)?.color || 'var(--color-border)')
+                              ? (cellMatchingLevel(matrixGrid[r-1]![c-1]!.value)?.color || 'var(--color-border)')
                               : 'var(--color-border)',
                           }"
                         >
                           <input
                             v-if="matrixGrid[r-1]?.[c-1]"
-                            v-model.number="matrixGrid[r-1][c-1].value"
+                            v-model.number="matrixGrid[r-1]![c-1]!.value"
                             class="mc-input"
-                            :style="{ color: cellMatchingLevel(matrixGrid[r-1][c-1].value)?.color || 'var(--color-text-dim)' }"
+                            :style="{ color: cellMatchingLevel(matrixGrid[r-1]![c-1]!.value)?.color || 'var(--color-text-dim)' }"
                             type="number" min="0" :max="form.matrixRows * form.matrixCols"
-                            @input="onCellInput(matrixGrid[r-1][c-1])"
+                            @input="onCellInput(matrixGrid[r-1]![c-1]!)"
                           />
                           <div
-                            v-if="matrixGrid[r-1]?.[c-1] && cellMatchingLevel(matrixGrid[r-1][c-1].value)"
+                            v-if="matrixGrid[r-1]?.[c-1] && cellMatchingLevel(matrixGrid[r-1]![c-1]!.value)"
                             class="mc-cell-lbl"
-                            :style="{ color: cellMatchingLevel(matrixGrid[r-1][c-1].value)?.color }"
+                            :style="{ color: cellMatchingLevel(matrixGrid[r-1]![c-1]!.value)?.color }"
                           >
-                            {{ cellMatchingLevel(matrixGrid[r-1][c-1].value)?.name }}
+                            {{ cellMatchingLevel(matrixGrid[r-1]![c-1]!.value)?.name }}
                           </div>
                         </div>
                       </td>
@@ -405,19 +405,19 @@
                         class="s2-prev-cell"
                         :style="{
                           background: matrixGrid[r-1]?.[c-1]?.value
-                            ? (cellMatchingLevel(matrixGrid[r-1][c-1].value)?.color || 'var(--color-border)') + '40'
+                            ? (cellMatchingLevel(matrixGrid[r-1]![c-1]!.value)?.color || 'var(--color-border)') + '40'
                             : 'rgba(255,255,255,0.03)',
                           borderColor: matrixGrid[r-1]?.[c-1]?.value
-                            ? (cellMatchingLevel(matrixGrid[r-1][c-1].value)?.color || 'var(--color-border)')
+                            ? (cellMatchingLevel(matrixGrid[r-1]![c-1]!.value)?.color || 'var(--color-border)')
                             : 'var(--color-border)',
                         }"
                         :title="matrixGrid[r-1]?.[c-1]?.value
-                          ? `L${r}×D${c} = ${matrixGrid[r-1][c-1].value} (${cellMatchingLevel(matrixGrid[r-1][c-1].value)?.name || '—'})`
+                          ? `L${r}×D${c} = ${matrixGrid[r-1]![c-1]!.value} (${cellMatchingLevel(matrixGrid[r-1]![c-1]!.value)?.name || '—'})`
                           : `L${r}×D${c}`"
                       >
                         <span
                           class="s2-prev-cell-val"
-                          :style="{ color: matrixGrid[r-1]?.[c-1]?.value ? (cellMatchingLevel(matrixGrid[r-1][c-1].value)?.color || 'var(--color-text-muted)') : 'var(--color-text-muted)' }"
+                          :style="{ color: matrixGrid[r-1]?.[c-1]?.value ? (cellMatchingLevel(matrixGrid[r-1]![c-1]!.value)?.color || 'var(--color-text-muted)') : 'var(--color-text-muted)' }"
                         >
                           {{ matrixGrid[r-1]?.[c-1]?.value || '' }}
                         </span>
@@ -518,25 +518,25 @@
                           :class="{ 'mc-cell-appetite': appetiteMatchesCell(r, c) }"
                           :style="{
                             background: matrixGrid[r-1]?.[c-1]
-                              ? (cellMatchingLevel(matrixGrid[r-1][c-1].value)?.color || 'transparent') + (matrixGrid[r-1][c-1].value ? '33' : '11')
+                              ? (cellMatchingLevel(matrixGrid[r-1]![c-1]!.value)?.color || 'transparent') + (matrixGrid[r-1]![c-1]!.value ? '33' : '11')
                               : 'transparent',
                             borderColor: matrixGrid[r-1]?.[c-1]
-                              ? (cellMatchingLevel(matrixGrid[r-1][c-1].value)?.color || 'var(--color-border)')
+                              ? (cellMatchingLevel(matrixGrid[r-1]![c-1]!.value)?.color || 'var(--color-border)')
                               : 'var(--color-border)',
                           }"
                         >
                           <div
                             class="mc-cell-val-ro"
-                            :style="{ color: matrixGrid[r-1]?.[c-1] ? (cellMatchingLevel(matrixGrid[r-1][c-1].value)?.color || 'var(--color-text-muted)') : 'var(--color-text-muted)' }"
+                            :style="{ color: matrixGrid[r-1]?.[c-1] ? (cellMatchingLevel(matrixGrid[r-1]![c-1]!.value)?.color || 'var(--color-text-muted)') : 'var(--color-text-muted)' }"
                           >
                             {{ matrixGrid[r-1]?.[c-1]?.value || 0 }}
                           </div>
                           <div
-                            v-if="matrixGrid[r-1]?.[c-1] && cellMatchingLevel(matrixGrid[r-1][c-1].value)"
+                            v-if="matrixGrid[r-1]?.[c-1] && cellMatchingLevel(matrixGrid[r-1]![c-1]!.value)"
                             class="mc-cell-lbl"
-                            :style="{ color: cellMatchingLevel(matrixGrid[r-1][c-1].value)?.color }"
+                            :style="{ color: cellMatchingLevel(matrixGrid[r-1]![c-1]!.value)?.color }"
                           >
-                            {{ cellMatchingLevel(matrixGrid[r-1][c-1].value)?.name }}
+                            {{ cellMatchingLevel(matrixGrid[r-1]![c-1]!.value)?.name }}
                           </div>
                         </div>
                       </td>
@@ -836,7 +836,7 @@ function addLevelRow() {
     description: '',
     minScore: last ? last.maxScore + 1 : 0,
     maxScore: last ? last.maxScore + 5 : 5,
-    color: COLOR_PRESETS[levelRows.value.length % COLOR_PRESETS.length],
+    color: COLOR_PRESETS[levelRows.value.length % COLOR_PRESETS.length] ?? '#22c55e',
   })
 }
 

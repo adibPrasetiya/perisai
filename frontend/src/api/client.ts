@@ -3,6 +3,7 @@ import router from '@/router'
 import { useAuthStore } from '@/stores/auth'
 
 const apiClient = axios.create({
+  baseURL: 'https://api.perisai.adibprasetiya.com',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

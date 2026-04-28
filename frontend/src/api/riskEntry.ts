@@ -151,6 +151,7 @@ export interface TreatmentPlansInput {
 }
 
 export interface RiskEntryUpdateData {
+  programFrameworkContextId?: string
   code?: string
   name?: string
   description?: string | null
