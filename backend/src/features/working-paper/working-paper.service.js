@@ -10,6 +10,7 @@ import { NotFoundError } from "../../error/not-found.error.js";
 import { ConflictError } from "../../error/conflict.error.js";
 import { BadRequestError } from "../../error/bad-request.error.js";
 import { ROLES, RISK_PROGRAM_STATUSES } from "../../core/config/enum.config.js";
+import { logger } from "../../core/lib/logger.lib.js";
 
 const workingPaperSelect = {
   id: true,
@@ -98,7 +99,12 @@ const create = async (reqBody, user) => {
     throw error;
   }
 
-  console.log("ACTION_TYPES.WORKING_PAPER_CREATED", { workingPaperId: paper.id });
+  logger.notice("WORKING_PAPER_CREATED", {
+    workingPaperId: paper.id,
+    unitKerjaId: user.unitKerjaId,
+    programId: reqBody.programId,
+    createdBy: user.id,
+  });
 
   return {
     message: "Kertas kerja berhasil dibuat",

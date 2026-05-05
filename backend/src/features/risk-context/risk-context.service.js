@@ -25,6 +25,7 @@ import {
   verifyFrameworkExists,
   verifyImpactAreaBelongsToContext,
 } from "../../utils/context.utils.js";
+import { logger } from "../../core/lib/logger.lib.js";
 
 // =============================================================================
 // SHARED SELECT
@@ -236,6 +237,13 @@ const createFull = async (frameworkId, reqBody, userId) => {
     return ctx;
   });
 
+  logger.notice("RISK_CONTEXT_CREATED", {
+    contextId: context.id,
+    code: context.code,
+    frameworkId,
+    createdBy: userId,
+  });
+
   return { message: "Konteks risiko berhasil dibuat", data: context };
 };
 
@@ -431,6 +439,12 @@ const update = async (id, reqBody, userId) => {
     select: riskContextBaseSelect,
   });
 
+  logger.notice("RISK_CONTEXT_UPDATED", {
+    contextId: validId,
+    updatedFields: Object.keys(reqBody).join(","),
+    updatedBy: userId,
+  });
+
   return { message: "Konteks risiko berhasil diperbarui", data: updated };
 };
 
@@ -454,6 +468,9 @@ const remove = async (id) => {
   }
 
   await prismaClient.riskContext.delete({ where: { id: validId } });
+
+  logger.notice("RISK_CONTEXT_DELETED", { contextId: validId });
+
   return { message: "Konteks risiko berhasil dihapus" };
 };
 
@@ -540,6 +557,8 @@ const activate = async (id) => {
     select: riskContextBaseSelect,
   });
 
+  logger.notice("RISK_CONTEXT_ACTIVATED", { contextId: validId });
+
   return { message: "Konteks risiko berhasil diaktifkan", data: updated };
 };
 
@@ -560,6 +579,8 @@ const deactivate = async (id) => {
     where: { id: validId },
     select: riskContextBaseSelect,
   });
+
+  logger.notice("RISK_CONTEXT_DEACTIVATED", { contextId: validId });
 
   return { message: "Konteks risiko berhasil dinonaktifkan", data: updated };
 };

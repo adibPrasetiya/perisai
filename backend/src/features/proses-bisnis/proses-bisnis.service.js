@@ -1,4 +1,5 @@
 import { PROCESS_BUSINESS_STATUSES } from "../../core/config/enum.config.js";
+import { logger } from "../../core/lib/logger.lib.js";
 import { prismaClient } from "../../core/lib/database.lib.js";
 import { BadRequestError } from "../../error/bad-request.error.js";
 import { ConflictError } from "../../error/conflict.error.js";
@@ -70,6 +71,13 @@ const create = async (unitKerjaId, reqBody, user) => {
       createdBy: user.userId,
     },
     select: prosesBisnisSelect,
+  });
+
+  logger.notice("PROSES_BISNIS_CREATED", {
+    id: prosesBisnis.id,
+    code: prosesBisnis.code,
+    unitKerjaId,
+    createdBy: user.userId,
   });
 
   return {
@@ -180,6 +188,13 @@ const update = async (unitKerjaId, id, reqBody, user) => {
     select: prosesBisnisSelect,
   });
 
+  logger.notice("PROSES_BISNIS_UPDATED", {
+    id: updated.id,
+    code: updated.code,
+    unitKerjaId,
+    updatedBy: user.userId,
+  });
+
   return {
     message: "Proses bisnis berhasil diperbarui",
     data: updated,
@@ -220,6 +235,13 @@ const setActive = async (unitKerjaId, id, user) => {
     where: { id: idParams.id },
     data: { status: PROCESS_BUSINESS_STATUSES.ACTIVE, updatedBy: user.userId },
     select: prosesBisnisSelect,
+  });
+
+  logger.notice("PROSES_BISNIS_ACTIVATED", {
+    id: updated.id,
+    code: updated.code,
+    unitKerjaId,
+    updatedBy: user.userId,
   });
 
   return { message: "Proses bisnis berhasil diaktifkan", data: updated };
@@ -264,6 +286,13 @@ const setInactive = async (unitKerjaId, id, user) => {
     select: prosesBisnisSelect,
   });
 
+  logger.notice("PROSES_BISNIS_DEACTIVATED", {
+    id: updated.id,
+    code: updated.code,
+    unitKerjaId,
+    updatedBy: user.userId,
+  });
+
   return { message: "Proses bisnis berhasil dinonaktifkan", data: updated };
 };
 
@@ -304,6 +333,13 @@ const archive = async (unitKerjaId, id, user) => {
       updatedBy: user.userId,
     },
     select: prosesBisnisSelect,
+  });
+
+  logger.notice("PROSES_BISNIS_ARCHIVED", {
+    id: archived.id,
+    code: archived.code,
+    unitKerjaId,
+    updatedBy: user.userId,
   });
 
   return { message: "Proses bisnis berhasil diarsipkan", data: archived };

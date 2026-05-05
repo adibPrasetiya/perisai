@@ -21,6 +21,7 @@ import {
   TREATMENT_STATUSES,
   CONTROL_EFFECTIVENESS,
 } from "../../core/config/enum.config.js";
+import { logger } from "../../core/lib/logger.lib.js";
 
 const EDITABLE_STATUSES = [
   WORKING_PAPER_STATUSES.DRAFT,
@@ -435,9 +436,10 @@ const create = async (workingPaperId, reqBody, user) => {
     select: riskEntryDetailSelect,
   });
 
-  console.log("ACTION_TYPES.RISK_ENTRY_CREATED", {
+  logger.notice("RISK_ENTRY_CREATED", {
     entryId: createdEntry.id,
     workingPaperId: validId,
+    createdBy: user.userId,
   });
 
   return {
@@ -692,7 +694,7 @@ const remove = async (entryId, user) => {
 
   await prismaClient.riskEntry.delete({ where: { id: validId } });
 
-  console.log("ACTION_TYPES.RISK_ENTRY_DELETED", { entryId: validId });
+  logger.notice("RISK_ENTRY_DELETED", { entryId: validId, deletedBy: user.userId });
 
   return {
     message: "Entri risiko berhasil dihapus",

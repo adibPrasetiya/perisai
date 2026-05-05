@@ -1,45 +1,48 @@
 import { app } from "./core/app/server.js";
 import { APP_PORT, NODE_ENV } from "./core/config/constant.config.js";
+import { logger } from "./core/lib/logger.lib.js";
 
 app.listen(APP_PORT || 3000, () => {
-  console.info("Server Started", {
+  logger.info("Server started", {
     port: APP_PORT || 3000,
-    environtment: NODE_ENV,
+    env: NODE_ENV,
     pid: process.pid,
   });
 });
 
-// Handle uncaught exceptions
 process.on("uncaughtException", (error) => {
-  console.error("Uncaught Exception", {
+  logger.crit("Uncaught exception", {
     action: "process.uncaughtException",
-    errorName: error.name,
-    errorMessage: error.message,
-    stackTrace: error.stack,
+    err: error.name,
+    errmsg: error.message,
+    pid: process.pid,
   });
   process.exit(1);
 });
 
-// Handle unhandled promise rejections
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection", {
+process.on("unhandledRejection", (reason) => {
+  logger.error("Unhandled promise rejection", {
     action: "process.unhandledRejection",
-    reason: reason?.message || String(reason),
-    stackTrace: reason?.stack,
+    err: reason?.name || "UnhandledRejection",
+    errmsg: reason?.message || String(reason),
+    pid: process.pid,
   });
 });
 
-// Graceful shutdown
 process.on("SIGTERM", () => {
-  console.info("SIGTERM received, shutting down gracefully", {
+  logger.notice("SIGTERM received — graceful shutdown", {
     action: "process.shutdown",
+    signal: "SIGTERM",
+    pid: process.pid,
   });
   process.exit(0);
 });
 
 process.on("SIGINT", () => {
-  console.info("SIGINT received, shutting down gracefully", {
+  logger.notice("SIGINT received — graceful shutdown", {
     action: "process.shutdown",
+    signal: "SIGINT",
+    pid: process.pid,
   });
   process.exit(0);
 });

@@ -19,6 +19,7 @@ import { ConflictError } from "../../error/conflict.error.js";
 import { hash, compare } from "../../core/lib/password.lib.js";
 import { verifyTotpCode, decryptTotpSecret } from "../../utils/totp.utils.js";
 import { verifyUnitKerjaExists } from "../../utils/unit-kerja.utils.js";
+import { logger } from "../../core/lib/logger.lib.js";
 
 const search = async (queryParams) => {
   const params = validate(searchUserSchema, queryParams);
@@ -219,6 +220,12 @@ const verify = async (userId, adminUsername) => {
     },
   });
 
+  logger.notice("USER_VERIFIED", {
+    userId,
+    username: updatedUser.username,
+    verifiedBy: adminUsername,
+  });
+
   return {
     message: `Akun ${updatedUser.username} berhasil diverifikasi`,
     data: updatedUser,
@@ -259,6 +266,8 @@ const activate = async (userId) => {
       isVerified: true,
     },
   });
+
+  logger.notice("USER_ACTIVATED", { userId, username: updatedUser.username });
 
   return {
     message: `Akun ${updatedUser.username} berhasil diaktifkan`,
@@ -310,6 +319,12 @@ const deactivate = async (userId, adminUsername) => {
       isActive: true,
       isVerified: true,
     },
+  });
+
+  logger.notice("USER_DEACTIVATED", {
+    userId,
+    username: updatedUser.username,
+    deactivatedBy: adminUsername,
   });
 
   return {
@@ -523,6 +538,8 @@ const updateMyPassword = async (username, reqBody) => {
     await tx.session.deleteMany({ where: { userId: user.id } });
   });
 
+  logger.notice("USER_PASSWORD_CHANGED", { username });
+
   return { message: "Password berhasil diubah. Silakan login kembali." };
 };
 
@@ -573,6 +590,11 @@ const updateMyAccount = async (username, reqBody) => {
     },
   });
 
+  logger.notice("USER_ACCOUNT_UPDATED", {
+    username,
+    updatedFields: Object.keys(updateData).join(","),
+  });
+
   return {
     message: "Data akun berhasil diperbarui",
     data: updatedUser,
@@ -621,6 +643,11 @@ const updateMyProfile = async (username, reqBody) => {
         select: { id: true, name: true, code: true },
       },
     },
+  });
+
+  logger.notice("USER_PROFILE_UPDATED", {
+    username,
+    updatedFields: Object.keys(updateData).join(","),
   });
 
   return {
@@ -705,6 +732,12 @@ const resetTotp = async (userId, adminUsername, reqBody) => {
     await tx.session.deleteMany({ where: { userId } });
   });
 
+  logger.notice("USER_TOTP_RESET", {
+    userId,
+    username: targetUser.username,
+    resetBy: adminUsername,
+  });
+
   return {
     message: `TOTP akun ${targetUser.username} berhasil direset. Pengguna perlu mengaktifkan ulang TOTP saat login berikutnya.`,
     data: { userId, username: targetUser.username, name: targetUser.name },
@@ -785,6 +818,13 @@ const adminUpdateUser = async (userId, reqBody, adminUsername) => {
         },
       },
     },
+  });
+
+  logger.notice("USER_ADMIN_UPDATED", {
+    userId,
+    username: updated.username,
+    updatedBy: adminUsername,
+    updatedFields: Object.keys(reqBody).join(","),
   });
 
   return {

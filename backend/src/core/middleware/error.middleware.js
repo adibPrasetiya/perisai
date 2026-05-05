@@ -4,6 +4,7 @@ import { ForbiddenError } from "../../error/forbidden.error.js";
 import { NotFoundError } from "../../error/not-found.error.js";
 import { UnauthorizedError } from "../../error/unathorized.error.js";
 import { ValidationError } from "../../error/valdiation.error.js";
+import { logger, buildErrorFields } from "../lib/logger.lib.js";
 
 export const errorMiddleware = (err, req, res, next) => {
   if (res.headersSent) {
@@ -11,26 +12,39 @@ export const errorMiddleware = (err, req, res, next) => {
   }
 
   if (err instanceof ValidationError) {
+    logger.notice(`${err.name}: ${req.method} ${req.path}`, buildErrorFields(req, err));
     return res.status(err.statusCode).json({
       errors: err.message,
       details: err.details,
     });
   }
 
-  if (
-    err instanceof BadRequestError ||
-    err instanceof UnauthorizedError ||
-    err instanceof ForbiddenError ||
-    err instanceof NotFoundError ||
-    err instanceof ConflictError
-  ) {
-    console.error(`[${err.name}] ${req.method} ${req.path}`, err);
+  // warning: potensi brute force atau privilege escalation — perlu dimonitor
+  if (err instanceof UnauthorizedError || err instanceof ForbiddenError) {
+    logger.warning(`${err.name}: ${req.method} ${req.path}`, buildErrorFields(req, err));
     return res.status(err.statusCode).json({
       errors: err.message,
     });
   }
 
-  console.error(`[Internal Error] ${req.method} ${req.path}`, err);
+  if (
+    err instanceof BadRequestError ||
+    err instanceof NotFoundError ||
+    err instanceof ConflictError
+  ) {
+    logger.notice(`${err.name}: ${req.method} ${req.path}`, buildErrorFields(req, err));
+    return res.status(err.statusCode).json({
+      errors: err.message,
+    });
+  }
+
+  logger.error(`InternalServerError: ${req.method} ${req.path}`, {
+    ...buildErrorFields(req, {
+      statusCode: 500,
+      name: err.name || "InternalServerError",
+      message: err.message,
+    }),
+  });
 
   return res.status(500).json({
     errors: "Internal Server Error",

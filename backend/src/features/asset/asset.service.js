@@ -17,6 +17,7 @@ import {
   unitKerjaIdSchema,
   updateAssetSchema,
 } from "./asset.validation.js";
+import { logger } from "../../core/lib/logger.lib.js";
 
 const assetSelect = {
   id: true,
@@ -112,7 +113,7 @@ const create = async (unitKerjaId, reqBody, user) => {
     },
   });
 
-  console.log("ACTION_TYPES.ASSET_CREATED", {
+  logger.notice("ASSET_CREATED", {
     assetId: asset.id,
     assetCode: asset.code,
     unitKerjaId,
@@ -315,11 +316,11 @@ const update = async (unitKerjaId, id, reqBody, user) => {
     },
   });
 
-  console.log("ACTION_TYPES.ASSET_UPDATED", {
+  logger.notice("ASSET_UPDATED", {
     assetId: updatedAsset.id,
     assetCode: updatedAsset.code,
     updatedBy: user.userId,
-    updatedFields: Object.keys(reqBody),
+    updatedFields: Object.keys(reqBody).join(","),
   });
 
   return {
@@ -373,6 +374,12 @@ const setActive = async (unitKerjaId, id, user) => {
     select: assetSelect,
   });
 
+  logger.notice("ASSET_ACTIVATED", {
+    assetId: updatedAsset.id,
+    assetCode: updatedAsset.code,
+    updatedBy: user.userId,
+  });
+
   return { message: "Aset berhasil diaktifkan", data: updatedAsset };
 };
 
@@ -419,6 +426,12 @@ const setInactive = async (unitKerjaId, id, user) => {
     where: { id: idParams.id },
     data: { status: ASSET_STATUSES.INACTIVE, updatedBy: user.userId },
     select: assetSelect,
+  });
+
+  logger.notice("ASSET_DEACTIVATED", {
+    assetId: updatedAsset.id,
+    assetCode: updatedAsset.code,
+    updatedBy: user.userId,
   });
 
   return { message: "Aset berhasil dinonaktifkan", data: updatedAsset };
@@ -470,7 +483,7 @@ const archive = async (unitKerjaId, id, user) => {
     select: assetSelect,
   });
 
-  console.log("ACTION_TYPES.ASSET_ARCHIVED", {
+  logger.notice("ASSET_ARCHIVED", {
     assetId: archivedAsset.id,
     assetCode: archivedAsset.code,
     archivedBy: user.userId,

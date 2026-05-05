@@ -10,6 +10,7 @@ import { NotFoundError } from "../../error/not-found.error.js";
 import { ConflictError } from "../../error/conflict.error.js";
 import { BadRequestError } from "../../error/bad-request.error.js";
 import { RISK_PROGRAM_STATUSES } from "../../core/config/enum.config.js";
+import { logger } from "../../core/lib/logger.lib.js";
 
 const riskProgramSelect = {
   id: true,
@@ -51,7 +52,7 @@ const create = async (reqBody, userId) => {
     select: riskProgramSelect,
   });
 
-  console.log("ACTION_TYPES.RISK_PROGRAM_CREATED", { riskProgramId: program.id });
+  logger.notice("RISK_PROGRAM_CREATED", { riskProgramId: program.id, createdBy: userId });
 
   return {
     message: "Program risiko berhasil dibuat",
@@ -163,9 +164,10 @@ const update = async (id, reqBody, userId) => {
     select: riskProgramSelect,
   });
 
-  console.log("ACTION_TYPES.RISK_PROGRAM_UPDATED", {
+  logger.notice("RISK_PROGRAM_UPDATED", {
     riskProgramId: validId,
-    updatedData: reqBody,
+    updatedFields: Object.keys(reqBody).join(","),
+    updatedBy: userId,
   });
 
   return {
@@ -190,7 +192,7 @@ const remove = async (id) => {
 
   await prismaClient.riskProgram.delete({ where: { id: validId } });
 
-  console.log("ACTION_TYPES.RISK_PROGRAM_DELETED", { riskProgramId: validId });
+  logger.notice("RISK_PROGRAM_DELETED", { riskProgramId: validId });
 
   return {
     message: "Program risiko berhasil dihapus",
@@ -224,7 +226,7 @@ const activate = async (id, userId) => {
     select: riskProgramSelect,
   });
 
-  console.log("ACTION_TYPES.RISK_PROGRAM_ACTIVATED", { riskProgramId: validId });
+  logger.notice("RISK_PROGRAM_ACTIVATED", { riskProgramId: validId, activatedBy: userId });
 
   return {
     message: "Program risiko berhasil diaktifkan",
@@ -249,7 +251,7 @@ const deactivate = async (id, userId) => {
     select: riskProgramSelect,
   });
 
-  console.log("ACTION_TYPES.RISK_PROGRAM_DEACTIVATED", { riskProgramId: validId });
+  logger.notice("RISK_PROGRAM_DEACTIVATED", { riskProgramId: validId, deactivatedBy: userId });
 
   return {
     message: "Program risiko berhasil dinonaktifkan",
@@ -274,7 +276,7 @@ const setDraft = async (id, userId) => {
     select: riskProgramSelect,
   });
 
-  console.log("ACTION_TYPES.RISK_PROGRAM_SET_DRAFT", { riskProgramId: validId });
+  logger.notice("RISK_PROGRAM_SET_DRAFT", { riskProgramId: validId, updatedBy: userId });
 
   return {
     message: "Program risiko berhasil dikembalikan ke status Draft",

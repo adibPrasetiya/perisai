@@ -10,6 +10,7 @@ import { NotFoundError } from "../../error/not-found.error.js";
 import { BadRequestError } from "../../error/bad-request.error.js";
 import { ConflictError } from "../../error/conflict.error.js";
 import { verifyContextExists } from "../../utils/context.utils.js";
+import { logger } from "../../core/lib/logger.lib.js";
 
 const riskLevelSelect = {
   id: true,
@@ -114,6 +115,8 @@ const create = async (contextId, reqBody) => {
     select: riskLevelSelect,
   });
 
+  logger.notice("RISK_LEVEL_CREATED", { contextId, levelId: level.id, name: level.name });
+
   return { message: "Level risiko berhasil ditambahkan", data: level };
 };
 
@@ -147,6 +150,8 @@ const update = async (contextId, levelId, reqBody) => {
     select: riskLevelSelect,
   });
 
+  logger.notice("RISK_LEVEL_UPDATED", { contextId, levelId: validLevelId });
+
   return { message: "Level risiko berhasil diperbarui", data: updated };
 };
 
@@ -161,6 +166,9 @@ const remove = async (contextId, levelId) => {
   await verifyLevelBelongsToContext(validLevelId, contextId);
 
   await prismaClient.riskLevel.delete({ where: { id: validLevelId } });
+
+  logger.notice("RISK_LEVEL_DELETED", { contextId, levelId: validLevelId });
+
   return { message: "Level risiko berhasil dihapus" };
 };
 
@@ -219,6 +227,8 @@ const bulkSet = async (contextId, reqBody) => {
     select: riskLevelSelect,
     orderBy: { order: "asc" },
   });
+
+  logger.notice("RISK_LEVEL_BULK_SET", { contextId, count: saved.length });
 
   return { message: "Level risiko berhasil disimpan", data: saved };
 };

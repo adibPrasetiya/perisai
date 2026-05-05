@@ -38,6 +38,7 @@ import {
   verifyRefreshToken,
 } from "../../utils/token.utils.js";
 import { generateDeviceId, parseDeviceName } from "../../utils/device.utils.js";
+import { logger } from "../../core/lib/logger.lib.js";
 
 const registration = async (reqBody) => {
   reqBody = validate(registedNewUserSchema, reqBody);
@@ -141,7 +142,7 @@ const registration = async (reqBody) => {
     return { user: newUser, profile: newProfile };
   });
 
-  console.log("ACTION_TYPES.USER_CREATED", {
+  logger.notice("USER_CREATED", {
     userId: result.user.id,
     username: result.user.username,
     email: result.user.email,
@@ -177,7 +178,7 @@ const login = async (reqBody, userAgent, ipAddress) => {
   });
 
   if (!user) {
-    console.error("ACTION_TYPES.LOGIN_FAILURE", {
+    logger.warning("LOGIN_FAILURE", {
       ...loginContext,
       reason: "User not found",
     });
@@ -185,7 +186,7 @@ const login = async (reqBody, userAgent, ipAddress) => {
   }
 
   if (!user.isActive) {
-    console.error("ACTION_TYPES.LOGIN_FAILURE", {
+    logger.warning("LOGIN_FAILURE", {
       ...loginContext,
       userId: user.id,
       username: user.username,
@@ -199,7 +200,7 @@ const login = async (reqBody, userAgent, ipAddress) => {
   const isPasswordValid = await compare(passwordInput, user.password);
 
   if (!isPasswordValid) {
-    console.error("ACTION_TYPES.LOGIN_FAILURE", {
+    logger.warning("LOGIN_FAILURE", {
       ...loginContext,
       userId: user.id,
       username: user.username,
@@ -229,7 +230,7 @@ const login = async (reqBody, userAgent, ipAddress) => {
       purpose: "totp_setup",
     });
 
-    console.log("ACTION_TYPES.TOTP_SETUP_REQUIRED", {
+    logger.info("TOTP_SETUP_REQUIRED", {
       userId: user.id,
       username: user.username,
       ipAddress,
@@ -253,7 +254,7 @@ const login = async (reqBody, userAgent, ipAddress) => {
       purpose: "totp_verify",
     });
 
-    console.error("ACTION_TYPES.TOTP_VERIFY_REQUIRED", {
+    logger.info("TOTP_VERIFY_REQUIRED", {
       userId: user.id,
       username: user.username,
       ipAddress,
@@ -346,7 +347,7 @@ const verifyLoginTotp = async (reqBody, userAgent, ipAddress) => {
     },
   });
 
-  console.log("ACTION_TYPES.LOGIN_SUCCESS", {
+  logger.notice("LOGIN_SUCCESS", {
     userId: user.id,
     username: user.username,
     ipAddress,
@@ -459,7 +460,7 @@ const resetPasswordWithTotp = async (reqBody) => {
     });
   });
 
-  console.log("ACTION_TYPES.PASSWORD_RESET", {
+  logger.notice("PASSWORD_RESET", {
     userId: user.id,
     username: user.username,
   });
@@ -603,7 +604,7 @@ const verifyTotpSetup = async (reqBody, userAgent, ipAddress) => {
     },
   });
 
-  console.log("ACTION_TYPES.TOTP_SETUP_COMPLETE", {
+  logger.notice("TOTP_SETUP_COMPLETE", {
     userId: user.id,
     username: user.username,
     ipAddress,
@@ -700,6 +701,8 @@ const logout = async (username) => {
   if (user) {
     await prismaClient.session.deleteMany({ where: { userId: user.id } });
   }
+
+  logger.info("LOGOUT", { username });
 
   return { message: "Logout berhasil." };
 };

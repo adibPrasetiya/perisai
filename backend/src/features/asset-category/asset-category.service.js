@@ -8,6 +8,7 @@ import {
 import { prismaClient } from "../../core/lib/database.lib.js";
 import { ConflictError } from "../../error/conflict.error.js";
 import { NotFoundError } from "../../error/not-found.error.js";
+import { logger } from "../../core/lib/logger.lib.js";
 
 const create = async (reqBody) => {
   reqBody = validate(createAssetCategorySchema, reqBody);
@@ -40,7 +41,7 @@ const create = async (reqBody) => {
     },
   });
 
-  console.log("ACTION_TYPES.ASSET_CATEGORY_CREATED", {
+  logger.notice("ASSET_CATEGORY_CREATED", {
     assetCategoryId: assetCategory.id,
   });
 
@@ -95,9 +96,9 @@ const update = async (id, reqBody) => {
     },
   });
 
-  console.log("ACTION_TYPES.RISK_CATEGORY_UPDATED", {
+  logger.notice("ASSET_CATEGORY_UPDATED", {
     assetCategoryId: idParams.id,
-    updatedData: reqBody,
+    updatedData: Object.keys(reqBody).join(","),
   });
 
   return {
@@ -193,7 +194,7 @@ const remove = async (id) => {
     },
   });
 
-  console.log("ACTION_TYPES.RISK_CATEGORY_DELETED", {
+  logger.notice("ASSET_CATEGORY_DELETED", {
     assetCategoryId: params.id,
   });
 
