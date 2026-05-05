@@ -319,8 +319,15 @@ const verifyLoginTotp = async (reqBody, userAgent, ipAddress) => {
 
   const roles = user.userRoles.map((ur) => ur.role.name);
   const tokenConfig = await getTokenConfig();
-  const accessToken = generateAccessToken(user.username, roles, tokenConfig.accessTokenExpiry);
-  const refreshToken = generateRefreshToken(user.id, tokenConfig.sessionExpiryDays);
+  const accessToken = generateAccessToken(
+    user.username,
+    roles,
+    tokenConfig.accessTokenExpiry,
+  );
+  const refreshToken = generateRefreshToken(
+    user.id,
+    tokenConfig.sessionExpiryDays,
+  );
 
   const hashedRefreshToken = crypto
     .createHash("sha256")
@@ -578,8 +585,15 @@ const verifyTotpSetup = async (reqBody, userAgent, ipAddress) => {
 
   const roles = user.userRoles.map((ur) => ur.role.name);
   const tokenConfig = await getTokenConfig();
-  const accessToken = generateAccessToken(user.username, roles, tokenConfig.accessTokenExpiry);
-  const refreshToken = generateRefreshToken(user.id, tokenConfig.sessionExpiryDays);
+  const accessToken = generateAccessToken(
+    user.username,
+    roles,
+    tokenConfig.accessTokenExpiry,
+  );
+  const refreshToken = generateRefreshToken(
+    user.id,
+    tokenConfig.sessionExpiryDays,
+  );
 
   const hashedRefreshToken = crypto
     .createHash("sha256")
@@ -690,7 +704,11 @@ const refresh = async (rawRefreshToken) => {
 
   const roles = user.userRoles.map((ur) => ur.role.name);
   const tokenConfig = await getTokenConfig();
-  const newAccessToken = generateAccessToken(user.username, roles, tokenConfig.accessTokenExpiry);
+  const newAccessToken = generateAccessToken(
+    user.username,
+    roles,
+    tokenConfig.accessTokenExpiry,
+  );
 
   return {
     message: "Token berhasil diperbarui.",

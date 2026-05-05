@@ -10,6 +10,7 @@
       <button
         class="sc-save-btn"
         type="button"
+<<<<<<< HEAD
         :class="{ 'is-dirty': hasDirty }"
         :disabled="!hasDirty || saving"
         @click="saveAll"
@@ -17,6 +18,15 @@
         <i v-if="saving" class="pi pi-spin pi-spinner" />
         <i v-else class="pi pi-check" />
         {{ saving ? 'Menyimpan...' : 'Simpan' }}
+=======
+        :class="{ 'is-edit': isEditMode, 'is-dirty': isEditMode && hasDirty }"
+        :disabled="saving"
+        @click="handleHeaderAction"
+      >
+        <i v-if="saving" class="pi pi-spin pi-spinner" />
+        <i v-else :class="isEditMode ? 'pi pi-check' : 'pi pi-pencil'" />
+        {{ saving ? 'Menyimpan...' : (isEditMode ? 'Simpan' : 'Edit') }}
+>>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
       </button>
     </div>
 
@@ -64,8 +74,13 @@
                   class="sc-toggle"
                   type="button"
                   :class="{ 'is-on': localValues[item.key] === 'true' }"
+<<<<<<< HEAD
                   :disabled="!item.isEditable"
                   @click="item.isEditable && toggleBoolean(item.key)"
+=======
+                  :disabled="!isEditMode || !item.isEditable"
+                  @click="isEditMode && item.isEditable && toggleBoolean(item.key)"
+>>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
                 >
                   <span class="sc-toggle-thumb" />
                 </button>
@@ -82,7 +97,11 @@
                   type="number"
                   min="0"
                   step="1"
+<<<<<<< HEAD
                   :disabled="!item.isEditable"
+=======
+                  :disabled="!isEditMode || !item.isEditable"
+>>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
                   @input="markDirty(item.key)"
                 />
               </template>
@@ -93,7 +112,11 @@
                   v-model="localValues[item.key]"
                   class="sc-text-input"
                   type="text"
+<<<<<<< HEAD
                   :disabled="!item.isEditable"
+=======
+                  :disabled="!isEditMode || !item.isEditable"
+>>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
                   @input="markDirty(item.key)"
                 />
               </template>
@@ -150,6 +173,10 @@ const loading = ref(false)
 const fetchError = ref('')
 const saving = ref(false)
 const saveError = ref('')
+<<<<<<< HEAD
+=======
+const isEditMode = ref(false)
+>>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
 
 const localValues = reactive<Record<string, string>>({})
 const originalValues: Record<string, string> = {}
@@ -164,6 +191,10 @@ async function fetchData() {
   fetchError.value = ''
   dirtyKeys.clear()
   saveError.value = ''
+<<<<<<< HEAD
+=======
+  isEditMode.value = false
+>>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
 
   try {
     const res = await systemConfigApi.getAll()
@@ -202,7 +233,20 @@ function toggleBoolean(key: string) {
 const toast = useToast()
 
 async function saveAll() {
+<<<<<<< HEAD
   if (!hasDirty.value) return
+=======
+  if (!hasDirty.value) {
+    isEditMode.value = false
+    toast.add({
+      severity: 'success',
+      summary: 'Berhasil',
+      detail: 'Tidak ada perubahan. Mode edit ditutup.',
+      life: 2500,
+    })
+    return
+  }
+>>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
 
   saving.value = true
   saveError.value = ''
@@ -225,6 +269,10 @@ async function saveAll() {
   if (errors.length > 0) {
     saveError.value = errors.join(' • ')
   } else {
+<<<<<<< HEAD
+=======
+    isEditMode.value = false
+>>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
     toast.add({
       severity: 'success',
       summary: 'Berhasil',
@@ -234,6 +282,17 @@ async function saveAll() {
   }
 }
 
+<<<<<<< HEAD
+=======
+function handleHeaderAction() {
+  if (!isEditMode.value) {
+    isEditMode.value = true
+    return
+  }
+  saveAll()
+}
+
+>>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
 // ─── Re-fetch when group prop changes ─────────────────────────────────────────
 
 watch(() => props.group, fetchData)
@@ -284,20 +343,39 @@ onMounted(fetchData)
   font-family: var(--font-body);
   font-weight: 500;
   border-radius: var(--radius-sm);
+<<<<<<< HEAD
   border: 1px solid var(--color-border);
   background: var(--color-bg-input);
   color: var(--color-text-muted);
   cursor: not-allowed;
+=======
+  border: 1px solid rgba(96, 165, 250, 0.4);
+  background: rgba(96, 165, 250, 0.08);
+  color: #7fb4ff;
+  cursor: pointer;
+>>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   transition: all 0.15s;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
+<<<<<<< HEAD
 .sc-save-btn.is-dirty {
   border-color: rgba(0, 229, 184, 0.4);
   background: rgba(0, 229, 184, 0.08);
   color: var(--color-accent);
   cursor: pointer;
+=======
+.sc-save-btn.is-edit {
+  border-color: rgba(0, 229, 184, 0.4);
+  background: rgba(0, 229, 184, 0.08);
+  color: var(--color-accent);
+}
+
+.sc-save-btn.is-edit:not(.is-dirty):disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+>>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
 }
 
 .sc-save-btn.is-dirty:hover:not(:disabled) {

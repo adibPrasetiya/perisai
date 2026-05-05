@@ -5,7 +5,7 @@ import { userRoutes } from "../../features/user/user.route.js";
 import { unitKerjaProtectedRoutes } from "../../features/unit-kerja/unit-kerja.route.js";
 import { assetCategoryRoutes } from "../../features/asset-category/asset-category.route.js";
 import { assetRoutes } from "../../features/asset/asset.route.js";
-import { prosesBisnisRoutes } from "../../features/proses-bisnis/proses-bisnis.route.js";
+import { kegiatanRoutes } from "../../features/kegiatan/kegiatan.route.js";
 import { frameworkRoutes } from "../../features/framework/framework.route.js";
 import { riskProgramRoutes } from "../../features/risk-program/risk-program.route.js";
 import { programFrameworkRoutes } from "../../features/program-framework/program-framework.route.js";
@@ -26,7 +26,7 @@ const routes = [
   ...unitKerjaProtectedRoutes,
   ...assetCategoryRoutes,
   ...assetRoutes,
-  ...prosesBisnisRoutes,
+  ...kegiatanRoutes,
   ...frameworkRoutes,
   ...riskProgramRoutes,
   ...programFrameworkRoutes,

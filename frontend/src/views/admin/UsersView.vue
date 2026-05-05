@@ -1,294 +1,348 @@
 <template>
   <!-- ─── Header ─── -->
-      <div class="page-header">
-        <div>
-          <h1 class="page-title">Manajemen Pengguna</h1>
-          <p class="page-sub text-dim">
-            Total
-            <strong style="color:var(--color-accent)">{{ pagination.totalItems }}</strong>
-            pengguna terdaftar
-          </p>
-        </div>
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Manajemen Pengguna</h1>
+      <p class="page-sub text-dim">
+        Total
+        <strong style="color: var(--color-accent)">{{
+          pagination.totalItems
+        }}</strong>
+        pengguna terdaftar
+      </p>
+    </div>
+  </div>
+
+  <!-- ─── Search & Filter ─── -->
+  <div class="filter-bar">
+    <div class="search-wrap">
+      <i class="pi pi-search search-icon" />
+      <input
+        v-model="filters.q"
+        type="text"
+        name="user-search"
+        class="search-input"
+        placeholder="Cari berdasarkan nama"
+        autocomplete="off"
+        autocapitalize="off"
+        autocorrect="off"
+        spellcheck="false"
+        @input="onSearch"
+      />
+      <button
+        v-if="filters.q"
+        class="search-clear"
+        @click="
+          filters.q = '';
+          loadUsers();
+        "
+      >
+        <i class="pi pi-times" />
+      </button>
+    </div>
+
+    <select v-model="filters.role" class="filter-select" @change="loadUsers()">
+      <option value="">Semua Peran</option>
+      <option value="USER">User</option>
+      <option value="ADMINISTRATOR">Administrator</option>
+      <option value="KOMITE_PUSAT">Komite Pusat</option>
+      <option value="PENGELOLA_RISIKO_UKER">Pengelola Risiko</option>
+    </select>
+
+    <select
+      v-model="filters.isActive"
+      class="filter-select"
+      @change="loadUsers()"
+    >
+      <option value="">Semua Status</option>
+      <option value="true">Aktif</option>
+      <option value="false">Tidak Aktif</option>
+    </select>
+
+    <select
+      v-model="filters.isVerified"
+      class="filter-select"
+      @change="loadUsers()"
+    >
+      <option value="">Semua Verifikasi</option>
+      <option value="true">Terverifikasi</option>
+      <option value="false">Belum Diverifikasi</option>
+    </select>
+
+    <button class="filter-reset" @click="resetFilters" title="Reset filter">
+      <i class="pi pi-filter-slash" />
+    </button>
+  </div>
+
+  <!-- ─── Table ─── -->
+  <div class="table-wrap">
+    <!-- Loading overlay -->
+    <div v-if="loading" class="table-loading">
+      <ProgressSpinner style="width: 32px; height: 32px" />
+      <span>Memuat data...</span>
+    </div>
+
+    <!-- Error -->
+    <div v-else-if="errorMsg" class="table-empty">
+      <i
+        class="pi pi-exclamation-triangle"
+        style="color: var(--color-danger); font-size: 1.5rem"
+      />
+      <span>{{ errorMsg }}</span>
+      <button class="btn-retry" @click="loadUsers()">Coba Lagi</button>
+    </div>
+
+    <!-- Empty -->
+    <div v-else-if="users.length === 0" class="table-empty">
+      <i class="pi pi-inbox" style="font-size: 1.5rem; opacity: 0.4" />
+      <span>Tidak ada pengguna ditemukan</span>
+    </div>
+
+    <!-- Table -->
+    <table v-else class="data-table">
+      <thead>
+        <tr>
+          <th>Pengguna</th>
+          <th>Unit Kerja</th>
+          <th>Peran</th>
+          <th>Status</th>
+          <th>Sesi</th>
+          <th>Terdaftar</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="user in users" :key="user.id">
+          <!-- Pengguna -->
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar">
+                {{ user.name.charAt(0).toUpperCase() }}
+              </div>
+              <div>
+                <div class="user-name">{{ user.name }}</div>
+                <div class="user-username">@{{ user.username }}</div>
+                <div class="user-email">{{ user.email }}</div>
+              </div>
+            </div>
+          </td>
+
+          <!-- Unit Kerja -->
+          <td class="unit-kerja-cell">
+            <template v-if="user.profile?.unitKerja">
+              <div class="cell-main">{{ user.profile.unitKerja.name }}</div>
+              <div class="cell-sub">{{ user.profile.unitKerja.code }}</div>
+            </template>
+            <span v-else class="no-data">—</span>
+          </td>
+
+          <!-- Peran -->
+          <td>
+            <div style="display: flex; flex-wrap: wrap; gap: 4px">
+              <span
+                v-for="role in user.roles"
+                :key="role"
+                class="role-badge"
+                :class="roleBadgeClass(role)"
+                >{{ roleLabel(role) }}</span
+              >
+            </div>
+          </td>
+
+          <!-- Status -->
+          <td>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <span
+                class="status-chip"
+                :class="user.isActive ? 'chip-green' : 'chip-red'"
+              >
+                <span class="chip-dot" />
+                {{ user.isActive ? "Aktif" : "Nonaktif" }}
+              </span>
+              <span
+                class="status-chip"
+                :class="user.isVerified ? 'chip-green' : 'chip-orange'"
+              >
+                <i
+                  :class="user.isVerified ? 'pi pi-verified' : 'pi pi-clock'"
+                  style="font-size: 10px"
+                />
+                {{ user.isVerified ? "Terverifikasi" : "Menunggu" }}
+              </span>
+              <span
+                class="status-chip"
+                :class="user.totpEnabled ? 'chip-teal' : 'chip-dim'"
+              >
+                <i class="pi pi-shield" style="font-size: 10px" />
+                {{ user.totpEnabled ? "TOTP Aktif" : "Tanpa TOTP" }}
+              </span>
+            </div>
+          </td>
+
+          <!-- Sesi -->
+          <td>
+            <template v-if="user.session">
+              <div style="display: flex; flex-direction: column; gap: 3px">
+                <span
+                  class="status-chip"
+                  :class="user.session.isActive ? 'chip-green' : 'chip-dim'"
+                >
+                  <span class="chip-dot" />
+                  {{ user.session.isActive ? "Online" : "Offline" }}
+                </span>
+                <div v-if="user.session.deviceName" class="cell-sub">
+                  <i class="pi pi-desktop" style="font-size: 10px" />
+                  {{ user.session.deviceName }}
+                </div>
+                <div v-if="user.session.ipAddress" class="cell-sub text-mono">
+                  {{ user.session.ipAddress }}
+                </div>
+              </div>
+            </template>
+            <span v-else class="no-data">Belum login</span>
+          </td>
+
+          <!-- Terdaftar -->
+          <td>
+            <div class="cell-main">{{ formatDate(user.createdAt) }}</div>
+            <div v-if="user.passwordChangedAt" class="cell-sub">
+              Sandi diubah {{ formatDate(user.passwordChangedAt) }}
+            </div>
+          </td>
+
+          <!-- Aksi -->
+          <td class="action-cell">
+            <div class="action-buttons">
+              <button
+                v-if="!user.isVerified"
+                class="action-btn btn-verify"
+                title="Verifikasi akun"
+                :disabled="actionLoadingId === user.id"
+                @click="openAction('verify', user)"
+              >
+                <i class="pi pi-verified" />
+                <span>Verifikasi</span>
+              </button>
+
+              <button
+                v-if="!user.isActive"
+                class="action-btn btn-activate"
+                title="Aktifkan akun"
+                :disabled="actionLoadingId === user.id"
+                @click="openAction('activate', user)"
+              >
+                <i class="pi pi-check-circle" />
+                <span>Aktifkan</span>
+              </button>
+
+              <button
+                v-if="user.isActive && user.username !== auth.user?.username"
+                class="action-btn btn-deactivate"
+                title="Nonaktifkan akun"
+                :disabled="actionLoadingId === user.id"
+                @click="openAction('deactivate', user)"
+              >
+                <i class="pi pi-ban" />
+                <span>Nonaktifkan</span>
+              </button>
+
+              <button
+                v-if="user.totpEnabled && user.username !== auth.user?.username"
+                class="action-btn btn-reset-totp"
+                title="Reset TOTP"
+                :disabled="actionLoadingId === user.id"
+                @click="openResetTotp(user)"
+              >
+                <i class="pi pi-shield" />
+                <span>Reset TOTP</span>
+              </button>
+
+              <button
+                v-if="user.username !== auth.user?.username"
+                class="action-btn btn-edit"
+                title="Edit unit kerja & peran"
+                :disabled="actionLoadingId === user.id"
+                @click="openEditDialog(user)"
+              >
+                <i class="pi pi-pencil" />
+                <span>Edit</span>
+              </button>
+
+              <span
+                v-if="
+                  user.isVerified &&
+                  user.isActive &&
+                  user.username === auth.user?.username
+                "
+                class="no-data"
+                >Akun Anda</span
+              >
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ─── Pagination ─── -->
+  <div class="pagination-bar">
+    <div class="pagination-info">
+      <template v-if="pagination.totalItems > 0">
+        Menampilkan
+        <strong>{{ paginationRange }}</strong>
+        dari <strong>{{ pagination.totalItems }}</strong> pengguna
+      </template>
+      <span v-else class="text-dim">Tidak ada data</span>
+    </div>
+
+    <div class="pagination-controls">
+      <div class="limit-wrap">
+        <span class="limit-label">Tampilkan</span>
+        <select
+          v-model.number="pagination.limit"
+          class="limit-select"
+          @change="loadUsers(1)"
+        >
+          <option :value="10">10</option>
+          <option :value="25">25</option>
+          <option :value="50">50</option>
+        </select>
+        <span class="limit-label">/ hal.</span>
       </div>
 
-      <!-- ─── Search & Filter ─── -->
-      <div class="filter-bar">
-        <div class="search-wrap">
-          <i class="pi pi-search search-icon" />
-          <input
-            v-model="filters.q"
-            type="text"
-            class="search-input"
-            placeholder="Cari nama atau username..."
-            @input="onSearch"
-          />
-          <button v-if="filters.q" class="search-clear" @click="filters.q = ''; loadUsers()">
-            <i class="pi pi-times" />
-          </button>
-        </div>
-
-        <select v-model="filters.role" class="filter-select" @change="loadUsers()">
-          <option value="">Semua Peran</option>
-          <option value="USER">User</option>
-          <option value="ADMINISTRATOR">Administrator</option>
-          <option value="KOMITE_PUSAT">Komite Pusat</option>
-          <option value="PENGELOLA_RISIKO_UKER">Pengelola Risiko</option>
-        </select>
-
-        <select v-model="filters.isActive" class="filter-select" @change="loadUsers()">
-          <option value="">Semua Status</option>
-          <option value="true">Aktif</option>
-          <option value="false">Tidak Aktif</option>
-        </select>
-
-        <select v-model="filters.isVerified" class="filter-select" @change="loadUsers()">
-          <option value="">Semua Verifikasi</option>
-          <option value="true">Terverifikasi</option>
-          <option value="false">Belum Diverifikasi</option>
-        </select>
-
-        <button class="filter-reset" @click="resetFilters" title="Reset filter">
-          <i class="pi pi-filter-slash" />
+      <div v-if="pagination.totalPages > 1" class="page-buttons">
+        <button
+          class="page-btn"
+          :disabled="!pagination.hasPrevPage"
+          @click="goToPage(pagination.page - 1)"
+        >
+          <i class="pi pi-chevron-left" />
         </button>
+
+        <button
+          v-for="p in pageNumbers"
+          :key="p"
+          class="page-btn"
+          :class="{ 'is-active': p === pagination.page }"
+          @click="goToPage(p)"
+        >
+          {{ p }}
+        </button>
+
+        <button
+          class="page-btn"
+          :disabled="!pagination.hasNextPage"
+          @click="goToPage(pagination.page + 1)"
+        >
+          <i class="pi pi-chevron-right" />
+        </button>
+
+        <span class="page-pos"
+          >{{ pagination.page }} / {{ pagination.totalPages }}</span
+        >
       </div>
-
-      <!-- ─── Table ─── -->
-      <div class="table-wrap">
-        <!-- Loading overlay -->
-        <div v-if="loading" class="table-loading">
-          <ProgressSpinner style="width:32px;height:32px;" />
-          <span>Memuat data...</span>
-        </div>
-
-        <!-- Error -->
-        <div v-else-if="errorMsg" class="table-empty">
-          <i class="pi pi-exclamation-triangle" style="color:var(--color-danger); font-size:1.5rem;" />
-          <span>{{ errorMsg }}</span>
-          <button class="btn-retry" @click="loadUsers()">Coba Lagi</button>
-        </div>
-
-        <!-- Empty -->
-        <div v-else-if="users.length === 0" class="table-empty">
-          <i class="pi pi-inbox" style="font-size:1.5rem; opacity:0.4;" />
-          <span>Tidak ada pengguna ditemukan</span>
-        </div>
-
-        <!-- Table -->
-        <table v-else class="data-table">
-          <thead>
-            <tr>
-              <th>Pengguna</th>
-              <th>Unit Kerja</th>
-              <th>Peran</th>
-              <th>Status</th>
-              <th>Sesi</th>
-              <th>Terdaftar</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="user in users" :key="user.id">
-
-              <!-- Pengguna -->
-              <td>
-                <div class="user-cell">
-                  <div class="user-avatar">{{ user.name.charAt(0).toUpperCase() }}</div>
-                  <div>
-                    <div class="user-name">{{ user.name }}</div>
-                    <div class="user-username">@{{ user.username }}</div>
-                    <div class="user-email">{{ user.email }}</div>
-                  </div>
-                </div>
-              </td>
-
-              <!-- Unit Kerja -->
-              <td>
-                <template v-if="user.profile?.unitKerja">
-                  <div class="cell-main">{{ user.profile.unitKerja.name }}</div>
-                  <div class="cell-sub">{{ user.profile.unitKerja.code }}</div>
-                </template>
-                <span v-else class="no-data">—</span>
-              </td>
-
-              <!-- Peran -->
-              <td>
-                <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                  <span
-                    v-for="role in user.roles"
-                    :key="role"
-                    class="role-badge"
-                    :class="roleBadgeClass(role)"
-                  >{{ roleLabel(role) }}</span>
-                </div>
-              </td>
-
-              <!-- Status -->
-              <td>
-                <div style="display:flex; flex-direction:column; gap:4px;">
-                  <span class="status-chip" :class="user.isActive ? 'chip-green' : 'chip-red'">
-                    <span class="chip-dot" />
-                    {{ user.isActive ? 'Aktif' : 'Nonaktif' }}
-                  </span>
-                  <span class="status-chip" :class="user.isVerified ? 'chip-green' : 'chip-orange'">
-                    <i :class="user.isVerified ? 'pi pi-verified' : 'pi pi-clock'" style="font-size:10px;" />
-                    {{ user.isVerified ? 'Terverifikasi' : 'Menunggu' }}
-                  </span>
-                  <span class="status-chip" :class="user.totpEnabled ? 'chip-teal' : 'chip-dim'">
-                    <i class="pi pi-shield" style="font-size:10px;" />
-                    {{ user.totpEnabled ? 'TOTP Aktif' : 'Tanpa TOTP' }}
-                  </span>
-                </div>
-              </td>
-
-              <!-- Sesi -->
-              <td>
-                <template v-if="user.session">
-                  <div style="display:flex; flex-direction:column; gap:3px;">
-                    <span class="status-chip" :class="user.session.isActive ? 'chip-green' : 'chip-dim'">
-                      <span class="chip-dot" />
-                      {{ user.session.isActive ? 'Online' : 'Offline' }}
-                    </span>
-                    <div v-if="user.session.deviceName" class="cell-sub">
-                      <i class="pi pi-desktop" style="font-size:10px;" />
-                      {{ user.session.deviceName }}
-                    </div>
-                    <div v-if="user.session.ipAddress" class="cell-sub text-mono">
-                      {{ user.session.ipAddress }}
-                    </div>
-                  </div>
-                </template>
-                <span v-else class="no-data">Belum login</span>
-              </td>
-
-              <!-- Terdaftar -->
-              <td>
-                <div class="cell-main">{{ formatDate(user.createdAt) }}</div>
-                <div v-if="user.passwordChangedAt" class="cell-sub">
-                  Sandi diubah {{ formatDate(user.passwordChangedAt) }}
-                </div>
-              </td>
-
-              <!-- Aksi -->
-              <td class="action-cell">
-                <div class="action-buttons">
-                  <button
-                    v-if="!user.isVerified"
-                    class="action-btn btn-verify"
-                    title="Verifikasi akun"
-                    :disabled="actionLoadingId === user.id"
-                    @click="openAction('verify', user)"
-                  >
-                    <i class="pi pi-verified" />
-                    <span>Verifikasi</span>
-                  </button>
-
-                  <button
-                    v-if="!user.isActive"
-                    class="action-btn btn-activate"
-                    title="Aktifkan akun"
-                    :disabled="actionLoadingId === user.id"
-                    @click="openAction('activate', user)"
-                  >
-                    <i class="pi pi-check-circle" />
-                    <span>Aktifkan</span>
-                  </button>
-
-                  <button
-                    v-if="user.isActive && user.username !== auth.user?.username"
-                    class="action-btn btn-deactivate"
-                    title="Nonaktifkan akun"
-                    :disabled="actionLoadingId === user.id"
-                    @click="openAction('deactivate', user)"
-                  >
-                    <i class="pi pi-ban" />
-                    <span>Nonaktifkan</span>
-                  </button>
-
-                  <button
-                    v-if="user.totpEnabled && user.username !== auth.user?.username"
-                    class="action-btn btn-reset-totp"
-                    title="Reset TOTP"
-                    :disabled="actionLoadingId === user.id"
-                    @click="openResetTotp(user)"
-                  >
-                    <i class="pi pi-shield" />
-                    <span>Reset TOTP</span>
-                  </button>
-
-                  <button
-                    v-if="user.username !== auth.user?.username"
-                    class="action-btn btn-edit"
-                    title="Edit unit kerja & peran"
-                    :disabled="actionLoadingId === user.id"
-                    @click="openEditDialog(user)"
-                  >
-                    <i class="pi pi-pencil" />
-                    <span>Edit</span>
-                  </button>
-
-                  <span
-                    v-if="user.isVerified && user.isActive && user.username === auth.user?.username"
-                    class="no-data"
-                  >Akun Anda</span>
-                </div>
-              </td>
-
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- ─── Pagination ─── -->
-      <div class="pagination-bar">
-        <div class="pagination-info">
-          <template v-if="pagination.totalItems > 0">
-            Menampilkan
-            <strong>{{ paginationRange }}</strong>
-            dari <strong>{{ pagination.totalItems }}</strong> pengguna
-          </template>
-          <span v-else class="text-dim">Tidak ada data</span>
-        </div>
-
-        <div class="pagination-controls">
-          <div class="limit-wrap">
-            <span class="limit-label">Tampilkan</span>
-            <select v-model.number="pagination.limit" class="limit-select" @change="loadUsers(1)">
-              <option :value="10">10</option>
-              <option :value="25">25</option>
-              <option :value="50">50</option>
-            </select>
-            <span class="limit-label">/ hal.</span>
-          </div>
-
-          <div v-if="pagination.totalPages > 1" class="page-buttons">
-            <button
-              class="page-btn"
-              :disabled="!pagination.hasPrevPage"
-              @click="goToPage(pagination.page - 1)"
-            >
-              <i class="pi pi-chevron-left" />
-            </button>
-
-            <button
-              v-for="p in pageNumbers"
-              :key="p"
-              class="page-btn"
-              :class="{ 'is-active': p === pagination.page }"
-              @click="goToPage(p)"
-            >{{ p }}</button>
-
-            <button
-              class="page-btn"
-              :disabled="!pagination.hasNextPage"
-              @click="goToPage(pagination.page + 1)"
-            >
-              <i class="pi pi-chevron-right" />
-            </button>
-
-            <span class="page-pos">{{ pagination.page }} / {{ pagination.totalPages }}</span>
-          </div>
-        </div>
-      </div>
+    </div>
+  </div>
 
   <!-- ─── Dialog: Reset TOTP ─── -->
   <Dialog
@@ -306,7 +360,9 @@
           <div class="rtd-title">Reset TOTP Pengguna</div>
           <div class="rtd-sub" v-if="resetTotpTarget">
             <span class="rtd-target-name">{{ resetTotpTarget.name }}</span>
-            <span class="rtd-target-username">@{{ resetTotpTarget.username }}</span>
+            <span class="rtd-target-username"
+              >@{{ resetTotpTarget.username }}</span
+            >
           </div>
         </div>
       </div>
@@ -326,16 +382,30 @@
       </div>
 
       <div class="rtd-field">
+        <input
+          class="autofill-anchor"
+          type="text"
+          :value="auth.user?.username ?? ''"
+          autocomplete="username"
+          tabindex="-1"
+          readonly
+          aria-hidden="true"
+        />
         <label class="rtd-label">Password Anda</label>
         <div class="rtd-pw-wrap">
           <input
             v-model="resetTotpForm.password"
             class="rtd-input"
             :type="showResetTotpPw ? 'text' : 'password'"
+            name="current-password"
             placeholder="Masukkan password Anda"
             autocomplete="current-password"
           />
-          <button class="rtd-eye" type="button" @click="showResetTotpPw = !showResetTotpPw">
+          <button
+            class="rtd-eye"
+            type="button"
+            @click="showResetTotpPw = !showResetTotpPw"
+          >
             <i :class="showResetTotpPw ? 'pi pi-eye-slash' : 'pi pi-eye'" />
           </button>
         </div>
@@ -358,12 +428,20 @@
 
     <template #footer>
       <div class="rtd-footer">
-        <button class="rtd-btn-cancel" :disabled="savingResetTotp" @click="showResetTotpDialog = false">
+        <button
+          class="rtd-btn-cancel"
+          :disabled="savingResetTotp"
+          @click="showResetTotpDialog = false"
+        >
           Batal
         </button>
         <button
           class="rtd-btn-confirm"
-          :disabled="savingResetTotp || !resetTotpForm.password || !/^\d{6}$/.test(resetTotpForm.totpCode)"
+          :disabled="
+            savingResetTotp ||
+            !resetTotpForm.password ||
+            !/^\d{6}$/.test(resetTotpForm.totpCode)
+          "
           @click="submitResetTotp"
         >
           <i v-if="savingResetTotp" class="pi pi-spin pi-spinner" />
@@ -387,7 +465,7 @@
   >
     <!-- Loading saat fetch user detail -->
     <div v-if="detailLoading" class="detail-loading">
-      <ProgressSpinner style="width:28px;height:28px;" />
+      <ProgressSpinner style="width: 28px; height: 28px" />
       <span>Memuat data pengguna...</span>
     </div>
 
@@ -395,12 +473,22 @@
       <!-- Header pengguna -->
       <div class="review-user-header">
         <div class="review-avatar">
-          {{ (userDetail?.name ?? pendingAction?.user.name ?? '?').charAt(0).toUpperCase() }}
+          {{
+            (userDetail?.name ?? pendingAction?.user.name ?? "?")
+              .charAt(0)
+              .toUpperCase()
+          }}
         </div>
         <div class="review-identity">
-          <div class="review-name">{{ userDetail?.name ?? pendingAction?.user.name }}</div>
-          <div class="review-username">@{{ userDetail?.username ?? pendingAction?.user.username }}</div>
-          <div class="review-email">{{ userDetail?.email ?? pendingAction?.user.email }}</div>
+          <div class="review-name">
+            {{ userDetail?.name ?? pendingAction?.user.name }}
+          </div>
+          <div class="review-username">
+            @{{ userDetail?.username ?? pendingAction?.user.username }}
+          </div>
+          <div class="review-email">
+            {{ userDetail?.email ?? pendingAction?.user.email }}
+          </div>
         </div>
       </div>
 
@@ -408,12 +496,14 @@
       <div v-if="userDetail" class="review-details">
         <div class="review-row">
           <span class="review-label">Jabatan</span>
-          <span class="review-val">{{ userDetail.profile?.jabatan ?? '—' }}</span>
+          <span class="review-val">{{
+            userDetail.profile?.jabatan ?? "—"
+          }}</span>
         </div>
         <div class="review-row">
           <span class="review-label">Unit Kerja</span>
           <div class="review-val">
-            <span>{{ userDetail.profile?.unitKerja?.name ?? '—' }}</span>
+            <span>{{ userDetail.profile?.unitKerja?.name ?? "—" }}</span>
             <span v-if="userDetail.profile?.unitKerja?.code" class="review-sub">
               {{ userDetail.profile.unitKerja.code }}
             </span>
@@ -421,34 +511,60 @@
         </div>
         <div v-if="userDetail.profile?.nomorHP" class="review-row">
           <span class="review-label">Nomor HP</span>
-          <span class="review-val text-mono">{{ userDetail.profile.nomorHP }}</span>
+          <span class="review-val text-mono">{{
+            userDetail.profile.nomorHP
+          }}</span>
         </div>
         <div class="review-row">
           <span class="review-label">Peran</span>
-          <div class="review-val" style="display:flex; gap:4px; flex-wrap:wrap;">
+          <div
+            class="review-val"
+            style="display: flex; gap: 4px; flex-wrap: wrap"
+          >
             <span
               v-for="role in userDetail.roles"
               :key="role"
               class="role-badge"
               :class="roleBadgeClass(role)"
-            >{{ roleLabel(role) }}</span>
+              >{{ roleLabel(role) }}</span
+            >
           </div>
         </div>
         <div class="review-row">
           <span class="review-label">Status</span>
-          <div class="review-val" style="display:flex; gap:4px; flex-wrap:wrap;">
-            <span class="status-chip" :class="userDetail.isActive ? 'chip-green' : 'chip-red'">
-              <span class="chip-dot" />{{ userDetail.isActive ? 'Aktif' : 'Nonaktif' }}
+          <div
+            class="review-val"
+            style="display: flex; gap: 4px; flex-wrap: wrap"
+          >
+            <span
+              class="status-chip"
+              :class="userDetail.isActive ? 'chip-green' : 'chip-red'"
+            >
+              <span class="chip-dot" />{{
+                userDetail.isActive ? "Aktif" : "Nonaktif"
+              }}
             </span>
-            <span class="status-chip" :class="userDetail.isVerified ? 'chip-green' : 'chip-orange'">
-              <i :class="userDetail.isVerified ? 'pi pi-verified' : 'pi pi-clock'" style="font-size:10px;" />
-              {{ userDetail.isVerified ? 'Terverifikasi' : 'Belum Diverifikasi' }}
+            <span
+              class="status-chip"
+              :class="userDetail.isVerified ? 'chip-green' : 'chip-orange'"
+            >
+              <i
+                :class="
+                  userDetail.isVerified ? 'pi pi-verified' : 'pi pi-clock'
+                "
+                style="font-size: 10px"
+              />
+              {{
+                userDetail.isVerified ? "Terverifikasi" : "Belum Diverifikasi"
+              }}
             </span>
           </div>
         </div>
         <div v-if="userDetail.profile?.verifiedAt" class="review-row">
           <span class="review-label">Diverifikasi</span>
-          <span class="review-val">{{ formatDate(userDetail.profile.verifiedAt) }}</span>
+          <span class="review-val">{{
+            formatDate(userDetail.profile.verifiedAt)
+          }}</span>
         </div>
         <div class="review-row">
           <span class="review-label">Terdaftar</span>
@@ -516,7 +632,7 @@
       <div class="eud-field">
         <label class="eud-label">Unit Kerja</label>
         <div v-if="loadingUnitKerja" class="eud-loading-select">
-          <i class="pi pi-spin pi-spinner" style="font-size:12px;" />
+          <i class="pi pi-spin pi-spinner" style="font-size: 12px" />
           <span>Memuat...</span>
         </div>
         <select v-else v-model="editForm.unitKerjaId" class="eud-select">
@@ -535,19 +651,31 @@
         <label class="eud-label">Peran</label>
         <div class="eud-roles">
           <label v-for="r in allRoles" :key="r.value" class="eud-role-option">
-            <input type="checkbox" :value="r.value" v-model="editForm.roles" class="eud-checkbox" />
-            <span class="role-badge" :class="roleBadgeClass(r.value)">{{ r.label }}</span>
+            <input
+              type="checkbox"
+              :value="r.value"
+              v-model="editForm.roles"
+              class="eud-checkbox"
+            />
+            <span class="role-badge" :class="roleBadgeClass(r.value)">{{
+              r.label
+            }}</span>
           </label>
         </div>
         <span v-if="editForm.roles.length === 0" class="eud-hint eud-hint-warn">
-          <i class="pi pi-exclamation-triangle" style="font-size:10px;" /> Pilih minimal satu peran
+          <i class="pi pi-exclamation-triangle" style="font-size: 10px" /> Pilih
+          minimal satu peran
         </span>
       </div>
     </div>
 
     <template #footer>
       <div class="eud-footer">
-        <button class="eud-btn-cancel" :disabled="savingEdit" @click="showEditDialog = false">
+        <button
+          class="eud-btn-cancel"
+          :disabled="savingEdit"
+          @click="showEditDialog = false"
+        >
           Batal
         </button>
         <button
@@ -565,211 +693,244 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import Button from 'primevue/button'
-import Dialog from 'primevue/dialog'
-import ProgressSpinner from 'primevue/progressspinner'
-import { useToast } from 'primevue/usetoast'
-import { usersApi, type UserItem, type PaginationMeta } from '@/api/users'
-import { unitKerjaApi, type UnitKerja } from '@/api/unitKerja'
-import { useAuthStore } from '@/stores/auth'
-import { extractApiError } from '@/utils/apiError'
+import { ref, reactive, computed, onMounted } from "vue";
+import Button from "primevue/button";
+import Dialog from "primevue/dialog";
+import ProgressSpinner from "primevue/progressspinner";
+import { useToast } from "primevue/usetoast";
+import { usersApi, type UserItem, type PaginationMeta } from "@/api/users";
+import { unitKerjaApi, type UnitKerja } from "@/api/unitKerja";
+import { useAuthStore } from "@/stores/auth";
+import { extractApiError } from "@/utils/apiError";
 
-const auth = useAuthStore()
-const toast = useToast()
+const auth = useAuthStore();
+const toast = useToast();
 
 // ─── State ──────────────────────────────────────────────────────────────────
 
-const users = ref<UserItem[]>([])
-const loading = ref(false)
-const errorMsg = ref('')
+const users = ref<UserItem[]>([]);
+const loading = ref(false);
+const errorMsg = ref("");
 
 // ─── Action state ────────────────────────────────────────────────────────────
 
 // ─── Reset TOTP state ────────────────────────────────────────────────────────
 
-const showResetTotpDialog = ref(false)
-const savingResetTotp = ref(false)
-const resetTotpTarget = ref<UserItem | null>(null)
-const resetTotpError = ref('')
-const showResetTotpPw = ref(false)
-const resetTotpForm = ref({ password: '', totpCode: '' })
+const showResetTotpDialog = ref(false);
+const savingResetTotp = ref(false);
+const resetTotpTarget = ref<UserItem | null>(null);
+const resetTotpError = ref("");
+const showResetTotpPw = ref(false);
+const resetTotpForm = ref({ password: "", totpCode: "" });
 
 function openResetTotp(user: UserItem) {
-  resetTotpTarget.value = user
-  resetTotpForm.value = { password: '', totpCode: '' }
-  resetTotpError.value = ''
-  showResetTotpPw.value = false
-  showResetTotpDialog.value = true
+  resetTotpTarget.value = user;
+  resetTotpForm.value = { password: "", totpCode: "" };
+  resetTotpError.value = "";
+  showResetTotpPw.value = false;
+  showResetTotpDialog.value = true;
 }
 
 async function submitResetTotp() {
-  if (!resetTotpTarget.value) return
-  resetTotpError.value = ''
-  savingResetTotp.value = true
-  actionLoadingId.value = resetTotpTarget.value.id
+  if (!resetTotpTarget.value) return;
+  resetTotpError.value = "";
+  savingResetTotp.value = true;
+  actionLoadingId.value = resetTotpTarget.value.id;
   try {
     const res = await usersApi.resetTotp(resetTotpTarget.value.id, {
       password: resetTotpForm.value.password,
       totpCode: resetTotpForm.value.totpCode,
-    })
-    showResetTotpDialog.value = false
-    toast.add({ severity: 'success', summary: 'Berhasil', detail: res.data.message, life: 4000 })
-    await loadUsers()
+    });
+    showResetTotpDialog.value = false;
+    toast.add({
+      severity: "success",
+      summary: "Berhasil",
+      detail: res.data.message,
+      life: 4000,
+    });
+    await loadUsers();
   } catch (err: any) {
-    resetTotpError.value = extractApiError(err, 'Terjadi kesalahan. Coba lagi.')
+    resetTotpError.value = extractApiError(
+      err,
+      "Terjadi kesalahan. Coba lagi.",
+    );
   } finally {
-    savingResetTotp.value = false
-    actionLoadingId.value = null
+    savingResetTotp.value = false;
+    actionLoadingId.value = null;
   }
 }
 
 // ─── Edit User state ──────────────────────────────────────────────────────────
 
 const allRoles = [
-  { value: 'USER', label: 'User' },
-  { value: 'PENGELOLA_RISIKO_UKER', label: 'Pengelola Risiko' },
-  { value: 'KOMITE_PUSAT', label: 'Komite Pusat' },
-  { value: 'ADMINISTRATOR', label: 'Administrator' },
-]
+  { value: "USER", label: "User" },
+  { value: "PENGELOLA_RISIKO_UKER", label: "Pengelola Risiko" },
+  { value: "KOMITE_PUSAT", label: "Komite Pusat" },
+  { value: "ADMINISTRATOR", label: "Administrator" },
+];
 
-const showEditDialog = ref(false)
-const savingEdit = ref(false)
-const editTarget = ref<UserItem | null>(null)
-const editError = ref('')
-const unitKerjaOptions = ref<UnitKerja[]>([])
-const loadingUnitKerja = ref(false)
-const editForm = reactive({ unitKerjaId: '', roles: [] as string[] })
+const showEditDialog = ref(false);
+const savingEdit = ref(false);
+const editTarget = ref<UserItem | null>(null);
+const editError = ref("");
+const unitKerjaOptions = ref<UnitKerja[]>([]);
+const loadingUnitKerja = ref(false);
+const editForm = reactive({ unitKerjaId: "", roles: [] as string[] });
 
 async function openEditDialog(user: UserItem) {
-  editTarget.value = user
-  editForm.unitKerjaId = ''
-  editForm.roles = [...user.roles]
-  editError.value = ''
-  showEditDialog.value = true
+  editTarget.value = user;
+  editForm.unitKerjaId = "";
+  editForm.roles = [...user.roles];
+  editError.value = "";
+  showEditDialog.value = true;
 
   if (unitKerjaOptions.value.length === 0) {
-    loadingUnitKerja.value = true
+    loadingUnitKerja.value = true;
     try {
-      const res = await unitKerjaApi.search({ limit: 100 })
-      unitKerjaOptions.value = res.data.data
+      const res = await unitKerjaApi.search({ limit: 100 });
+      unitKerjaOptions.value = res.data.data;
     } catch {
       // biarkan kosong, user masih bisa ganti roles
     } finally {
-      loadingUnitKerja.value = false
+      loadingUnitKerja.value = false;
     }
   }
 }
 
 async function submitEdit() {
-  if (!editTarget.value || editForm.roles.length === 0) return
-  editError.value = ''
+  if (!editTarget.value || editForm.roles.length === 0) return;
+  editError.value = "";
 
   const payload: { unitKerjaId?: string; roles?: string[] } = {
     roles: editForm.roles,
-  }
+  };
   if (editForm.unitKerjaId) {
-    payload.unitKerjaId = editForm.unitKerjaId
+    payload.unitKerjaId = editForm.unitKerjaId;
   }
 
-  savingEdit.value = true
-  actionLoadingId.value = editTarget.value.id
+  savingEdit.value = true;
+  actionLoadingId.value = editTarget.value.id;
   try {
-    const res = await usersApi.adminUpdateUser(editTarget.value.id, payload)
-    showEditDialog.value = false
-    toast.add({ severity: 'success', summary: 'Berhasil', detail: res.data.message, life: 4000 })
-    await loadUsers()
+    const res = await usersApi.adminUpdateUser(editTarget.value.id, payload);
+    showEditDialog.value = false;
+    toast.add({
+      severity: "success",
+      summary: "Berhasil",
+      detail: res.data.message,
+      life: 4000,
+    });
+    await loadUsers();
   } catch (err: any) {
-    editError.value = extractApiError(err, 'Terjadi kesalahan. Coba lagi.')
+    editError.value = extractApiError(err, "Terjadi kesalahan. Coba lagi.");
   } finally {
-    savingEdit.value = false
-    actionLoadingId.value = null
+    savingEdit.value = false;
+    actionLoadingId.value = null;
   }
 }
 
 // ─── ─────────────────────────────────────────────────────────────────────────
 
-type ActionType = 'verify' | 'activate' | 'deactivate'
+type ActionType = "verify" | "activate" | "deactivate";
 
-const showConfirmDialog = ref(false)
-const actionLoading = ref(false)
-const actionLoadingId = ref<string | null>(null)
-const pendingAction = ref<{ type: ActionType; user: UserItem } | null>(null)
-const userDetail = ref<UserItem | null>(null)
-const detailLoading = ref(false)
+const showConfirmDialog = ref(false);
+const actionLoading = ref(false);
+const actionLoadingId = ref<string | null>(null);
+const pendingAction = ref<{ type: ActionType; user: UserItem } | null>(null);
+const userDetail = ref<UserItem | null>(null);
+const detailLoading = ref(false);
 
 const confirmConfig = computed(() => {
-  const type = pendingAction.value?.type
-  if (type === 'verify') return {
-    title: 'Tinjau & Verifikasi Akun',
-    message: 'Tindakan ini akan menandai profil pengguna sebagai telah diverifikasi. Pastikan semua data di atas sudah sesuai sebelum melanjutkan.',
-    label: 'Verifikasi',
-    severity: 'contrast' as const,
-    icon: 'pi pi-verified',
-    noticeClass: 'notice-info',
-  }
-  if (type === 'activate') return {
-    title: 'Tinjau & Aktifkan Akun',
-    message: 'Pengguna akan dapat masuk ke sistem setelah diaktifkan. Pastikan akun ini memang layak untuk diaktifkan.',
-    label: 'Aktifkan',
-    severity: 'success' as const,
-    icon: 'pi pi-check-circle',
-    noticeClass: 'notice-success',
-  }
+  const type = pendingAction.value?.type;
+  if (type === "verify")
+    return {
+      title: "Tinjau & Verifikasi Akun",
+      message:
+        "Tindakan ini akan menandai profil pengguna sebagai telah diverifikasi. Pastikan semua data di atas sudah sesuai sebelum melanjutkan.",
+      label: "Verifikasi",
+      severity: "contrast" as const,
+      icon: "pi pi-verified",
+      noticeClass: "notice-info",
+    };
+  if (type === "activate")
+    return {
+      title: "Tinjau & Aktifkan Akun",
+      message:
+        "Pengguna akan dapat masuk ke sistem setelah diaktifkan. Pastikan akun ini memang layak untuk diaktifkan.",
+      label: "Aktifkan",
+      severity: "success" as const,
+      icon: "pi pi-check-circle",
+      noticeClass: "notice-success",
+    };
   return {
-    title: 'Tinjau & Nonaktifkan Akun',
-    message: 'Pengguna akan langsung dikeluarkan dari sesi aktifnya dan tidak dapat masuk kembali hingga diaktifkan ulang.',
-    label: 'Nonaktifkan',
-    severity: 'danger' as const,
-    icon: 'pi pi-ban',
-    noticeClass: 'notice-danger',
-  }
-})
+    title: "Tinjau & Nonaktifkan Akun",
+    message:
+      "Pengguna akan langsung dikeluarkan dari sesi aktifnya dan tidak dapat masuk kembali hingga diaktifkan ulang.",
+    label: "Nonaktifkan",
+    severity: "danger" as const,
+    icon: "pi pi-ban",
+    noticeClass: "notice-danger",
+  };
+});
 
 async function openAction(type: ActionType, user: UserItem) {
-  pendingAction.value = { type, user }
-  userDetail.value = null
-  detailLoading.value = true
-  showConfirmDialog.value = true
+  pendingAction.value = { type, user };
+  userDetail.value = null;
+  detailLoading.value = true;
+  showConfirmDialog.value = true;
   try {
-    const res = await usersApi.getById(user.id)
-    userDetail.value = res.data.data
+    const res = await usersApi.getById(user.id);
+    userDetail.value = res.data.data;
   } catch {
     // Dialog tetap terbuka dengan info dasar dari baris tabel
   } finally {
-    detailLoading.value = false
+    detailLoading.value = false;
   }
 }
 
 function onDialogHide() {
-  if (actionLoading.value) return
-  showConfirmDialog.value = false
-  userDetail.value = null
-  pendingAction.value = null
+  if (actionLoading.value) return;
+  showConfirmDialog.value = false;
+  userDetail.value = null;
+  pendingAction.value = null;
 }
 
 async function confirmAction() {
-  if (!pendingAction.value) return
-  const { type, user } = pendingAction.value
+  if (!pendingAction.value) return;
+  const { type, user } = pendingAction.value;
 
-  actionLoading.value = true
-  actionLoadingId.value = user.id
+  actionLoading.value = true;
+  actionLoadingId.value = user.id;
   try {
-    if (type === 'verify') await usersApi.verify(user.id)
-    else if (type === 'activate') await usersApi.activate(user.id)
-    else await usersApi.deactivate(user.id)
+    if (type === "verify") await usersApi.verify(user.id);
+    else if (type === "activate") await usersApi.activate(user.id);
+    else await usersApi.deactivate(user.id);
 
-    showConfirmDialog.value = false
-    const actionLabel = type === 'verify' ? 'diverifikasi' : type === 'activate' ? 'diaktifkan' : 'dinonaktifkan'
-    toast.add({ severity: 'success', summary: 'Berhasil', detail: `Akun ${user.username} berhasil ${actionLabel}.`, life: 3000 })
-    await loadUsers()
+    showConfirmDialog.value = false;
+    const actionLabel =
+      type === "verify"
+        ? "diverifikasi"
+        : type === "activate"
+          ? "diaktifkan"
+          : "dinonaktifkan";
+    toast.add({
+      severity: "success",
+      summary: "Berhasil",
+      detail: `Akun ${user.username} berhasil ${actionLabel}.`,
+      life: 3000,
+    });
+    await loadUsers();
   } catch (err: any) {
-    toast.add({ severity: 'error', summary: 'Gagal', detail: extractApiError(err, 'Terjadi kesalahan.'), life: 4000 })
+    toast.add({
+      severity: "error",
+      summary: "Gagal",
+      detail: extractApiError(err, "Terjadi kesalahan."),
+      life: 4000,
+    });
   } finally {
-    actionLoading.value = false
-    actionLoadingId.value = null
-    userDetail.value = null
-    pendingAction.value = null
+    actionLoading.value = false;
+    actionLoadingId.value = null;
+    userDetail.value = null;
+    pendingAction.value = null;
   }
 }
 
@@ -780,107 +941,115 @@ const pagination = reactive<PaginationMeta>({
   totalPages: 0,
   hasNextPage: false,
   hasPrevPage: false,
-})
+});
 
 const filters = reactive({
-  q: '',
-  role: '',
-  isActive: '',
-  isVerified: '',
-})
+  q: "",
+  role: "",
+  isActive: "",
+  isVerified: "",
+});
 
 // ─── Computed ────────────────────────────────────────────────────────────────
 
 const pageNumbers = computed(() => {
-  const { page, totalPages } = pagination
-  const delta = 2
-  const range: number[] = []
-  for (let i = Math.max(1, page - delta); i <= Math.min(totalPages, page + delta); i++) {
-    range.push(i)
+  const { page, totalPages } = pagination;
+  const delta = 2;
+  const range: number[] = [];
+  for (
+    let i = Math.max(1, page - delta);
+    i <= Math.min(totalPages, page + delta);
+    i++
+  ) {
+    range.push(i);
   }
-  return range
-})
+  return range;
+});
 
 const paginationRange = computed(() => {
-  const start = (pagination.page - 1) * pagination.limit + 1
-  const end = Math.min(pagination.page * pagination.limit, pagination.totalItems)
-  return `${start}–${end}`
-})
+  const start = (pagination.page - 1) * pagination.limit + 1;
+  const end = Math.min(
+    pagination.page * pagination.limit,
+    pagination.totalItems,
+  );
+  return `${start}–${end}`;
+});
 
 // ─── Data loading ────────────────────────────────────────────────────────────
 
-let searchTimeout: ReturnType<typeof setTimeout>
+let searchTimeout: ReturnType<typeof setTimeout>;
 
 function onSearch() {
-  clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => loadUsers(1), 350)
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => loadUsers(1), 350);
 }
 
 async function loadUsers(page = pagination.page) {
-  loading.value = true
-  errorMsg.value = ''
+  loading.value = true;
+  errorMsg.value = "";
   try {
-    const params: Record<string, unknown> = { page, limit: pagination.limit }
-    if (filters.q) params.name = filters.q
-    if (filters.role) params.role = filters.role
-    if (filters.isActive !== '') params.isActive = filters.isActive === 'true'
-    if (filters.isVerified !== '') params.isVerified = filters.isVerified === 'true'
+    const params: Record<string, unknown> = { page, limit: pagination.limit };
+    if (filters.q) params.name = filters.q;
+    if (filters.role) params.role = filters.role;
+    if (filters.isActive !== "") params.isActive = filters.isActive === "true";
+    if (filters.isVerified !== "")
+      params.isVerified = filters.isVerified === "true";
 
-    const res = await usersApi.search(params as any)
-    users.value = res.data.data
-    Object.assign(pagination, { ...res.data.pagination, page })
+    const res = await usersApi.search(params as any);
+    users.value = res.data.data;
+    Object.assign(pagination, { ...res.data.pagination, page });
   } catch (err: any) {
-    errorMsg.value = extractApiError(err, 'Gagal memuat data pengguna.')
+    errorMsg.value = extractApiError(err, "Gagal memuat data pengguna.");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 function goToPage(p: number) {
-  if (p < 1 || p > pagination.totalPages) return
-  loadUsers(p)
+  if (p < 1 || p > pagination.totalPages) return;
+  loadUsers(p);
 }
 
 function resetFilters() {
-  filters.q = ''
-  filters.role = ''
-  filters.isActive = ''
-  filters.isVerified = ''
-  loadUsers(1)
+  filters.q = "";
+  filters.role = "";
+  filters.isActive = "";
+  filters.isVerified = "";
+  loadUsers(1);
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function roleLabel(role: string) {
   const map: Record<string, string> = {
-    ADMINISTRATOR: 'Admin',
-    KOMITE_PUSAT: 'Komite Pusat',
-    PENGELOLA_RISIKO_UKER: 'Pengelola Risiko',
-    USER: 'User',
-  }
-  return map[role] ?? role
+    ADMINISTRATOR: "Admin",
+    KOMITE_PUSAT: "Komite Pusat",
+    PENGELOLA_RISIKO_UKER: "Pengelola Risiko",
+    USER: "User",
+  };
+  return map[role] ?? role;
 }
 
 function roleBadgeClass(role: string) {
   return {
-    'role-admin': role === 'ADMINISTRATOR',
-    'role-komite': role === 'KOMITE_PUSAT',
-    'role-pengelola': role === 'PENGELOLA_RISIKO_UKER',
-    'role-user': role === 'USER',
-  }
+    "role-admin": role === "ADMINISTRATOR",
+    "role-komite": role === "KOMITE_PUSAT",
+    "role-pengelola": role === "PENGELOLA_RISIKO_UKER",
+    "role-user": role === "USER",
+  };
 }
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('id-ID', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  })
+  return new Date(iso).toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 // ─── Init ────────────────────────────────────────────────────────────────────
 
-onMounted(() => loadUsers(1))
+onMounted(() => loadUsers(1));
 </script>
 
 <style scoped>
@@ -922,6 +1091,14 @@ onMounted(() => loadUsers(1))
   min-width: 220px;
 }
 
+.autofill-anchor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .search-icon {
   position: absolute;
   left: 12px;
@@ -942,7 +1119,9 @@ onMounted(() => loadUsers(1))
   font-size: 14px;
   padding: 9px 36px 9px 36px;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   box-sizing: border-box;
 }
 
@@ -951,7 +1130,9 @@ onMounted(() => loadUsers(1))
   box-shadow: 0 0 0 2px var(--color-accent-glow);
 }
 
-.search-input::placeholder { color: var(--color-text-muted); }
+.search-input::placeholder {
+  color: var(--color-text-muted);
+}
 
 .search-clear {
   position: absolute;
@@ -967,7 +1148,9 @@ onMounted(() => loadUsers(1))
   border-radius: 2px;
 }
 
-.search-clear:hover { color: var(--color-text); }
+.search-clear:hover {
+  color: var(--color-text);
+}
 
 .filter-select {
   background: var(--color-bg-input);
@@ -982,7 +1165,9 @@ onMounted(() => loadUsers(1))
   transition: border-color 0.2s;
 }
 
-.filter-select:focus { border-color: var(--color-accent); }
+.filter-select:focus {
+  border-color: var(--color-accent);
+}
 
 .filter-reset {
   background: var(--color-bg-input);
@@ -1036,7 +1221,10 @@ onMounted(() => loadUsers(1))
   cursor: pointer;
   transition: all 0.2s;
 }
-.btn-retry:hover { border-color: var(--color-accent); color: var(--color-accent); }
+.btn-retry:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
 
 /* ─── Table ─── */
 .data-table {
@@ -1066,7 +1254,9 @@ onMounted(() => loadUsers(1))
   color: var(--color-text);
 }
 
-.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:last-child td {
+  border-bottom: none;
+}
 
 .data-table tbody tr {
   transition: background 0.15s;
@@ -1125,6 +1315,12 @@ onMounted(() => loadUsers(1))
   white-space: nowrap;
 }
 
+.unit-kerja-cell .cell-main {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .cell-sub {
   font-size: 11px;
   color: var(--color-text-muted);
@@ -1134,9 +1330,16 @@ onMounted(() => loadUsers(1))
   gap: 3px;
 }
 
-.text-mono { font-family: var(--font-mono); }
-.text-sm   { font-size: 12px; }
-.no-data   { color: var(--color-text-muted); font-size: 12px; }
+.text-mono {
+  font-family: var(--font-mono);
+}
+.text-sm {
+  font-size: 12px;
+}
+.no-data {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
 
 /* ─── Role badge ─── */
 .role-badge {
@@ -1150,10 +1353,26 @@ onMounted(() => loadUsers(1))
   white-space: nowrap;
 }
 
-.role-admin    { background: rgba(255, 100, 100, 0.15); color: #ff8fa3; border: 1px solid rgba(255, 100, 100, 0.25); }
-.role-komite   { background: rgba(100, 100, 255, 0.15); color: #9fa8ff; border: 1px solid rgba(100, 100, 255, 0.25); }
-.role-pengelola{ background: rgba(255, 200, 50, 0.12); color: #ffd470; border: 1px solid rgba(255, 200, 50, 0.2); }
-.role-user     { background: rgba(100, 200, 100, 0.1); color: #7ed8a0; border: 1px solid rgba(100, 200, 100, 0.2); }
+.role-admin {
+  background: rgba(255, 100, 100, 0.15);
+  color: #ff8fa3;
+  border: 1px solid rgba(255, 100, 100, 0.25);
+}
+.role-komite {
+  background: rgba(100, 100, 255, 0.15);
+  color: #9fa8ff;
+  border: 1px solid rgba(100, 100, 255, 0.25);
+}
+.role-pengelola {
+  background: rgba(255, 200, 50, 0.12);
+  color: #ffd470;
+  border: 1px solid rgba(255, 200, 50, 0.2);
+}
+.role-user {
+  background: rgba(100, 200, 100, 0.1);
+  color: #7ed8a0;
+  border: 1px solid rgba(100, 200, 100, 0.2);
+}
 
 /* ─── Status chip ─── */
 .status-chip {
@@ -1175,11 +1394,31 @@ onMounted(() => loadUsers(1))
   flex-shrink: 0;
 }
 
-.chip-green  { background: rgba(0, 229, 100, 0.1); color: #5ae08a; border: 1px solid rgba(0, 229, 100, 0.2); }
-.chip-red    { background: rgba(255, 77, 109, 0.1); color: #ff8fa3; border: 1px solid rgba(255, 77, 109, 0.2); }
-.chip-orange { background: rgba(255, 165, 0, 0.1);  color: #ffc46b; border: 1px solid rgba(255, 165, 0, 0.2); }
-.chip-teal   { background: var(--color-accent-glow); color: var(--color-accent); border: 1px solid rgba(0, 229, 184, 0.25); }
-.chip-dim    { background: rgba(90, 122, 154, 0.1); color: var(--color-text-muted); border: 1px solid var(--color-border); }
+.chip-green {
+  background: rgba(0, 229, 100, 0.1);
+  color: #5ae08a;
+  border: 1px solid rgba(0, 229, 100, 0.2);
+}
+.chip-red {
+  background: rgba(255, 77, 109, 0.1);
+  color: #ff8fa3;
+  border: 1px solid rgba(255, 77, 109, 0.2);
+}
+.chip-orange {
+  background: rgba(255, 165, 0, 0.1);
+  color: #ffc46b;
+  border: 1px solid rgba(255, 165, 0, 0.2);
+}
+.chip-teal {
+  background: var(--color-accent-glow);
+  color: var(--color-accent);
+  border: 1px solid rgba(0, 229, 184, 0.25);
+}
+.chip-dim {
+  background: rgba(90, 122, 154, 0.1);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
 
 /* ─── Pagination bar ─── */
 .pagination-bar {
@@ -1233,7 +1472,9 @@ onMounted(() => loadUsers(1))
   transition: border-color 0.2s;
 }
 
-.limit-select:focus { border-color: var(--color-accent); }
+.limit-select:focus {
+  border-color: var(--color-accent);
+}
 
 .page-buttons {
   display: flex;
@@ -1315,7 +1556,9 @@ onMounted(() => loadUsers(1))
   cursor: not-allowed;
 }
 
-.action-btn .pi { font-size: 10px; }
+.action-btn .pi {
+  font-size: 10px;
+}
 
 .btn-verify {
   background: var(--color-accent-glow);
@@ -1653,7 +1896,9 @@ onMounted(() => loadUsers(1))
   font-size: 13px;
   padding: 8px 10px;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   box-sizing: border-box;
 }
 
@@ -1666,7 +1911,9 @@ onMounted(() => loadUsers(1))
   box-shadow: 0 0 0 2px rgba(155, 100, 255, 0.1);
 }
 
-.rtd-input::placeholder { color: var(--color-text-muted); }
+.rtd-input::placeholder {
+  color: var(--color-text-muted);
+}
 
 .rtd-eye {
   position: absolute;
@@ -1682,7 +1929,9 @@ onMounted(() => loadUsers(1))
   line-height: 1;
   transition: color 0.2s;
 }
-.rtd-eye:hover { color: var(--color-text); }
+.rtd-eye:hover {
+  color: var(--color-text);
+}
 
 .rtd-totp-input {
   font-family: var(--font-mono);
@@ -1718,8 +1967,14 @@ onMounted(() => loadUsers(1))
   cursor: pointer;
   transition: all 0.2s;
 }
-.rtd-btn-cancel:hover:not(:disabled) { border-color: var(--color-text-dim); color: var(--color-text); }
-.rtd-btn-cancel:disabled { opacity: 0.45; cursor: not-allowed; }
+.rtd-btn-cancel:hover:not(:disabled) {
+  border-color: var(--color-text-dim);
+  color: var(--color-text);
+}
+.rtd-btn-cancel:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 
 .rtd-btn-confirm {
   display: inline-flex;
@@ -1736,9 +1991,17 @@ onMounted(() => loadUsers(1))
   cursor: pointer;
   transition: all 0.2s;
 }
-.rtd-btn-confirm:hover:not(:disabled) { background: rgba(155, 100, 255, 0.2); border-color: #c4a8ff; }
-.rtd-btn-confirm:disabled { opacity: 0.45; cursor: not-allowed; }
-.rtd-btn-confirm .pi { font-size: 11px; }
+.rtd-btn-confirm:hover:not(:disabled) {
+  background: rgba(155, 100, 255, 0.2);
+  border-color: #c4a8ff;
+}
+.rtd-btn-confirm:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.rtd-btn-confirm .pi {
+  font-size: 11px;
+}
 
 /* ─── Button: Edit ─── */
 .btn-edit {
@@ -1853,7 +2116,9 @@ onMounted(() => loadUsers(1))
   padding: 8px 10px;
   outline: none;
   cursor: pointer;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   box-sizing: border-box;
 }
 
@@ -1942,8 +2207,14 @@ onMounted(() => loadUsers(1))
   cursor: pointer;
   transition: all 0.2s;
 }
-.eud-btn-cancel:hover:not(:disabled) { border-color: var(--color-text-dim); color: var(--color-text); }
-.eud-btn-cancel:disabled { opacity: 0.45; cursor: not-allowed; }
+.eud-btn-cancel:hover:not(:disabled) {
+  border-color: var(--color-text-dim);
+  color: var(--color-text);
+}
+.eud-btn-cancel:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 
 .eud-btn-confirm {
   display: inline-flex;
@@ -1960,7 +2231,15 @@ onMounted(() => loadUsers(1))
   cursor: pointer;
   transition: all 0.2s;
 }
-.eud-btn-confirm:hover:not(:disabled) { background: rgba(255, 165, 0, 0.18); border-color: #ffc46b; }
-.eud-btn-confirm:disabled { opacity: 0.45; cursor: not-allowed; }
-.eud-btn-confirm .pi { font-size: 11px; }
+.eud-btn-confirm:hover:not(:disabled) {
+  background: rgba(255, 165, 0, 0.18);
+  border-color: #ffc46b;
+}
+.eud-btn-confirm:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.eud-btn-confirm .pi {
+  font-size: 11px;
+}
 </style>

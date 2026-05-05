@@ -1,5 +1,4 @@
 import { PROCESS_BUSINESS_STATUSES } from "../../core/config/enum.config.js";
-import { activityLog } from "../../core/lib/activity-log.lib.js";
 import { prismaClient } from "../../core/lib/database.lib.js";
 import { BadRequestError } from "../../error/bad-request.error.js";
 import { ConflictError } from "../../error/conflict.error.js";
@@ -11,14 +10,14 @@ import {
 } from "../../utils/unit-kerja.utils.js";
 import { validate } from "../../utils/validator.utils.js";
 import {
-  createProsesBisnisSchema,
-  prosesBisnisIdSchema,
-  searchProsesBisnisSchema,
+  createKegiatanSchema,
+  KegiatanIdSchema,
+  searchKegiatanSchema,
   unitKerjaIdSchema,
-  updateProsesBisnisSchema,
-} from "./proses-bisnis.validation.js";
+  updateKegiatanSchema,
+} from "./kegiatan.validation.js";
 
-const prosesBisnisSelect = {
+const KegiatanSelect = {
   id: true,
   name: true,
   code: true,
@@ -43,7 +42,7 @@ const create = async (unitKerjaId, reqBody, user) => {
   checkUnitKerjaAccess(user, unitKerjaId);
   await verifyUnitKerjaExists(unitKerjaId);
 
-  reqBody = validate(createProsesBisnisSchema, reqBody);
+  reqBody = validate(createKegiatanSchema, reqBody);
 
   const existingCode = await prismaClient.businessProcess.findUnique({
     where: {
@@ -56,11 +55,11 @@ const create = async (unitKerjaId, reqBody, user) => {
 
   if (existingCode) {
     throw new ConflictError(
-      `Kode proses bisnis "${reqBody.code}" sudah digunakan dalam unit kerja ini.`,
+      `Kode Kegiatan "${reqBody.code}" sudah digunakan dalam unit kerja ini.`,
     );
   }
 
-  const prosesBisnis = await prismaClient.businessProcess.create({
+  const Kegiatan = await prismaClient.businessProcess.create({
     data: {
       unitKerjaId,
       name: reqBody.name,
@@ -70,20 +69,12 @@ const create = async (unitKerjaId, reqBody, user) => {
       status: reqBody.status,
       createdBy: user.userId,
     },
-    select: prosesBisnisSelect,
-  });
-
-  await activityLog.notice("PROSES_BISNIS_CREATED", {
-    actionType: "CREATE",
-    id: prosesBisnis.id,
-    code: prosesBisnis.code,
-    unitKerjaId,
-    createdBy: user.userId,
+    select: KegiatanSelect,
   });
 
   return {
-    message: "Proses bisnis berhasil dibuat",
-    data: prosesBisnis,
+    message: "Kegiatan berhasil dibuat",
+    data: Kegiatan,
   };
 };
 
@@ -94,7 +85,7 @@ const search = async (unitKerjaId, queryParams, user) => {
   checkUnitKerjaAccess(user, unitKerjaId, { allowKomitePusat: true });
   await verifyUnitKerjaExists(unitKerjaId);
 
-  const params = validate(searchProsesBisnisSchema, queryParams);
+  const params = validate(searchKegiatanSchema, queryParams);
   const { name, code, status, page, limit } = params;
 
   const where = { unitKerjaId };
@@ -114,19 +105,19 @@ const search = async (unitKerjaId, queryParams, user) => {
   const skip = (page - 1) * limit;
   const totalItems = await prismaClient.businessProcess.count({ where });
 
-  const prosesBisnisList = await prismaClient.businessProcess.findMany({
+  const KegiatanList = await prismaClient.businessProcess.findMany({
     where,
     skip,
     take: limit,
     orderBy: { createdAt: "desc" },
-    select: prosesBisnisSelect,
+    select: KegiatanSelect,
   });
 
   const totalPages = Math.ceil(totalItems / limit);
 
   return {
-    message: "Proses bisnis berhasil ditemukan",
-    data: prosesBisnisList,
+    message: "Kegiatan berhasil ditemukan",
+    data: KegiatanList,
     pagination: {
       page,
       limit,
@@ -144,25 +135,25 @@ const update = async (unitKerjaId, id, reqBody, user) => {
 
   checkUnitKerjaAccess(user, unitKerjaId);
 
-  const idParams = validate(prosesBisnisIdSchema, { id });
+  const idParams = validate(KegiatanIdSchema, { id });
 
-  reqBody = validate(updateProsesBisnisSchema, reqBody);
+  reqBody = validate(updateKegiatanSchema, reqBody);
 
   const existing = await prismaClient.businessProcess.findUnique({
     where: { id: idParams.id },
   });
 
   if (!existing) {
-    throw new NotFoundError("Proses bisnis tidak ditemukan.");
+    throw new NotFoundError("Kegiatan tidak ditemukan.");
   }
 
   if (existing.unitKerjaId !== unitKerjaId) {
-    throw new NotFoundError("Proses bisnis tidak ditemukan.");
+    throw new NotFoundError("Kegiatan tidak ditemukan.");
   }
 
   if (existing.status === PROCESS_BUSINESS_STATUSES.ARCHIVED) {
     throw new ForbiddenError(
-      "Gagal mengubah data proses bisnis. Proses bisnis sudah di arsipkan.",
+      "Gagal mengubah data Kegiatan. Kegiatan sudah di arsipkan.",
     );
   }
 
@@ -178,7 +169,7 @@ const update = async (unitKerjaId, id, reqBody, user) => {
 
     if (codeExists) {
       throw new ConflictError(
-        `Kode proses bisnis "${reqBody.code}" sudah digunakan oleh proses bisnis lain dalam unit kerja ini.`,
+        `Kode Kegiatan "${reqBody.code}" sudah digunakan oleh Kegiatan lain dalam unit kerja ini.`,
       );
     }
   }
@@ -186,19 +177,11 @@ const update = async (unitKerjaId, id, reqBody, user) => {
   const updated = await prismaClient.businessProcess.update({
     where: { id: idParams.id },
     data: { ...reqBody, updatedBy: user.userId },
-    select: prosesBisnisSelect,
-  });
-
-  await activityLog.notice("PROSES_BISNIS_UPDATED", {
-    actionType: "UPDATE",
-    id: updated.id,
-    code: updated.code,
-    unitKerjaId,
-    updatedBy: user.userId,
+    select: KegiatanSelect,
   });
 
   return {
-    message: "Proses bisnis berhasil diperbarui",
+    message: "Kegiatan berhasil diperbarui",
     data: updated,
   };
 };
@@ -209,45 +192,37 @@ const setActive = async (unitKerjaId, id, user) => {
 
   checkUnitKerjaAccess(user, unitKerjaId);
 
-  const idParams = validate(prosesBisnisIdSchema, { id });
+  const idParams = validate(KegiatanIdSchema, { id });
 
   const existing = await prismaClient.businessProcess.findUnique({
     where: { id: idParams.id },
   });
 
   if (!existing) {
-    throw new NotFoundError("Proses bisnis tidak ditemukan.");
+    throw new NotFoundError("Kegiatan tidak ditemukan.");
   }
 
   if (existing.unitKerjaId !== unitKerjaId) {
-    throw new NotFoundError("Proses bisnis tidak ditemukan.");
+    throw new NotFoundError("Kegiatan tidak ditemukan.");
   }
 
   if (existing.status === PROCESS_BUSINESS_STATUSES.ACTIVE) {
-    throw new BadRequestError("Proses bisnis sudah dalam status aktif.");
+    throw new BadRequestError("Kegiatan sudah dalam status aktif.");
   }
 
   if (existing.status === PROCESS_BUSINESS_STATUSES.ARCHIVED) {
     throw new BadRequestError(
-      "Tidak dapat mengaktifkan proses bisnis yang sudah diarsipkan.",
+      "Tidak dapat mengaktifkan Kegiatan yang sudah diarsipkan.",
     );
   }
 
   const updated = await prismaClient.businessProcess.update({
     where: { id: idParams.id },
     data: { status: PROCESS_BUSINESS_STATUSES.ACTIVE, updatedBy: user.userId },
-    select: prosesBisnisSelect,
+    select: KegiatanSelect,
   });
 
-  await activityLog.notice("PROSES_BISNIS_ACTIVATED", {
-    actionType: "UPDATE",
-    id: updated.id,
-    code: updated.code,
-    unitKerjaId,
-    updatedBy: user.userId,
-  });
-
-  return { message: "Proses bisnis berhasil diaktifkan", data: updated };
+  return { message: "Kegiatan berhasil diaktifkan", data: updated };
 };
 
 const setInactive = async (unitKerjaId, id, user) => {
@@ -256,27 +231,27 @@ const setInactive = async (unitKerjaId, id, user) => {
 
   checkUnitKerjaAccess(user, unitKerjaId);
 
-  const idParams = validate(prosesBisnisIdSchema, { id });
+  const idParams = validate(KegiatanIdSchema, { id });
 
   const existing = await prismaClient.businessProcess.findUnique({
     where: { id: idParams.id },
   });
 
   if (!existing) {
-    throw new NotFoundError("Proses bisnis tidak ditemukan.");
+    throw new NotFoundError("Kegiatan tidak ditemukan.");
   }
 
   if (existing.unitKerjaId !== unitKerjaId) {
-    throw new NotFoundError("Proses bisnis tidak ditemukan.");
+    throw new NotFoundError("Kegiatan tidak ditemukan.");
   }
 
   if (existing.status === PROCESS_BUSINESS_STATUSES.INACTIVE) {
-    throw new BadRequestError("Proses bisnis sudah dalam status tidak aktif.");
+    throw new BadRequestError("Kegiatan sudah dalam status tidak aktif.");
   }
 
   if (existing.status === PROCESS_BUSINESS_STATUSES.ARCHIVED) {
     throw new BadRequestError(
-      "Tidak dapat menonaktifkan proses bisnis yang sudah diarsipkan.",
+      "Tidak dapat menonaktifkan Kegiatan yang sudah diarsipkan.",
     );
   }
 
@@ -286,18 +261,10 @@ const setInactive = async (unitKerjaId, id, user) => {
       status: PROCESS_BUSINESS_STATUSES.INACTIVE,
       updatedBy: user.userId,
     },
-    select: prosesBisnisSelect,
+    select: KegiatanSelect,
   });
 
-  await activityLog.notice("PROSES_BISNIS_DEACTIVATED", {
-    actionType: "UPDATE",
-    id: updated.id,
-    code: updated.code,
-    unitKerjaId,
-    updatedBy: user.userId,
-  });
-
-  return { message: "Proses bisnis berhasil dinonaktifkan", data: updated };
+  return { message: "Kegiatan berhasil dinonaktifkan", data: updated };
 };
 
 const archive = async (unitKerjaId, id, user) => {
@@ -306,27 +273,27 @@ const archive = async (unitKerjaId, id, user) => {
 
   checkUnitKerjaAccess(user, unitKerjaId);
 
-  const idParams = validate(prosesBisnisIdSchema, { id });
+  const idParams = validate(KegiatanIdSchema, { id });
 
   const existing = await prismaClient.businessProcess.findUnique({
     where: { id: idParams.id },
   });
 
   if (!existing) {
-    throw new NotFoundError("Proses bisnis tidak ditemukan.");
+    throw new NotFoundError("Kegiatan tidak ditemukan.");
   }
 
   if (existing.unitKerjaId !== unitKerjaId) {
-    throw new NotFoundError("Proses bisnis tidak ditemukan.");
+    throw new NotFoundError("Kegiatan tidak ditemukan.");
   }
 
   if (existing.status === PROCESS_BUSINESS_STATUSES.ARCHIVED) {
-    throw new BadRequestError("Proses bisnis sudah diarsipkan.");
+    throw new BadRequestError("Kegiatan sudah diarsipkan.");
   }
 
   if (existing.status === PROCESS_BUSINESS_STATUSES.ACTIVE) {
     throw new BadRequestError(
-      "Tidak dapat mengarsipkan proses bisnis yang masih aktif. Nonaktifkan terlebih dahulu.",
+      "Tidak dapat mengarsipkan Kegiatan yang masih aktif. Nonaktifkan terlebih dahulu.",
     );
   }
 
@@ -336,18 +303,12 @@ const archive = async (unitKerjaId, id, user) => {
       status: PROCESS_BUSINESS_STATUSES.ARCHIVED,
       updatedBy: user.userId,
     },
-    select: prosesBisnisSelect,
+    select: KegiatanSelect,
   });
 
-  await activityLog.notice("PROSES_BISNIS_ARCHIVED", {
-    actionType: "UPDATE",
-    id: archived.id,
-    code: archived.code,
-    unitKerjaId,
-    updatedBy: user.userId,
-  });
-
-  return { message: "Proses bisnis berhasil diarsipkan", data: archived };
+  return { message: "Kegiatan berhasil diarsipkan", data: archived };
 };
 
 export default { create, search, update, setActive, setInactive, archive };
+
+

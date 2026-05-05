@@ -1,21 +1,19 @@
 <template>
   <div class="asset-page">
+
     <!-- ─── Page header ───────────────────────────────────────────────────── -->
     <div class="asset-page-header">
       <div>
-        <h1 class="asset-page-title">Manajemen Aset</h1>
-        <p class="asset-page-desc">
-          Pantau dan kelola aset organisasi berdasarkan unit kerja.
-        </p>
+        <h1 class="asset-page-title">Manajemen Kegiatan</h1>
+        <p class="asset-page-desc">Pantau dan kelola Kegiatan organisasi berdasarkan unit kerja.</p>
       </div>
     </div>
 
     <!-- ─── Unit Kerja selector ───────────────────────────────────────────── -->
-    <!-- USER role: auto-filled, read-only -->
     <div v-if="isAutoFillUK" class="asset-uk-bar">
       <label class="asset-uk-label">Unit Kerja</label>
       <div v-if="ukLoading" class="asset-uk-static">
-        <ProgressSpinner style="width: 16px; height: 16px" />
+        <ProgressSpinner style="width:16px;height:16px" />
         <span>Memuat...</span>
       </div>
       <div v-else-if="myUnitKerja" class="asset-uk-static">
@@ -29,7 +27,6 @@
       </div>
     </div>
 
-    <!-- Other roles: dropdown picker -->
     <div v-else class="asset-uk-bar">
       <label class="asset-uk-label">Unit Kerja</label>
       <div class="asset-uk-select-wrap">
@@ -47,26 +44,22 @@
         </select>
         <i class="pi pi-chevron-down asset-uk-select-caret" />
       </div>
-      <ProgressSpinner v-if="ukLoading" style="width: 20px; height: 20px" />
+      <ProgressSpinner v-if="ukLoading" style="width:20px;height:20px" />
     </div>
 
     <!-- ─── Empty prompt ─────────────────────────────────────────────────── -->
     <div v-if="!selectedUnitKerjaId && !ukLoading" class="asset-empty-prompt">
-      <i class="pi pi-building asset-empty-icon" />
-      <p v-if="isAutoFillUK" class="asset-empty-text">
-        Unit kerja belum ditetapkan. Hubungi administrator.
-      </p>
-      <p v-else class="asset-empty-text">
-        Pilih unit kerja untuk melihat daftar aset
-      </p>
+      <i class="pi pi-sitemap asset-empty-icon" />
+      <p v-if="isAutoFillUK" class="asset-empty-text">Unit kerja belum ditetapkan. Hubungi administrator.</p>
+      <p v-else class="asset-empty-text">Pilih unit kerja untuk melihat daftar Kegiatan</p>
     </div>
 
-    <!-- ─── Asset table section ───────────────────────────────────────────── -->
+    <!-- ─── Table section ─────────────────────────────────────────────────── -->
     <template v-else>
+
       <!-- Controls: filters + add button -->
       <div class="asset-controls">
         <div class="asset-filters">
-          <!-- Name/code search -->
           <div class="filter-search-wrap">
             <i class="pi pi-search filter-search-icon" />
             <input
@@ -76,38 +69,13 @@
               placeholder="Cari nama atau kode..."
               @input="onFilterInput"
             />
-            <button
-              v-if="filterName"
-              class="filter-clear"
-              type="button"
-              @click="clearNameFilter"
-            >
+            <button v-if="filterName" class="filter-clear" type="button" @click="clearNameFilter">
               <i class="pi pi-times" />
             </button>
           </div>
 
-          <!-- Category filter -->
           <div class="filter-select-wrap">
-            <select
-              v-model="filterCategoryId"
-              class="filter-select"
-              @change="onFilterChange"
-            >
-              <option value="">Semua Kategori</option>
-              <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-                {{ cat.name }}
-              </option>
-            </select>
-            <i class="pi pi-chevron-down filter-select-caret" />
-          </div>
-
-          <!-- Status filter -->
-          <div class="filter-select-wrap">
-            <select
-              v-model="filterStatus"
-              class="filter-select"
-              @change="onFilterChange"
-            >
+            <select v-model="filterStatus" class="filter-select" @change="onFilterChange">
               <option value="">Semua Status</option>
               <option value="ACTIVE">Aktif</option>
               <option value="INACTIVE">Non-Aktif</option>
@@ -118,7 +86,8 @@
         </div>
 
         <Button
-          label="Tambah Aset"
+          v-if="canWrite"
+          label="Tambah Kegiatan"
           icon="pi pi-plus"
           size="small"
           @click="openCreate"
@@ -128,7 +97,7 @@
       <!-- Table -->
       <div class="asset-table-wrap">
         <div v-if="loading" class="asset-loading">
-          <ProgressSpinner style="width: 32px; height: 32px" />
+          <ProgressSpinner style="width:32px;height:32px" />
         </div>
         <div v-else-if="fetchError" class="asset-error-banner">
           <i class="pi pi-exclamation-circle" />
@@ -140,80 +109,67 @@
               <tr>
                 <th>Nama</th>
                 <th>Kode</th>
-                <th>Kategori</th>
-                <th>Pemilik</th>
+                <th>Pemilik / PIC</th>
                 <th class="asset-th-status">Status</th>
-                <th class="asset-th-actions">Aksi</th>
+                <th v-if="canWrite" class="asset-th-actions">Aksi</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-if="assets.length === 0">
-                <td colspan="6">
+              <tr v-if="items.length === 0">
+                <td :colspan="canWrite ? 5 : 4">
                   <div class="asset-empty-row">
                     <i class="pi pi-inbox" />
-                    <span>Tidak ada aset ditemukan</span>
+                    <span>Tidak ada Kegiatan ditemukan</span>
                   </div>
                 </td>
               </tr>
-              <tr v-for="asset in assets" :key="asset.id">
+              <tr v-for="item in items" :key="item.id">
                 <td class="asset-td-name">
-                  {{ asset.name }}
-                  <div v-if="asset.description" class="asset-td-desc">
-                    {{ asset.description }}
-                  </div>
+                  {{ item.name }}
+                  <div v-if="item.description" class="asset-td-desc">{{ item.description }}</div>
                 </td>
-                <td>
-                  <span class="asset-code-chip">{{ asset.code }}</span>
-                </td>
-                <td class="asset-td-dim">{{ asset.category.name }}</td>
-                <td class="asset-td-dim">{{ asset.owner || "—" }}</td>
+                <td><span class="asset-code-chip">{{ item.code }}</span></td>
+                <td class="asset-td-dim">{{ item.owner || '—' }}</td>
                 <td class="asset-th-status">
-                  <span
-                    class="asset-status-chip"
-                    :class="`status-${asset.status.toLowerCase()}`"
-                  >
+                  <span class="asset-status-chip" :class="`status-${item.status.toLowerCase()}`">
                     <span class="status-dot" />
-                    {{ statusLabel(asset.status) }}
+                    {{ statusLabel(item.status) }}
                   </span>
                 </td>
-                <td class="asset-td-actions">
-                  <!-- Edit -->
+                <td v-if="canWrite" class="asset-td-actions">
                   <button
-                    v-if="asset.status !== 'ARCHIVED'"
+                    v-if="item.status !== 'ARCHIVED'"
                     class="btn-icon"
                     type="button"
                     title="Edit"
-                    @click="openEdit(asset)"
+                    @click="openEdit(item)"
                   >
                     <i class="pi pi-pencil" />
                   </button>
-                  <!-- Activate (only when INACTIVE) -->
                   <button
-                    v-if="asset.status === 'INACTIVE'"
+                    v-if="item.status === 'INACTIVE'"
                     class="btn-icon"
                     type="button"
                     title="Aktifkan"
-                    @click="openStatusChange(asset, 'activate')"
+                    @click="openStatusChange(item, 'activate')"
                   >
                     <i class="pi pi-check-circle" />
                   </button>
-                  <!-- Deactivate (only when ACTIVE) -->
                   <button
-                    v-if="asset.status === 'ACTIVE'"
+                    v-if="item.status === 'ACTIVE'"
                     class="btn-icon btn-icon-ban"
                     type="button"
                     title="Nonaktifkan"
-                    @click="openStatusChange(asset, 'deactivate')"
+                    @click="openStatusChange(item, 'deactivate')"
                   >
                     <i class="pi pi-ban" />
                   </button>
-                  <!-- Archive (only when INACTIVE) -->
                   <button
-                    v-if="asset.status === 'INACTIVE'"
+                    v-if="item.status === 'INACTIVE'"
                     class="btn-icon btn-icon-danger"
                     type="button"
                     title="Arsipkan"
-                    @click="openArchive(asset)"
+                    @click="openArchive(item)"
                   >
                     <i class="pi pi-box" />
                   </button>
@@ -223,10 +179,7 @@
           </table>
 
           <!-- Pagination -->
-          <div
-            v-if="pagination && pagination.totalPages > 1"
-            class="asset-pagination"
-          >
+          <div v-if="pagination && pagination.totalPages > 1" class="asset-pagination">
             <button
               class="asset-page-btn"
               type="button"
@@ -240,10 +193,7 @@
               :key="String(p)"
               class="asset-page-btn"
               type="button"
-              :class="{
-                'is-active': p === currentPage,
-                'is-ellipsis': p === '...',
-              }"
+              :class="{ 'is-active': p === currentPage, 'is-ellipsis': p === '...' }"
               :disabled="p === '...'"
               @click="typeof p === 'number' && changePage(p)"
             >
@@ -260,8 +210,7 @@
           </div>
 
           <div v-if="pagination" class="asset-total-count">
-            Menampilkan {{ assets.length }} dari
-            {{ pagination.totalItems }} aset
+            Menampilkan {{ items.length }} dari {{ pagination.totalItems }} Kegiatan
           </div>
         </template>
       </div>
@@ -271,11 +220,11 @@
     <Dialog
       v-model:visible="showFormDialog"
       modal
-      :header="editTarget ? 'Edit Aset' : 'Tambah Aset'"
+      :header="editTarget ? 'Edit Kegiatan' : 'Tambah Kegiatan'"
       :style="{ width: '520px' }"
     >
       <form class="asset-form" @submit.prevent="submitForm">
-        <!-- Name -->
+        <!-- Name + Code -->
         <div class="form-row-2">
           <div class="form-group">
             <label class="form-label">Nama <span class="req">*</span></label>
@@ -284,12 +233,10 @@
               class="asset-input"
               :class="{ 'is-error': formErrors.name }"
               type="text"
-              placeholder="Nama aset"
+              placeholder="Nama Kegiatan"
               autocomplete="off"
             />
-            <span v-if="formErrors.name" class="form-err">{{
-              formErrors.name
-            }}</span>
+            <span v-if="formErrors.name" class="form-err">{{ formErrors.name }}</span>
           </div>
           <div class="form-group">
             <label class="form-label">Kode <span class="req">*</span></label>
@@ -298,62 +245,33 @@
               class="asset-input asset-input-mono"
               :class="{ 'is-error': formErrors.code }"
               type="text"
-              placeholder="KODE-ASET"
+              placeholder="KODE-PROSES"
               autocomplete="off"
-              @input="
-                form.code = form.code.toUpperCase().replace(/[^A-Z0-9_-]/g, '')
-              "
+              @input="form.code = form.code.toUpperCase().replace(/[^A-Z0-9_-]/g, '')"
             />
-            <span v-if="formErrors.code" class="form-err">{{
-              formErrors.code
-            }}</span>
+            <span v-if="formErrors.code" class="form-err">{{ formErrors.code }}</span>
           </div>
-        </div>
-
-        <!-- Category -->
-        <div class="form-group">
-          <label class="form-label">Kategori <span class="req">*</span></label>
-          <div
-            class="asset-select-wrap"
-            :class="{ 'is-error': formErrors.categoryId }"
-          >
-            <select v-model="form.categoryId" class="asset-select">
-              <option value="">— Pilih Kategori —</option>
-              <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-                {{ cat.name }}
-              </option>
-            </select>
-            <i class="pi pi-chevron-down asset-select-caret" />
-          </div>
-          <span v-if="formErrors.categoryId" class="form-err">{{
-            formErrors.categoryId
-          }}</span>
         </div>
 
         <!-- Owner -->
         <div class="form-group">
-          <label class="form-label"
-            >Pemilik / Penanggungjawab
-            <span class="form-opt">(opsional)</span></label
-          >
+          <label class="form-label">Pemilik / PIC <span class="form-opt">(opsional)</span></label>
           <input
             v-model="form.owner"
             class="asset-input"
             type="text"
-            placeholder="Nama pemilik atau penanggung jawab"
+            placeholder="Nama pemilik atau penanggung jawab proses"
             autocomplete="off"
           />
         </div>
 
         <!-- Description -->
         <div class="form-group">
-          <label class="form-label"
-            >Deskripsi <span class="form-opt">(opsional)</span></label
-          >
+          <label class="form-label">Deskripsi <span class="form-opt">(opsional)</span></label>
           <textarea
             v-model="form.description"
             class="asset-input asset-textarea"
-            placeholder="Deskripsi singkat aset..."
+            placeholder="Deskripsi singkat Kegiatan..."
             rows="3"
           />
         </div>
@@ -384,7 +302,7 @@
             @click="showFormDialog = false"
           />
           <Button
-            :label="editTarget ? 'Simpan Perubahan' : 'Tambah Aset'"
+            :label="editTarget ? 'Simpan Perubahan' : 'Tambah Kegiatan'"
             type="submit"
             :loading="formLoading"
           />
@@ -396,26 +314,16 @@
     <Dialog
       v-model:visible="showStatusDialog"
       modal
-      :header="
-        statusAction === 'activate' ? 'Aktifkan Aset' : 'Nonaktifkan Aset'
-      "
+      :header="statusAction === 'activate' ? 'Aktifkan Kegiatan' : 'Nonaktifkan Kegiatan'"
       :style="{ width: '400px' }"
     >
       <div class="confirm-body">
-        <div
-          class="confirm-icon-wrap"
-          :class="statusAction === 'activate' ? 'is-success' : 'is-warn'"
-        >
-          <i
-            :class="
-              statusAction === 'activate' ? 'pi pi-check-circle' : 'pi pi-ban'
-            "
-          />
+        <div class="confirm-icon-wrap" :class="statusAction === 'activate' ? 'is-success' : 'is-warn'">
+          <i :class="statusAction === 'activate' ? 'pi pi-check-circle' : 'pi pi-ban'" />
         </div>
         <p class="confirm-text">
-          {{ statusAction === "activate" ? "Aktifkan" : "Nonaktifkan" }} aset
-          <strong>{{ statusTarget?.name }}</strong
-          >?
+          {{ statusAction === 'activate' ? 'Aktifkan' : 'Nonaktifkan' }} Kegiatan
+          <strong>{{ statusTarget?.name }}</strong>?
         </p>
         <div v-if="statusApiError" class="asset-alert-error">
           <i class="pi pi-exclamation-triangle" />
@@ -442,7 +350,7 @@
     <Dialog
       v-model:visible="showArchiveDialog"
       modal
-      header="Arsipkan Aset"
+      header="Arsipkan Kegiatan"
       :style="{ width: '420px' }"
     >
       <div class="confirm-body">
@@ -450,12 +358,11 @@
           <i class="pi pi-box" />
         </div>
         <p class="confirm-text">
-          Arsipkan aset <strong>{{ archiveTarget?.name }}</strong
-          >?
+          Arsipkan Kegiatan <strong>{{ archiveTarget?.name }}</strong>?
         </p>
         <p class="confirm-warn">
-          Aset yang diarsipkan tidak dapat diaktifkan kembali. Pastikan aset
-          sudah benar-benar tidak digunakan sebelum diarsipkan.
+          Kegiatan yang diarsipkan tidak dapat diaktifkan kembali. Pastikan Kegiatan sudah
+          benar-benar tidak digunakan sebelum diarsipkan.
         </p>
         <div v-if="archiveApiError" class="asset-alert-error">
           <i class="pi pi-exclamation-triangle" />
@@ -469,372 +376,298 @@
           :disabled="archiveLoading"
           @click="showArchiveDialog = false"
         />
-        <Button
-          label="Arsipkan"
-          severity="danger"
-          :loading="archiveLoading"
-          @click="submitArchive"
-        />
+        <Button label="Arsipkan" severity="danger" :loading="archiveLoading" @click="submitArchive" />
       </template>
     </Dialog>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from "vue";
-import Button from "primevue/button";
-import Dialog from "primevue/dialog";
-import ProgressSpinner from "primevue/progressspinner";
-import { useToast } from "primevue/usetoast";
-import { assetApi, type Asset, type AssetStatus } from "@/api/asset";
-import { unitKerjaApi, type UnitKerja } from "@/api/unitKerja";
-import { assetCategoryApi, type AssetCategory } from "@/api/assetCategory";
-import { useAuthStore } from "@/stores/auth";
-import { usersApi } from "@/api/users";
-import { extractApiError } from "@/utils/apiError";
-import { usePagination } from "@/composables/usePagination";
+import { ref, reactive, computed, onMounted } from 'vue'
+import Button from 'primevue/button'
+import Dialog from 'primevue/dialog'
+import ProgressSpinner from 'primevue/progressspinner'
+import { useToast } from 'primevue/usetoast'
+import { KegiatanApi, type Kegiatan, type KegiatanStatus } from '@/api/Kegiatan'
+import { unitKerjaApi, type UnitKerja } from '@/api/unitKerja'
+import { useAuthStore } from '@/stores/auth'
+import { usersApi } from '@/api/users'
+import { extractApiError } from '@/utils/apiError'
+import { usePagination } from '@/composables/usePagination'
 
-const toast = useToast();
-const auth = useAuthStore();
+const toast = useToast()
+const auth = useAuthStore()
 
-// ─── Unit Kerja & category data ───────────────────────────────────────────────
+// ─── Roles & access ───────────────────────────────────────────────────────────
 
-const isAutoFillUK = computed(() => auth.user?.roles.includes("USER") ?? false);
-const myUnitKerja = ref<{ id: string; name: string; code: string } | null>(
-  null,
-);
-const unitKerjas = ref<UnitKerja[]>([]);
-const ukLoading = ref(false);
-const categories = ref<AssetCategory[]>([]);
-const selectedUnitKerjaId = ref("");
+const isAutoFillUK = computed(() => auth.user?.roles.includes('USER') ?? false)
+const canWrite = computed(() =>
+  auth.user?.roles.some(r => ['ADMINISTRATOR', 'PENGELOLA_RISIKO_UKER'].includes(r)) ?? false
+)
+
+// ─── Unit Kerja data ──────────────────────────────────────────────────────────
+
+const myUnitKerja = ref<{ id: string; name: string; code: string } | null>(null)
+const unitKerjas = ref<UnitKerja[]>([])
+const ukLoading = ref(false)
+const selectedUnitKerjaId = ref('')
 
 async function loadUnitKerjas() {
-  ukLoading.value = true;
+  ukLoading.value = true
   try {
     if (isAutoFillUK.value) {
-      const res = await usersApi.getMyProfile();
-      const uk = res.data.data.profile?.unitKerja;
+      const res = await usersApi.getMyProfile()
+      const uk = res.data.data.profile?.unitKerja
       if (uk) {
-        myUnitKerja.value = uk;
-        selectedUnitKerjaId.value = uk.id;
-        fetchAssets();
+        myUnitKerja.value = uk
+        selectedUnitKerjaId.value = uk.id
+        fetchItems()
       }
     } else {
-      const res = await unitKerjaApi.search({ limit: 100 });
-      unitKerjas.value = res.data.data ?? [];
+      const res = await unitKerjaApi.search({ limit: 100 })
+      unitKerjas.value = res.data.data ?? []
     }
   } catch {
     // silent fail
   } finally {
-    ukLoading.value = false;
+    ukLoading.value = false
   }
 }
 
-async function loadCategories() {
-  try {
-    const res = await assetCategoryApi.search({ limit: 100 });
-    categories.value = res.data.data ?? [];
-  } catch {
-    // silent fail
-  }
-}
+// ─── List state ───────────────────────────────────────────────────────────────
 
-// ─── Asset list state ─────────────────────────────────────────────────────────
+const items = ref<Kegiatan[]>([])
+const loading = ref(false)
+const fetchError = ref('')
+const filterName = ref('')
+const filterStatus = ref('')
+const { currentPage, pagination, pageNumbers, PAGE_LIMIT } = usePagination(10)
 
-const assets = ref<Asset[]>([]);
-const loading = ref(false);
-const fetchError = ref("");
-const filterName = ref("");
-const filterCategoryId = ref("");
-const filterStatus = ref("");
-const { currentPage, pagination, pageNumbers, PAGE_LIMIT } = usePagination(10);
-
-let filterTimer: ReturnType<typeof setTimeout> | null = null;
+let filterTimer: ReturnType<typeof setTimeout> | null = null
 
 function onUnitKerjaChange() {
-  currentPage.value = 1;
-  filterName.value = "";
-  filterCategoryId.value = "";
-  filterStatus.value = "";
-  assets.value = [];
-  pagination.value = null;
-  fetchError.value = "";
-  if (selectedUnitKerjaId.value) fetchAssets();
+  currentPage.value = 1
+  filterName.value = ''
+  filterStatus.value = ''
+  items.value = []
+  pagination.value = null
+  fetchError.value = ''
+  if (selectedUnitKerjaId.value) fetchItems()
 }
 
-async function fetchAssets() {
-  if (!selectedUnitKerjaId.value) return;
-  loading.value = true;
-  fetchError.value = "";
+async function fetchItems() {
+  if (!selectedUnitKerjaId.value) return
+  loading.value = true
+  fetchError.value = ''
   try {
-    const res = await assetApi.search(selectedUnitKerjaId.value, {
+    const res = await KegiatanApi.search(selectedUnitKerjaId.value, {
       name: filterName.value || undefined,
-      categoryId: filterCategoryId.value || undefined,
-      status: (filterStatus.value as AssetStatus) || undefined,
+      status: (filterStatus.value as KegiatanStatus) || undefined,
       page: currentPage.value,
       limit: PAGE_LIMIT,
-    });
-    assets.value = res.data.data ?? [];
-    pagination.value = res.data.pagination ?? null;
+    })
+    items.value = res.data.data ?? []
+    pagination.value = res.data.pagination ?? null
   } catch (err: any) {
-    fetchError.value = extractApiError(err, "Gagal memuat data aset.");
+    fetchError.value = extractApiError(err, 'Gagal memuat data Kegiatan.')
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 
 function onFilterInput() {
-  if (filterTimer) clearTimeout(filterTimer);
+  if (filterTimer) clearTimeout(filterTimer)
   filterTimer = setTimeout(() => {
-    currentPage.value = 1;
-    fetchAssets();
-  }, 400);
+    currentPage.value = 1
+    fetchItems()
+  }, 400)
 }
 
 function onFilterChange() {
-  currentPage.value = 1;
-  fetchAssets();
+  currentPage.value = 1
+  fetchItems()
 }
 
 function clearNameFilter() {
-  filterName.value = "";
-  currentPage.value = 1;
-  fetchAssets();
+  filterName.value = ''
+  currentPage.value = 1
+  fetchItems()
 }
 
 function changePage(page: number) {
-  currentPage.value = page;
-  fetchAssets();
+  currentPage.value = page
+  fetchItems()
 }
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
 
-function statusLabel(status: AssetStatus) {
-  return { ACTIVE: "Aktif", INACTIVE: "Non-Aktif", ARCHIVED: "Diarsipkan" }[
-    status
-  ];
+function statusLabel(status: KegiatanStatus) {
+  return { ACTIVE: 'Aktif', INACTIVE: 'Non-Aktif', ARCHIVED: 'Diarsipkan' }[status]
 }
 
 // ─── Create / Edit ────────────────────────────────────────────────────────────
 
-const showFormDialog = ref(false);
-const editTarget = ref<Asset | null>(null);
-const formLoading = ref(false);
-const formApiError = ref("");
-const form = reactive({
-  name: "",
-  code: "",
-  categoryId: "",
-  owner: "",
-  description: "",
-  status: "ACTIVE" as AssetStatus,
-});
-const formErrors = reactive({ name: "", code: "", categoryId: "" });
+const showFormDialog = ref(false)
+const editTarget = ref<Kegiatan | null>(null)
+const formLoading = ref(false)
+const formApiError = ref('')
+const form = reactive({ name: '', code: '', owner: '', description: '', status: 'ACTIVE' as KegiatanStatus })
+const formErrors = reactive({ name: '', code: '' })
 
 function resetForm() {
-  form.name = "";
-  form.code = "";
-  form.categoryId = "";
-  form.owner = "";
-  form.description = "";
-  form.status = "ACTIVE";
-  formErrors.name = "";
-  formErrors.code = "";
-  formErrors.categoryId = "";
-  formApiError.value = "";
+  form.name = ''
+  form.code = ''
+  form.owner = ''
+  form.description = ''
+  form.status = 'ACTIVE'
+  formErrors.name = ''
+  formErrors.code = ''
+  formApiError.value = ''
 }
 
 function openCreate() {
-  editTarget.value = null;
-  resetForm();
-  showFormDialog.value = true;
+  editTarget.value = null
+  resetForm()
+  showFormDialog.value = true
 }
 
-function openEdit(asset: Asset) {
-  editTarget.value = asset;
-  form.name = asset.name;
-  form.code = asset.code;
-  form.categoryId = asset.category.id;
-  form.owner = asset.owner ?? "";
-  form.description = asset.description ?? "";
-  form.status = asset.status;
-  formErrors.name = "";
-  formErrors.code = "";
-  formErrors.categoryId = "";
-  formApiError.value = "";
-  showFormDialog.value = true;
+function openEdit(item: Kegiatan) {
+  editTarget.value = item
+  form.name = item.name
+  form.code = item.code
+  form.owner = item.owner ?? ''
+  form.description = item.description ?? ''
+  form.status = item.status
+  formErrors.name = ''
+  formErrors.code = ''
+  formApiError.value = ''
+  showFormDialog.value = true
 }
 
 function validateForm(): boolean {
-  let valid = true;
-  formErrors.name = "";
-  formErrors.code = "";
-  formErrors.categoryId = "";
+  let valid = true
+  formErrors.name = ''
+  formErrors.code = ''
 
   if (!form.name.trim()) {
-    formErrors.name = "Nama aset wajib diisi";
-    valid = false;
+    formErrors.name = 'Nama Kegiatan wajib diisi'
+    valid = false
   } else if (form.name.trim().length < 2) {
-    formErrors.name = "Nama minimal 2 karakter";
-    valid = false;
+    formErrors.name = 'Nama minimal 2 karakter'
+    valid = false
   }
 
   if (!form.code) {
-    formErrors.code = "Kode aset wajib diisi";
-    valid = false;
+    formErrors.code = 'Kode Kegiatan wajib diisi'
+    valid = false
   } else if (!/^[A-Z0-9_-]{2,}$/.test(form.code)) {
-    formErrors.code =
-      "Kode hanya boleh berisi huruf kapital, angka, underscore, atau dash";
-    valid = false;
+    formErrors.code = 'Kode hanya boleh berisi huruf kapital, angka, underscore, atau dash'
+    valid = false
   }
 
-  if (!form.categoryId) {
-    formErrors.categoryId = "Kategori wajib dipilih";
-    valid = false;
-  }
-
-  return valid;
+  return valid
 }
 
 async function submitForm() {
-  if (!validateForm()) return;
+  if (!validateForm()) return
 
-  formLoading.value = true;
-  formApiError.value = "";
+  formLoading.value = true
+  formApiError.value = ''
   try {
     const payload = {
       name: form.name.trim(),
       code: form.code,
-      categoryId: form.categoryId,
       owner: form.owner.trim() || undefined,
       description: form.description.trim() || undefined,
-    };
+    }
 
     if (editTarget.value) {
-      await assetApi.update(
-        selectedUnitKerjaId.value,
-        editTarget.value.id,
-        payload,
-      );
-      toast.add({
-        severity: "success",
-        summary: "Berhasil",
-        detail: "Aset berhasil diperbarui",
-        life: 3000,
-      });
+      await KegiatanApi.update(selectedUnitKerjaId.value, editTarget.value.id, payload)
+      toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Kegiatan berhasil diperbarui', life: 3000 })
     } else {
-      await assetApi.create(selectedUnitKerjaId.value, {
-        ...payload,
-        status: form.status,
-      });
-      toast.add({
-        severity: "success",
-        summary: "Berhasil",
-        detail: "Aset berhasil ditambahkan",
-        life: 3000,
-      });
+      await KegiatanApi.create(selectedUnitKerjaId.value, { ...payload, status: form.status })
+      toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Kegiatan berhasil ditambahkan', life: 3000 })
     }
-    showFormDialog.value = false;
-    fetchAssets();
+    showFormDialog.value = false
+    fetchItems()
   } catch (err: any) {
-    formApiError.value = extractApiError(err, "Terjadi kesalahan. Coba lagi.");
+    formApiError.value = extractApiError(err, 'Terjadi kesalahan. Coba lagi.')
   } finally {
-    formLoading.value = false;
+    formLoading.value = false
   }
 }
 
 // ─── Activate / Deactivate ────────────────────────────────────────────────────
 
-const showStatusDialog = ref(false);
-const statusAction = ref<"activate" | "deactivate">("activate");
-const statusTarget = ref<Asset | null>(null);
-const statusLoading = ref(false);
-const statusApiError = ref("");
+const showStatusDialog = ref(false)
+const statusAction = ref<'activate' | 'deactivate'>('activate')
+const statusTarget = ref<Kegiatan | null>(null)
+const statusLoading = ref(false)
+const statusApiError = ref('')
 
-function openStatusChange(asset: Asset, action: "activate" | "deactivate") {
-  statusTarget.value = asset;
-  statusAction.value = action;
-  statusApiError.value = "";
-  showStatusDialog.value = true;
+function openStatusChange(item: Kegiatan, action: 'activate' | 'deactivate') {
+  statusTarget.value = item
+  statusAction.value = action
+  statusApiError.value = ''
+  showStatusDialog.value = true
 }
 
 async function submitStatusChange() {
-  if (!statusTarget.value) return;
-  statusLoading.value = true;
-  statusApiError.value = "";
+  if (!statusTarget.value) return
+  statusLoading.value = true
+  statusApiError.value = ''
   try {
-    if (statusAction.value === "activate") {
-      await assetApi.activate(selectedUnitKerjaId.value, statusTarget.value.id);
-      toast.add({
-        severity: "success",
-        summary: "Berhasil",
-        detail: "Aset berhasil diaktifkan",
-        life: 3000,
-      });
+    if (statusAction.value === 'activate') {
+      await KegiatanApi.activate(selectedUnitKerjaId.value, statusTarget.value.id)
+      toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Kegiatan berhasil diaktifkan', life: 3000 })
     } else {
-      await assetApi.deactivate(
-        selectedUnitKerjaId.value,
-        statusTarget.value.id,
-      );
-      toast.add({
-        severity: "success",
-        summary: "Berhasil",
-        detail: "Aset berhasil dinonaktifkan",
-        life: 3000,
-      });
+      await KegiatanApi.deactivate(selectedUnitKerjaId.value, statusTarget.value.id)
+      toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Kegiatan berhasil dinonaktifkan', life: 3000 })
     }
-    showStatusDialog.value = false;
-    fetchAssets();
+    showStatusDialog.value = false
+    fetchItems()
   } catch (err: any) {
-    statusApiError.value = extractApiError(
-      err,
-      "Terjadi kesalahan. Coba lagi.",
-    );
+    statusApiError.value = extractApiError(err, 'Terjadi kesalahan. Coba lagi.')
   } finally {
-    statusLoading.value = false;
+    statusLoading.value = false
   }
 }
 
 // ─── Archive ──────────────────────────────────────────────────────────────────
 
-const showArchiveDialog = ref(false);
-const archiveTarget = ref<Asset | null>(null);
-const archiveLoading = ref(false);
-const archiveApiError = ref("");
+const showArchiveDialog = ref(false)
+const archiveTarget = ref<Kegiatan | null>(null)
+const archiveLoading = ref(false)
+const archiveApiError = ref('')
 
-function openArchive(asset: Asset) {
-  archiveTarget.value = asset;
-  archiveApiError.value = "";
-  showArchiveDialog.value = true;
+function openArchive(item: Kegiatan) {
+  archiveTarget.value = item
+  archiveApiError.value = ''
+  showArchiveDialog.value = true
 }
 
 async function submitArchive() {
-  if (!archiveTarget.value) return;
-  archiveLoading.value = true;
-  archiveApiError.value = "";
+  if (!archiveTarget.value) return
+  archiveLoading.value = true
+  archiveApiError.value = ''
   try {
-    await assetApi.archive(selectedUnitKerjaId.value, archiveTarget.value.id);
-    toast.add({
-      severity: "success",
-      summary: "Berhasil",
-      detail: "Aset berhasil diarsipkan",
-      life: 3000,
-    });
-    showArchiveDialog.value = false;
-    fetchAssets();
+    await KegiatanApi.archive(selectedUnitKerjaId.value, archiveTarget.value.id)
+    toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Kegiatan berhasil diarsipkan', life: 3000 })
+    showArchiveDialog.value = false
+    fetchItems()
   } catch (err: any) {
-    archiveApiError.value = extractApiError(err, "Gagal mengarsipkan aset.");
+    archiveApiError.value = extractApiError(err, 'Gagal mengarsipkan Kegiatan.')
   } finally {
-    archiveLoading.value = false;
+    archiveLoading.value = false
   }
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 onMounted(() => {
-  loadUnitKerjas();
-  loadCategories();
-});
+  loadUnitKerjas()
+})
 </script>
 
 <style scoped>
@@ -1251,6 +1084,7 @@ onMounted(() => {
   border-color: rgba(251, 191, 36, 0.35);
 }
 
+
 /* Empty + loading states */
 
 .asset-empty-row {
@@ -1393,9 +1227,7 @@ onMounted(() => {
   font-family: var(--font-body);
   font-size: 13px;
   outline: none;
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
   width: 100%;
 }
 
@@ -1443,9 +1275,7 @@ onMounted(() => {
   font-size: 13px;
   cursor: pointer;
   outline: none;
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .asset-select:focus {
@@ -1552,3 +1382,7 @@ onMounted(() => {
   max-width: 340px;
 }
 </style>
+
+
+
+

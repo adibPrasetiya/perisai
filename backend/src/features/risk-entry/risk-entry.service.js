@@ -134,7 +134,9 @@ const riskEntryDetailSelect = {
 // ─── Private Helpers ──────────────────────────────────────────────────────────
 
 const _fetchAndGuardPaper = async (workingPaperId, user) => {
-  const { id: validId } = validate(workingPaperIdSchema, { id: workingPaperId });
+  const { id: validId } = validate(workingPaperIdSchema, {
+    id: workingPaperId,
+  });
 
   const paper = await prismaClient.workingPaper.findUnique({
     where: { id: validId },
@@ -156,7 +158,12 @@ const _fetchAndGuardPaper = async (workingPaperId, user) => {
   return { validId, paper };
 };
 
-const _resolveOrCreatePfc = async (programFrameworkId, riskContextId, programId, userId) => {
+const _resolveOrCreatePfc = async (
+  programFrameworkId,
+  riskContextId,
+  programId,
+  userId,
+) => {
   // Validate the program framework belongs to the working paper's program
   const pf = await prismaClient.programFramework.findFirst({
     where: { id: programFrameworkId, programId },
@@ -239,7 +246,13 @@ const create = async (workingPaperId, reqBody, user) => {
         select: { id: true, row: true, col: true, value: true },
       },
       riskLevels: {
-        select: { id: true, name: true, minScore: true, maxScore: true, order: true },
+        select: {
+          id: true,
+          name: true,
+          minScore: true,
+          maxScore: true,
+          order: true,
+        },
         orderBy: { order: "asc" },
       },
     },
@@ -257,13 +270,15 @@ const create = async (workingPaperId, reqBody, user) => {
       );
     }
     const asset = await prismaClient.asset.findFirst({
-      where: { id: reqBody.assetId, unitKerjaId: paper.unitKerjaId, status: "ACTIVE" },
+      where: {
+        id: reqBody.assetId,
+        unitKerjaId: paper.unitKerjaId,
+        status: "ACTIVE",
+      },
       select: { id: true },
     });
     if (!asset) {
-      throw new BadRequestError(
-        "Aset tidak ditemukan atau tidak aktif.",
-      );
+      throw new BadRequestError("Aset tidak ditemukan atau tidak aktif.");
     }
   }
 
@@ -274,7 +289,11 @@ const create = async (workingPaperId, reqBody, user) => {
       );
     }
     const process = await prismaClient.businessProcess.findFirst({
-      where: { id: reqBody.businessProcessId, unitKerjaId: paper.unitKerjaId, status: "ACTIVE" },
+      where: {
+        id: reqBody.businessProcessId,
+        unitKerjaId: paper.unitKerjaId,
+        status: "ACTIVE",
+      },
       select: { id: true },
     });
     if (!process) {
@@ -328,7 +347,10 @@ const create = async (workingPaperId, reqBody, user) => {
         );
       }
 
-      if (score.likelihoodLevel < 1 || score.likelihoodLevel > context.matrixRows) {
+      if (
+        score.likelihoodLevel < 1 ||
+        score.likelihoodLevel > context.matrixRows
+      ) {
         throw new BadRequestError(
           `Level kemungkinan harus antara 1 dan ${context.matrixRows}.`,
         );
@@ -343,7 +365,9 @@ const create = async (workingPaperId, reqBody, user) => {
       const cell = context.matrixCells.find(
         (c) => c.row === score.likelihoodLevel && c.col === score.impactLevel,
       );
-      const cellScore = cell ? cell.value : score.likelihoodLevel * score.impactLevel;
+      const cellScore = cell
+        ? cell.value
+        : score.likelihoodLevel * score.impactLevel;
 
       areaScoreData.push({
         impactAreaId: score.impactAreaId,
@@ -451,8 +475,14 @@ const create = async (workingPaperId, reqBody, user) => {
 
 // ─── listByWorkingPaper ───────────────────────────────────────────────────────
 
-const listByWorkingPaper = async (workingPaperId, user, pagination = { page: 1, limit: 10 }) => {
-  const { id: validId } = validate(workingPaperIdSchema, { id: workingPaperId });
+const listByWorkingPaper = async (
+  workingPaperId,
+  user,
+  pagination = { page: 1, limit: 10 },
+) => {
+  const { id: validId } = validate(workingPaperIdSchema, {
+    id: workingPaperId,
+  });
 
   const paper = await prismaClient.workingPaper.findUnique({
     where: { id: validId },
@@ -478,87 +508,89 @@ const listByWorkingPaper = async (workingPaperId, user, pagination = { page: 1, 
       skip,
       take: limit,
       select: {
-      ...riskEntrySelect,
-      asset: { select: { id: true, name: true, code: true } },
-      businessProcess: { select: { id: true, name: true, code: true } },
-      riskCategory: {
-        select: { id: true, name: true, code: true, color: true },
-      },
-      programFrameworkContext: {
-        select: {
-          id: true,
-          riskContext: { select: { id: true, name: true, code: true, contextType: true } },
-          programFramework: {
-            select: {
-              framework: { select: { id: true, name: true, code: true } },
+        ...riskEntrySelect,
+        asset: { select: { id: true, name: true, code: true } },
+        businessProcess: { select: { id: true, name: true, code: true } },
+        riskCategory: {
+          select: { id: true, name: true, code: true, color: true },
+        },
+        programFrameworkContext: {
+          select: {
+            id: true,
+            riskContext: {
+              select: { id: true, name: true, code: true, contextType: true },
+            },
+            programFramework: {
+              select: {
+                framework: { select: { id: true, name: true, code: true } },
+              },
             },
           },
         },
-      },
-      inherentAssessment: {
-        select: {
-          id: true,
-          finalScore: true,
-          riskLevelId: true,
-          riskLevel: { select: { id: true, name: true, color: true } },
-          areaScores: {
-            select: {
-              id: true,
-              impactAreaId: true,
-              impactArea: { select: { id: true, name: true } },
-              likelihoodLevel: true,
-              impactLevel: true,
-              score: true,
+        inherentAssessment: {
+          select: {
+            id: true,
+            finalScore: true,
+            riskLevelId: true,
+            riskLevel: { select: { id: true, name: true, color: true } },
+            areaScores: {
+              select: {
+                id: true,
+                impactAreaId: true,
+                impactArea: { select: { id: true, name: true } },
+                likelihoodLevel: true,
+                impactLevel: true,
+                score: true,
+              },
+              orderBy: { impactArea: { order: "asc" } },
             },
-            orderBy: { impactArea: { order: 'asc' } },
           },
         },
-      },
-      residualAssessment: {
-        select: {
-          id: true,
-          finalScore: true,
-          riskLevelId: true,
-          riskLevel: { select: { id: true, name: true, color: true } },
-          areaScores: {
-            select: {
-              id: true,
-              impactAreaId: true,
-              impactArea: { select: { id: true, name: true } },
-              likelihoodLevel: true,
-              impactLevel: true,
-              score: true,
+        residualAssessment: {
+          select: {
+            id: true,
+            finalScore: true,
+            riskLevelId: true,
+            riskLevel: { select: { id: true, name: true, color: true } },
+            areaScores: {
+              select: {
+                id: true,
+                impactAreaId: true,
+                impactArea: { select: { id: true, name: true } },
+                likelihoodLevel: true,
+                impactLevel: true,
+                score: true,
+              },
+              orderBy: { impactArea: { order: "asc" } },
             },
-            orderBy: { impactArea: { order: 'asc' } },
           },
         },
-      },
-      controls: {
-        select: { id: true, name: true, effectiveness: true },
-        orderBy: { order: "asc" },
-      },
-      treatmentPlans: {
-        select: {
-          id: true,
-          treatmentOptionId: true,
-          treatmentOption: { select: { id: true, name: true } },
-          status: true,
-          impactAreaId: true,
-          impactArea: { select: { id: true, name: true } },
-          description: true,
-          targetDate: true,
-          picUserId: true,
+        controls: {
+          select: { id: true, name: true, effectiveness: true },
+          orderBy: { order: "asc" },
         },
-        orderBy: { createdAt: "asc" },
+        treatmentPlans: {
+          select: {
+            id: true,
+            treatmentOptionId: true,
+            treatmentOption: { select: { id: true, name: true } },
+            status: true,
+            impactAreaId: true,
+            impactArea: { select: { id: true, name: true } },
+            description: true,
+            targetDate: true,
+            picUserId: true,
+          },
+          orderBy: { createdAt: "asc" },
+        },
+        _count: { select: { controls: true, treatmentPlans: true } },
       },
-      _count: { select: { controls: true, treatmentPlans: true } },
-    },
-    orderBy: [
-      { asset: { name: "asc" } },
-      { businessProcess: { name: "asc" } },
-      { order: "asc" },
-    ],
-  }),
+      orderBy: [
+        { asset: { name: "asc" } },
+        { businessProcess: { name: "asc" } },
+        { order: "asc" },
+      ],
+    }),
     prismaClient.riskEntry.count({ where: { workingPaperId: validId } }),
   ]);
 
@@ -651,7 +683,8 @@ const update = async (entryId, reqBody, user) => {
   if (reqBody.code !== undefined) data.code = reqBody.code;
   if (reqBody.name !== undefined) data.name = reqBody.name;
   if ("description" in reqBody) data.description = reqBody.description || null;
-  if ("riskCategoryId" in reqBody) data.riskCategoryId = reqBody.riskCategoryId || null;
+  if ("riskCategoryId" in reqBody)
+    data.riskCategoryId = reqBody.riskCategoryId || null;
   if (reqBody.order !== undefined) data.order = reqBody.order;
 
   const updated = await prismaClient.riskEntry.update({
@@ -695,7 +728,11 @@ const remove = async (entryId, user) => {
 
   await prismaClient.riskEntry.delete({ where: { id: validId } });
 
-  await activityLog.notice("RISK_ENTRY_DELETED", { actionType: "DELETE", entryId: validId, deletedBy: user.userId });
+  await activityLog.notice("RISK_ENTRY_DELETED", {
+    actionType: "DELETE",
+    entryId: validId,
+    deletedBy: user.userId,
+  });
 
   return {
     message: "Entri risiko berhasil dihapus",
@@ -795,7 +832,8 @@ const verifyTreatmentPlan = async (entryId, planId, user) => {
     );
   }
 
-  const controlName = plan.treatmentOption?.name || plan.description || "Kontrol Penanganan";
+  const controlName =
+    plan.treatmentOption?.name || plan.description || "Kontrol Penanganan";
   const controlDescription = `Kontrol dari rencana penanganan: ${controlName}`;
 
   const result = await prismaClient.$transaction(async (tx) => {
@@ -852,7 +890,8 @@ const verifyTreatmentPlan = async (entryId, planId, user) => {
   });
 
   return {
-    message: "Rencana penanganan berhasil diverifikasi dan kontrol risiko dibuat",
+    message:
+      "Rencana penanganan berhasil diverifikasi dan kontrol risiko dibuat",
     data: result,
   };
 };
@@ -878,9 +917,17 @@ const createOrUpdateInherentAssessment = async (entryId, reqBody, user) => {
               matrixRows: true,
               matrixCols: true,
               impactAreas: { select: { id: true, name: true } },
-              matrixCells: { select: { id: true, row: true, col: true, value: true } },
+              matrixCells: {
+                select: { id: true, row: true, col: true, value: true },
+              },
               riskLevels: {
-                select: { id: true, name: true, minScore: true, maxScore: true, order: true },
+                select: {
+                  id: true,
+                  name: true,
+                  minScore: true,
+                  maxScore: true,
+                  order: true,
+                },
                 orderBy: { order: "asc" },
               },
             },
@@ -913,7 +960,10 @@ const createOrUpdateInherentAssessment = async (entryId, reqBody, user) => {
       );
     }
 
-    if (score.likelihoodLevel < 1 || score.likelihoodLevel > context.matrixRows) {
+    if (
+      score.likelihoodLevel < 1 ||
+      score.likelihoodLevel > context.matrixRows
+    ) {
       throw new BadRequestError(
         `Level kemungkinan harus antara 1 dan ${context.matrixRows}.`,
       );
@@ -928,7 +978,9 @@ const createOrUpdateInherentAssessment = async (entryId, reqBody, user) => {
     const cell = context.matrixCells.find(
       (c) => c.row === score.likelihoodLevel && c.col === score.impactLevel,
     );
-    const cellScore = cell ? cell.value : score.likelihoodLevel * score.impactLevel;
+    const cellScore = cell
+      ? cell.value
+      : score.likelihoodLevel * score.impactLevel;
 
     areaScoreData.push({
       impactAreaId: score.impactAreaId,
@@ -1014,9 +1066,17 @@ const createOrUpdateResidualAssessment = async (entryId, reqBody, user) => {
               matrixRows: true,
               matrixCols: true,
               impactAreas: { select: { id: true, name: true } },
-              matrixCells: { select: { id: true, row: true, col: true, value: true } },
+              matrixCells: {
+                select: { id: true, row: true, col: true, value: true },
+              },
               riskLevels: {
-                select: { id: true, name: true, minScore: true, maxScore: true, order: true },
+                select: {
+                  id: true,
+                  name: true,
+                  minScore: true,
+                  maxScore: true,
+                  order: true,
+                },
                 orderBy: { order: "asc" },
               },
             },
@@ -1055,16 +1115,25 @@ const createOrUpdateResidualAssessment = async (entryId, reqBody, user) => {
         `Area dampak dengan ID ${score.impactAreaId} tidak ditemukan dalam konteks ini.`,
       );
     }
-    if (score.likelihoodLevel < 1 || score.likelihoodLevel > context.matrixRows) {
-      throw new BadRequestError(`Level kemungkinan harus antara 1 dan ${context.matrixRows}.`);
+    if (
+      score.likelihoodLevel < 1 ||
+      score.likelihoodLevel > context.matrixRows
+    ) {
+      throw new BadRequestError(
+        `Level kemungkinan harus antara 1 dan ${context.matrixRows}.`,
+      );
     }
     if (score.impactLevel < 1 || score.impactLevel > context.matrixCols) {
-      throw new BadRequestError(`Level dampak harus antara 1 dan ${context.matrixCols}.`);
+      throw new BadRequestError(
+        `Level dampak harus antara 1 dan ${context.matrixCols}.`,
+      );
     }
     const cell = context.matrixCells.find(
       (c) => c.row === score.likelihoodLevel && c.col === score.impactLevel,
     );
-    const cellScore = cell ? cell.value : score.likelihoodLevel * score.impactLevel;
+    const cellScore = cell
+      ? cell.value
+      : score.likelihoodLevel * score.impactLevel;
     areaScoreData.push({
       impactAreaId: score.impactAreaId,
       likelihoodLevel: score.likelihoodLevel,
@@ -1148,9 +1217,17 @@ const createOrUpdateTreatmentPlans = async (entryId, reqBody, user) => {
           riskContext: {
             select: {
               riskAppetiteLevel: true,
-              matrixCells: { select: { id: true, row: true, col: true, value: true } },
+              matrixCells: {
+                select: { id: true, row: true, col: true, value: true },
+              },
               riskLevels: {
-                select: { id: true, name: true, minScore: true, maxScore: true, order: true },
+                select: {
+                  id: true,
+                  name: true,
+                  minScore: true,
+                  maxScore: true,
+                  order: true,
+                },
                 orderBy: { order: "asc" },
               },
             },
@@ -1197,13 +1274,18 @@ const createOrUpdateTreatmentPlans = async (entryId, reqBody, user) => {
   // Pre-compute shared maps (used for validation, auto-complete, and residual upsert)
   const riskContext = entry.programFrameworkContext?.riskContext;
   const inherentAreaScoreMap = new Map(
-    (entry.inherentAssessment?.areaScores ?? []).map((s) => [s.impactAreaId, s]),
+    (entry.inherentAssessment?.areaScores ?? []).map((s) => [
+      s.impactAreaId,
+      s,
+    ]),
   );
 
   // Build option map (needed for validation + auto-complete detection)
   const optionMap = new Map();
   if (reqBody.plans.length > 0) {
-    const optionIds = reqBody.plans.map((p) => p.treatmentOptionId).filter(Boolean);
+    const optionIds = reqBody.plans
+      .map((p) => p.treatmentOptionId)
+      .filter(Boolean);
     if (optionIds.length > 0) {
       const options = await prismaClient.treatmentOption.findMany({
         where: { id: { in: optionIds } },
@@ -1225,7 +1307,7 @@ const createOrUpdateTreatmentPlans = async (entryId, reqBody, user) => {
     for (const plan of reqBody.plans) {
       if (plan.impactAreaId && !assessedAreaIds.has(plan.impactAreaId)) {
         throw new BadRequestError(
-          "Area dampak pada rencana penanganan harus merupakan area yang sudah dinilai pada penilaian inherent."
+          "Area dampak pada rencana penanganan harus merupakan area yang sudah dinilai pada penilaian inherent.",
         );
       }
     }
@@ -1233,7 +1315,7 @@ const createOrUpdateTreatmentPlans = async (entryId, reqBody, user) => {
     // Risk appetite validation per area
     if (riskContext?.riskAppetiteLevel) {
       const appetiteLevel = riskContext.riskLevels.find(
-        (l) => l.name === riskContext.riskAppetiteLevel
+        (l) => l.name === riskContext.riskAppetiteLevel,
       );
       if (appetiteLevel) {
         for (const plan of reqBody.plans) {
@@ -1243,14 +1325,20 @@ const createOrUpdateTreatmentPlans = async (entryId, reqBody, user) => {
           const option = optionMap.get(plan.treatmentOptionId);
           if (!option) continue;
 
-          if (inherentScore.score <= appetiteLevel.maxScore && !option.isAcceptance) {
+          if (
+            inherentScore.score <= appetiteLevel.maxScore &&
+            !option.isAcceptance
+          ) {
             throw new BadRequestError(
-              `Risiko pada area ini memiliki skor ${inherentScore.score} yang berada dalam selera risiko (≤ ${appetiteLevel.maxScore}). Opsi penanganan hanya boleh 'Diterima'.`
+              `Risiko pada area ini memiliki skor ${inherentScore.score} yang berada dalam selera risiko (≤ ${appetiteLevel.maxScore}). Opsi penanganan hanya boleh 'Diterima'.`,
             );
           }
-          if (inherentScore.score > appetiteLevel.maxScore && option.isAcceptance) {
+          if (
+            inherentScore.score > appetiteLevel.maxScore &&
+            option.isAcceptance
+          ) {
             throw new BadRequestError(
-              `Risiko pada area ini memiliki skor ${inherentScore.score} yang melebihi selera risiko (> ${appetiteLevel.maxScore}). Opsi penanganan 'Diterima' tidak dapat digunakan.`
+              `Risiko pada area ini memiliki skor ${inherentScore.score} yang melebihi selera risiko (> ${appetiteLevel.maxScore}). Opsi penanganan 'Diterima' tidak dapat digunakan.`,
             );
           }
         }
@@ -1259,9 +1347,12 @@ const createOrUpdateTreatmentPlans = async (entryId, reqBody, user) => {
   }
 
   const plansData = reqBody.plans.map((plan) => {
-    const option = plan.treatmentOptionId ? optionMap.get(plan.treatmentOptionId) : null;
+    const option = plan.treatmentOptionId
+      ? optionMap.get(plan.treatmentOptionId)
+      : null;
     const isAcceptance = option?.isAcceptance ?? false;
-    const hasInherentScore = plan.impactAreaId && inherentAreaScoreMap.has(plan.impactAreaId);
+    const hasInherentScore =
+      plan.impactAreaId && inherentAreaScoreMap.has(plan.impactAreaId);
     const autoComplete = isAcceptance && hasInherentScore;
     return {
       riskEntryId: validId,
@@ -1281,7 +1372,10 @@ const createOrUpdateTreatmentPlans = async (entryId, reqBody, user) => {
   // Acceptance plans that need auto-residual upsert
   const autoCompletePlans = plansData
     .filter((p) => p._autoComplete)
-    .map((p) => ({ impactAreaId: p._impactAreaId, inherentScore: inherentAreaScoreMap.get(p._impactAreaId) }))
+    .map((p) => ({
+      impactAreaId: p._impactAreaId,
+      inherentScore: inherentAreaScoreMap.get(p._impactAreaId),
+    }))
     .filter((p) => p.inherentScore);
 
   const plans = await prismaClient.$transaction(async (tx) => {
@@ -1298,7 +1392,9 @@ const createOrUpdateTreatmentPlans = async (entryId, reqBody, user) => {
           impactAreaId: true,
           impactArea: { select: { id: true, name: true } },
           treatmentOptionId: true,
-          treatmentOption: { select: { id: true, name: true, isAcceptance: true } },
+          treatmentOption: {
+            select: { id: true, name: true, isAcceptance: true },
+          },
           description: true,
           targetDate: true,
           picUserId: true,
@@ -1391,7 +1487,9 @@ const createOrUpdateTreatmentPlans = async (entryId, reqBody, user) => {
         impactAreaId: true,
         impactArea: { select: { id: true, name: true } },
         treatmentOptionId: true,
-        treatmentOption: { select: { id: true, name: true, isAcceptance: true } },
+        treatmentOption: {
+          select: { id: true, name: true, isAcceptance: true },
+        },
         description: true,
         targetDate: true,
         picUserId: true,
@@ -1429,9 +1527,17 @@ const completeTreatmentPlan = async (entryId, planId, reqBody, user) => {
               matrixRows: true,
               matrixCols: true,
               impactAreas: { select: { id: true, name: true } },
-              matrixCells: { select: { id: true, row: true, col: true, value: true } },
+              matrixCells: {
+                select: { id: true, row: true, col: true, value: true },
+              },
               riskLevels: {
-                select: { id: true, name: true, minScore: true, maxScore: true, order: true },
+                select: {
+                  id: true,
+                  name: true,
+                  minScore: true,
+                  maxScore: true,
+                  order: true,
+                },
                 orderBy: { order: "asc" },
               },
             },
@@ -1475,25 +1581,41 @@ const completeTreatmentPlan = async (entryId, planId, reqBody, user) => {
 
   const { areaScore } = reqBody;
   if (areaScore.impactAreaId !== plan.impactAreaId) {
-    throw new BadRequestError("Area dampak tidak sesuai dengan rencana penanganan.");
+    throw new BadRequestError(
+      "Area dampak tidak sesuai dengan rencana penanganan.",
+    );
   }
 
   const context = entry.programFrameworkContext.riskContext;
-  const impactArea = context.impactAreas.find((a) => a.id === areaScore.impactAreaId);
+  const impactArea = context.impactAreas.find(
+    (a) => a.id === areaScore.impactAreaId,
+  );
   if (!impactArea) {
-    throw new BadRequestError("Area dampak tidak ditemukan dalam konteks risiko ini.");
+    throw new BadRequestError(
+      "Area dampak tidak ditemukan dalam konteks risiko ini.",
+    );
   }
-  if (areaScore.likelihoodLevel < 1 || areaScore.likelihoodLevel > context.matrixRows) {
-    throw new BadRequestError(`Level kemungkinan harus antara 1 dan ${context.matrixRows}.`);
+  if (
+    areaScore.likelihoodLevel < 1 ||
+    areaScore.likelihoodLevel > context.matrixRows
+  ) {
+    throw new BadRequestError(
+      `Level kemungkinan harus antara 1 dan ${context.matrixRows}.`,
+    );
   }
   if (areaScore.impactLevel < 1 || areaScore.impactLevel > context.matrixCols) {
-    throw new BadRequestError(`Level dampak harus antara 1 dan ${context.matrixCols}.`);
+    throw new BadRequestError(
+      `Level dampak harus antara 1 dan ${context.matrixCols}.`,
+    );
   }
 
   const cell = context.matrixCells.find(
-    (c) => c.row === areaScore.likelihoodLevel && c.col === areaScore.impactLevel,
+    (c) =>
+      c.row === areaScore.likelihoodLevel && c.col === areaScore.impactLevel,
   );
-  const cellScore = cell ? cell.value : areaScore.likelihoodLevel * areaScore.impactLevel;
+  const cellScore = cell
+    ? cell.value
+    : areaScore.likelihoodLevel * areaScore.impactLevel;
 
   const result = await prismaClient.$transaction(async (tx) => {
     // Get or create residual assessment
@@ -1593,9 +1715,22 @@ const completeTreatmentPlan = async (entryId, planId, reqBody, user) => {
   });
 
   return {
-    message: "Rencana penanganan berhasil ditandai selesai dan penilaian residual disimpan.",
+    message:
+      "Rencana penanganan berhasil ditandai selesai dan penilaian residual disimpan.",
     data: result,
   };
 };
 
-export default { create, listByWorkingPaper, getById, update, remove, submitTreatmentPlan, verifyTreatmentPlan, createOrUpdateInherentAssessment, createOrUpdateResidualAssessment, createOrUpdateTreatmentPlans, completeTreatmentPlan };
+export default {
+  create,
+  listByWorkingPaper,
+  getById,
+  update,
+  remove,
+  submitTreatmentPlan,
+  verifyTreatmentPlan,
+  createOrUpdateInherentAssessment,
+  createOrUpdateResidualAssessment,
+  createOrUpdateTreatmentPlans,
+  completeTreatmentPlan,
+};

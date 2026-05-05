@@ -7,12 +7,18 @@
     <h1>Selamat Datang, {{ displayName }}</h1>
     <p class="text-dim">
       Anda masuk sebagai
-      <span style="color: var(--color-accent); font-family: var(--font-mono);">{{ auth.user?.username }}</span>
+      <span style="color: var(--color-accent); font-family: var(--font-mono)">{{
+        auth.user?.username
+      }}</span>
     </p>
   </div>
 
-  <div class="menu-sections">
-    <div v-for="section in menuSections" :key="section.role" class="menu-section">
+  <div v-if="visibleSections.length" class="menu-sections">
+    <div
+      v-for="section in visibleSections"
+      :key="section.role"
+      class="menu-section"
+    >
       <div class="section-label">{{ section.label }}</div>
       <div class="menu-grid">
         <div
@@ -20,18 +26,15 @@
           :key="item.label"
           class="menu-card"
           :class="{
-            'is-clickable': hasRole(section.role) && !!item.to,
-            'is-disabled': !hasRole(section.role) || !item.to,
+            'is-clickable': !!item.to,
+            'is-disabled': !item.to,
           }"
-          @click="hasRole(section.role) && item.to ? router.push(item.to) : undefined"
+          @click="item.to ? router.push(item.to) : undefined"
         >
           <i :class="item.icon" class="menu-icon" />
           <div class="menu-label">{{ item.label }}</div>
           <div class="menu-desc">{{ item.desc }}</div>
-          <div v-if="!hasRole(section.role)" class="menu-lock">
-            <i class="pi pi-lock" /> Hanya {{ section.label }}
-          </div>
-          <div v-else-if="!item.to" class="menu-lock">
+          <div v-if="!item.to" class="menu-lock">
             <i class="pi pi-clock" /> Segera hadir
           </div>
         </div>
@@ -41,94 +44,94 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { computed } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
 
-const router = useRouter()
-const auth = useAuthStore()
+const router = useRouter();
+const auth = useAuthStore();
 
-const displayName = computed(() => auth.user?.name || auth.user?.username || 'Pengguna')
+const displayName = computed(
+  () => auth.user?.name || auth.user?.username || "Pengguna",
+);
 
 function hasRole(role: string): boolean {
-  if (auth.user?.roles?.includes('ADMINISTRATOR')) return true
-  return auth.user?.roles?.includes(role) ?? false
+  if (auth.user?.roles?.includes("ADMINISTRATOR")) return true;
+  return auth.user?.roles?.includes(role) ?? false;
 }
+
+const visibleSections = computed(() =>
+  menuSections.filter((section) => hasRole(section.role)),
+);
 
 const menuSections = [
   {
-    role: 'KOMITE_PUSAT',
-    label: 'Komite Pusat',
+    role: "KOMITE_PUSAT",
+    label: "Komite Pusat",
     items: [
       {
-        icon: 'pi pi-gauge',
-        label: 'Dashboard Monitoring',
-        desc: 'Pantau dan monitoring daftar risiko keamanan di seluruh unit kerja secara terpusat.',
-        to: '/dashboard',
+        icon: "pi pi-gauge",
+        label: "Dashboard Monitoring",
+        desc: "Pantau dan monitoring daftar risiko keamanan di seluruh unit kerja secara terpusat.",
+        to: "/dashboard",
       },
       {
-        icon: 'pi pi-list-check',
-        label: 'Framework Risiko',
-        desc: 'Kelola framework standar analisis risiko yang digunakan dalam program kerja.',
-        to: '/frameworks',
+        icon: "pi pi-list-check",
+        label: "Framework Risiko",
+        desc: "Kelola framework standar analisis risiko yang digunakan dalam program kerja.",
+        to: "/frameworks",
       },
       {
-        icon: 'pi pi-briefcase',
-        label: 'Program Kerja Risiko',
-        desc: 'Susun program kerja, tetapkan framework, dan konfigurasikan konteks penilaian risiko.',
-        to: '/risk-programs',
-      },
-      {
-        icon: 'pi pi-chart-bar',
-        label: 'Laporan',
-        desc: 'Laporan dan analitik risiko terkini lintas unit kerja.',
-        to: null,
+        icon: "pi pi-briefcase",
+        label: "Program Kerja Risiko",
+        desc: "Susun program kerja, tetapkan framework, dan konfigurasikan konteks penilaian risiko.",
+        to: "/risk-programs",
       },
     ],
   },
   {
-    role: 'PENGELOLA_RISIKO_UKER',
-    label: 'Pengelola Risiko Unit Kerja',
+    role: "PENGELOLA_RISIKO_UKER",
+    label: "Pengelola Risiko Unit Kerja",
     items: [
       {
-        icon: 'pi pi-server',
-        label: 'Aset',
-        desc: 'Kelola dan pantau aset organisasi per unit kerja.',
-        to: '/assets',
+        icon: "pi pi-server",
+        label: "Aset",
+        desc: "Kelola dan pantau aset organisasi per unit kerja.",
+        to: "/assets",
       },
       {
-        icon: 'pi pi-sitemap',
-        label: 'Proses Bisnis',
-        desc: 'Kelola dan pantau proses bisnis organisasi per unit kerja.',
-        to: '/proses-bisnis',
+        icon: "pi pi-sitemap",
+        label: "Kegiatan",
+        desc: "Kelola dan pantau Kegiatan organisasi per unit kerja.",
+        to: "/kegiatan",
       },
       {
-        icon: 'pi pi-file-edit',
-        label: 'Kertas Kerja',
-        desc: 'Buat dan kelola kertas kerja manajemen risiko berdasarkan program kerja aktif.',
-        to: '/working-papers',
+        icon: "pi pi-file-edit",
+        label: "Kertas Kerja",
+        desc: "Buat dan kelola kertas kerja manajemen risiko berdasarkan program kerja aktif.",
+        to: "/working-papers",
       },
     ],
   },
   {
-    role: 'ADMINISTRATOR',
-    label: 'Administrator',
+    role: "ADMINISTRATOR",
+    label: "Administrator",
     items: [
       {
-        icon: 'pi pi-users',
-        label: 'Pengguna',
-        desc: 'Kelola akun dan hak akses pengguna.',
-        to: '/admin/users',
+        icon: "pi pi-users",
+        label: "Pengguna",
+        desc: "Kelola akun dan hak akses pengguna.",
+        to: "/admin/users",
       },
       {
-        icon: 'pi pi-cog',
-        label: 'Pengaturan',
-        desc: 'Konfigurasi sistem dan preferensi.',
-        to: '/admin/settings',
+        icon: "pi pi-cog",
+        label: "Pengaturan",
+        desc: "Konfigurasi sistem dan preferensi.",
+        to: "/admin/settings",
       },
     ],
   },
-]
+];
 </script>
 
 <style scoped>
@@ -138,7 +141,8 @@ const menuSections = [
   gap: 2rem;
 }
 
-.menu-section {}
+.menu-section {
+}
 
 .section-label {
   font-size: 11px;
@@ -163,7 +167,9 @@ const menuSections = [
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   position: relative;
 }
 

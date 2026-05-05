@@ -268,7 +268,11 @@ const activate = async (userId) => {
     },
   });
 
-  await activityLog.notice("USER_ACTIVATED", { actionType: "AUTH", userId, username: updatedUser.username });
+  await activityLog.notice("USER_ACTIVATED", {
+    actionType: "AUTH",
+    userId,
+    username: updatedUser.username,
+  });
 
   return {
     message: `Akun ${updatedUser.username} berhasil diaktifkan`,
@@ -540,7 +544,10 @@ const updateMyPassword = async (username, reqBody) => {
     await tx.session.deleteMany({ where: { userId: user.id } });
   });
 
-  await activityLog.notice("USER_PASSWORD_CHANGED", { actionType: "AUTH", username });
+  await activityLog.notice("USER_PASSWORD_CHANGED", {
+    actionType: "AUTH",
+    username,
+  });
 
   return { message: "Password berhasil diubah. Silakan login kembali." };
 };

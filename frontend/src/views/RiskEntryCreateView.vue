@@ -1,6 +1,5 @@
 <template>
   <div class="rec-page">
-
     <!-- ─── Loading awal ──────────────────────────────────────────────────────── -->
     <div v-if="initLoading" class="rec-centered">
       <ProgressSpinner style="width: 36px; height: 36px" />
@@ -10,7 +9,6 @@
     </div>
 
     <template v-else>
-
       <!-- ─── Breadcrumb ──────────────────────────────────────────────────────── -->
       <div class="rec-breadcrumb">
         <button class="rec-back-btn" type="button" @click="goBack">
@@ -39,15 +37,19 @@
 
       <!-- ─── Main card ───────────────────────────────────────────────────────── -->
       <div class="rec-card">
-
         <!-- ══════════════════ STEP 0: Konteks & Subjek ══════════════════════ -->
         <div v-if="currentStep === 0" class="rec-step-body">
           <h2 class="rec-step-title">Konteks & Subjek Risiko</h2>
 
           <!-- Konteks Risiko dropdown -->
           <div class="rec-form-group">
-            <label class="rec-label">Konteks Risiko <span class="rec-req">*</span></label>
-            <div class="rec-select-wrap" :class="{ 'is-error': errors.programFrameworkContextId }">
+            <label class="rec-label"
+              >Konteks Risiko <span class="rec-req">*</span></label
+            >
+            <div
+              class="rec-select-wrap"
+              :class="{ 'is-error': errors.programFrameworkContextId }"
+            >
               <button
                 type="button"
                 class="rec-select-trigger"
@@ -55,15 +57,31 @@
                 @click="toggleDropdown('context')"
               >
                 <template v-if="selectedContextOption">
-                  <span class="rec-ctx-code">[{{ selectedContextOption.code }}]</span>
-                  <span class="rec-select-value-text">{{ selectedContextOption.name }}</span>
+                  <span class="rec-ctx-code"
+                    >[{{ selectedContextOption.code }}]</span
+                  >
+                  <span class="rec-select-value-text">{{
+                    selectedContextOption.name
+                  }}</span>
                 </template>
-                <span v-else class="rec-select-placeholder">— Pilih konteks —</span>
-                <i class="pi rec-select-chevron" :class="openDropdown === 'context' ? 'pi-chevron-up' : 'pi-chevron-down'" />
+                <span v-else class="rec-select-placeholder"
+                  >— Pilih konteks —</span
+                >
+                <i
+                  class="pi rec-select-chevron"
+                  :class="
+                    openDropdown === 'context'
+                      ? 'pi-chevron-up'
+                      : 'pi-chevron-down'
+                  "
+                />
               </button>
               <div v-show="openDropdown === 'context'" class="rec-select-panel">
                 <div class="rec-select-search-wrap">
-                  <i class="pi pi-search" style="font-size:11px;color:var(--color-text-muted)" />
+                  <i
+                    class="pi pi-search"
+                    style="font-size: 11px; color: var(--color-text-muted)"
+                  />
                   <input
                     v-model="searchContext"
                     type="text"
@@ -73,30 +91,44 @@
                   />
                 </div>
                 <div class="rec-select-list">
-                  <div v-if="filteredPfGroups.length === 0" class="rec-select-empty">
+                  <div
+                    v-if="filteredPfGroups.length === 0"
+                    class="rec-select-empty"
+                  >
                     Tidak ada hasil
                   </div>
                   <template v-for="pf in filteredPfGroups" :key="pf.pfId">
                     <div class="rec-select-group-header">
-                      <span class="rec-select-fw-badge">[{{ pf.frameworkCode }}]</span>
-                      <span class="rec-select-fw-name">{{ pf.frameworkName }}</span>
+                      <span class="rec-select-fw-badge"
+                        >[{{ pf.frameworkCode }}]</span
+                      >
+                      <span class="rec-select-fw-name">{{
+                        pf.frameworkName
+                      }}</span>
                     </div>
                     <div
                       v-for="opt in pf.contexts"
                       :key="opt.riskContextId"
                       class="rec-select-option"
-                      :class="{ selected: form.riskContextId === opt.riskContextId }"
+                      :class="{
+                        selected: form.riskContextId === opt.riskContextId,
+                      }"
                       @click="selectContext(opt)"
                     >
                       <span class="rec-ctx-code">[{{ opt.code }}]</span>
                       <span class="rec-select-option-name">{{ opt.name }}</span>
-                      <i v-if="form.riskContextId === opt.riskContextId" class="pi pi-check rec-select-check" />
+                      <i
+                        v-if="form.riskContextId === opt.riskContextId"
+                        class="pi pi-check rec-select-check"
+                      />
                     </div>
                   </template>
                 </div>
               </div>
             </div>
-            <span v-if="errors.programFrameworkContextId" class="rec-err">{{ errors.programFrameworkContextId }}</span>
+            <span v-if="errors.programFrameworkContextId" class="rec-err">{{
+              errors.programFrameworkContextId
+            }}</span>
           </div>
 
           <!-- Context loading -->
@@ -108,11 +140,22 @@
           <template v-if="contextDetail && !contextLoading">
             <!-- Context info badge -->
             <div class="rec-ctx-info">
-              <span class="rec-ctx-type-badge" :class="contextDetail.contextType === 'ASSET' ? 'badge-asset' : 'badge-process'">
-                {{ contextDetail.contextType === 'ASSET' ? 'Aset' : 'Proses Bisnis' }}
+              <span
+                class="rec-ctx-type-badge"
+                :class="
+                  contextDetail.contextType === 'ASSET'
+                    ? 'badge-asset'
+                    : 'badge-process'
+                "
+              >
+                {{
+                  contextDetail.contextType === "ASSET" ? "Aset" : "Kegiatan"
+                }}
               </span>
               <span class="rec-ctx-matrix">
-                Matriks {{ contextDetail.matrixRows }}×{{ contextDetail.matrixCols }}
+                Matriks {{ contextDetail.matrixRows }}×{{
+                  contextDetail.matrixCols
+                }}
               </span>
               <span class="rec-ctx-areas">
                 {{ contextDetail.impactAreas.length }} area dampak
@@ -120,8 +163,13 @@
             </div>
 
             <!-- Asset dropdown -->
-            <div v-if="contextDetail.contextType === 'ASSET'" class="rec-form-group">
-              <label class="rec-label">Aset <span class="rec-opt">(opsional)</span></label>
+            <div
+              v-if="contextDetail.contextType === 'ASSET'"
+              class="rec-form-group"
+            >
+              <label class="rec-label"
+                >Aset <span class="rec-opt">(opsional)</span></label
+              >
               <div class="rec-select-wrap">
                 <button
                   type="button"
@@ -131,14 +179,31 @@
                 >
                   <template v-if="selectedAsset">
                     <span class="rec-ctx-code">[{{ selectedAsset.code }}]</span>
-                    <span class="rec-select-value-text">{{ selectedAsset.name }}</span>
+                    <span class="rec-select-value-text">{{
+                      selectedAsset.name
+                    }}</span>
                   </template>
-                  <span v-else class="rec-select-placeholder">— Tanpa aset spesifik —</span>
-                  <i class="pi rec-select-chevron" :class="openDropdown === 'subject' ? 'pi-chevron-up' : 'pi-chevron-down'" />
+                  <span v-else class="rec-select-placeholder"
+                    >— Tanpa aset spesifik —</span
+                  >
+                  <i
+                    class="pi rec-select-chevron"
+                    :class="
+                      openDropdown === 'subject'
+                        ? 'pi-chevron-up'
+                        : 'pi-chevron-down'
+                    "
+                  />
                 </button>
-                <div v-show="openDropdown === 'subject'" class="rec-select-panel">
+                <div
+                  v-show="openDropdown === 'subject'"
+                  class="rec-select-panel"
+                >
                   <div class="rec-select-search-wrap">
-                    <i class="pi pi-search" style="font-size:11px;color:var(--color-text-muted)" />
+                    <i
+                      class="pi pi-search"
+                      style="font-size: 11px; color: var(--color-text-muted)"
+                    />
                     <input
                       v-model="searchSubject"
                       type="text"
@@ -151,15 +216,29 @@
                     <div
                       class="rec-select-option"
                       :class="{ selected: !form.assetId }"
-                      @click="form.assetId = ''; closeAllDropdowns()"
+                      @click="
+                        form.assetId = '';
+                        closeAllDropdowns();
+                      "
                     >
-                      <span class="rec-select-none-label">— Tanpa aset spesifik —</span>
-                      <i v-if="!form.assetId" class="pi pi-check rec-select-check" />
+                      <span class="rec-select-none-label"
+                        >— Tanpa aset spesifik —</span
+                      >
+                      <i
+                        v-if="!form.assetId"
+                        class="pi pi-check rec-select-check"
+                      />
                     </div>
-                    <div v-if="availableAssets.length === 0" class="rec-select-empty">
+                    <div
+                      v-if="availableAssets.length === 0"
+                      class="rec-select-empty"
+                    >
                       Belum ada aset aktif tersedia
                     </div>
-                    <div v-else-if="filteredAssets.length === 0" class="rec-select-empty">
+                    <div
+                      v-else-if="filteredAssets.length === 0"
+                      class="rec-select-empty"
+                    >
                       Tidak ada hasil
                     </div>
                     <div
@@ -167,20 +246,31 @@
                       :key="a.id"
                       class="rec-select-option"
                       :class="{ selected: form.assetId === a.id }"
-                      @click="form.assetId = a.id; closeAllDropdowns()"
+                      @click="
+                        form.assetId = a.id;
+                        closeAllDropdowns();
+                      "
                     >
                       <span class="rec-ctx-code">[{{ a.code }}]</span>
                       <span class="rec-select-option-name">{{ a.name }}</span>
-                      <i v-if="form.assetId === a.id" class="pi pi-check rec-select-check" />
+                      <i
+                        v-if="form.assetId === a.id"
+                        class="pi pi-check rec-select-check"
+                      />
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Business process dropdown -->
-            <div v-if="contextDetail.contextType === 'PROCESS'" class="rec-form-group">
-              <label class="rec-label">Proses Bisnis <span class="rec-opt">(opsional)</span></label>
+            <!-- Kegiatan dropdown -->
+            <div
+              v-if="contextDetail.contextType === 'PROCESS'"
+              class="rec-form-group"
+            >
+              <label class="rec-label"
+                >Kegiatan <span class="rec-opt">(opsional)</span></label
+              >
               <div class="rec-select-wrap">
                 <button
                   type="button"
@@ -189,19 +279,38 @@
                   @click="toggleDropdown('subject')"
                 >
                   <template v-if="selectedProcess">
-                    <span class="rec-ctx-code">[{{ selectedProcess.code }}]</span>
-                    <span class="rec-select-value-text">{{ selectedProcess.name }}</span>
+                    <span class="rec-ctx-code"
+                      >[{{ selectedProcess.code }}]</span
+                    >
+                    <span class="rec-select-value-text">{{
+                      selectedProcess.name
+                    }}</span>
                   </template>
-                  <span v-else class="rec-select-placeholder">— Tanpa proses spesifik —</span>
-                  <i class="pi rec-select-chevron" :class="openDropdown === 'subject' ? 'pi-chevron-up' : 'pi-chevron-down'" />
+                  <span v-else class="rec-select-placeholder"
+                    >— Tanpa proses spesifik —</span
+                  >
+                  <i
+                    class="pi rec-select-chevron"
+                    :class="
+                      openDropdown === 'subject'
+                        ? 'pi-chevron-up'
+                        : 'pi-chevron-down'
+                    "
+                  />
                 </button>
-                <div v-show="openDropdown === 'subject'" class="rec-select-panel">
+                <div
+                  v-show="openDropdown === 'subject'"
+                  class="rec-select-panel"
+                >
                   <div class="rec-select-search-wrap">
-                    <i class="pi pi-search" style="font-size:11px;color:var(--color-text-muted)" />
+                    <i
+                      class="pi pi-search"
+                      style="font-size: 11px; color: var(--color-text-muted)"
+                    />
                     <input
                       v-model="searchSubject"
                       type="text"
-                      placeholder="Cari proses bisnis..."
+                      placeholder="Cari Kegiatan..."
                       class="rec-select-search-input"
                       @click.stop
                     />
@@ -210,15 +319,29 @@
                     <div
                       class="rec-select-option"
                       :class="{ selected: !form.businessProcessId }"
-                      @click="form.businessProcessId = ''; closeAllDropdowns()"
+                      @click="
+                        form.businessProcessId = '';
+                        closeAllDropdowns();
+                      "
                     >
-                      <span class="rec-select-none-label">— Tanpa proses spesifik —</span>
-                      <i v-if="!form.businessProcessId" class="pi pi-check rec-select-check" />
+                      <span class="rec-select-none-label"
+                        >— Tanpa proses spesifik —</span
+                      >
+                      <i
+                        v-if="!form.businessProcessId"
+                        class="pi pi-check rec-select-check"
+                      />
                     </div>
-                    <div v-if="availableProcesses.length === 0" class="rec-select-empty">
-                      Belum ada proses bisnis aktif tersedia
+                    <div
+                      v-if="availableProcesses.length === 0"
+                      class="rec-select-empty"
+                    >
+                      Belum ada Kegiatan aktif tersedia
                     </div>
-                    <div v-else-if="filteredProcesses.length === 0" class="rec-select-empty">
+                    <div
+                      v-else-if="filteredProcesses.length === 0"
+                      class="rec-select-empty"
+                    >
                       Tidak ada hasil
                     </div>
                     <div
@@ -226,11 +349,17 @@
                       :key="p.id"
                       class="rec-select-option"
                       :class="{ selected: form.businessProcessId === p.id }"
-                      @click="form.businessProcessId = p.id; closeAllDropdowns()"
+                      @click="
+                        form.businessProcessId = p.id;
+                        closeAllDropdowns();
+                      "
                     >
                       <span class="rec-ctx-code">[{{ p.code }}]</span>
                       <span class="rec-select-option-name">{{ p.name }}</span>
-                      <i v-if="form.businessProcessId === p.id" class="pi pi-check rec-select-check" />
+                      <i
+                        v-if="form.businessProcessId === p.id"
+                        class="pi pi-check rec-select-check"
+                      />
                     </div>
                   </div>
                 </div>
@@ -245,7 +374,9 @@
 
           <!-- Category dropdown -->
           <div class="rec-form-group">
-            <label class="rec-label">Kategori Risiko <span class="rec-opt">(opsional)</span></label>
+            <label class="rec-label"
+              >Kategori Risiko <span class="rec-opt">(opsional)</span></label
+            >
             <div class="rec-select-wrap">
               <button
                 type="button"
@@ -254,15 +385,38 @@
                 @click="toggleDropdown('category')"
               >
                 <template v-if="selectedCategory">
-                  <span class="rec-cat-dot" :style="{ background: selectedCategory.color ?? 'var(--color-text-muted)' }" />
-                  <span class="rec-select-value-text">{{ selectedCategory.name }}</span>
+                  <span
+                    class="rec-cat-dot"
+                    :style="{
+                      background:
+                        selectedCategory.color ?? 'var(--color-text-muted)',
+                    }"
+                  />
+                  <span class="rec-select-value-text">{{
+                    selectedCategory.name
+                  }}</span>
                 </template>
-                <span v-else class="rec-select-placeholder">— Tanpa kategori —</span>
-                <i class="pi rec-select-chevron" :class="openDropdown === 'category' ? 'pi-chevron-up' : 'pi-chevron-down'" />
+                <span v-else class="rec-select-placeholder"
+                  >— Tanpa kategori —</span
+                >
+                <i
+                  class="pi rec-select-chevron"
+                  :class="
+                    openDropdown === 'category'
+                      ? 'pi-chevron-up'
+                      : 'pi-chevron-down'
+                  "
+                />
               </button>
-              <div v-show="openDropdown === 'category'" class="rec-select-panel">
+              <div
+                v-show="openDropdown === 'category'"
+                class="rec-select-panel"
+              >
                 <div class="rec-select-search-wrap">
-                  <i class="pi pi-search" style="font-size:11px;color:var(--color-text-muted)" />
+                  <i
+                    class="pi pi-search"
+                    style="font-size: 11px; color: var(--color-text-muted)"
+                  />
                   <input
                     v-model="searchCategory"
                     type="text"
@@ -275,15 +429,29 @@
                   <div
                     class="rec-select-option"
                     :class="{ selected: !form.riskCategoryId }"
-                    @click="form.riskCategoryId = ''; closeAllDropdowns()"
+                    @click="
+                      form.riskCategoryId = '';
+                      closeAllDropdowns();
+                    "
                   >
-                    <span class="rec-select-none-label">— Tanpa kategori —</span>
-                    <i v-if="!form.riskCategoryId" class="pi pi-check rec-select-check" />
+                    <span class="rec-select-none-label"
+                      >— Tanpa kategori —</span
+                    >
+                    <i
+                      v-if="!form.riskCategoryId"
+                      class="pi pi-check rec-select-check"
+                    />
                   </div>
-                  <div v-if="(contextDetail?.riskCategories ?? []).length === 0" class="rec-select-empty">
+                  <div
+                    v-if="(contextDetail?.riskCategories ?? []).length === 0"
+                    class="rec-select-empty"
+                  >
                     Belum ada kategori tersedia
                   </div>
-                  <div v-else-if="filteredCategories.length === 0" class="rec-select-empty">
+                  <div
+                    v-else-if="filteredCategories.length === 0"
+                    class="rec-select-empty"
+                  >
                     Tidak ada hasil
                   </div>
                   <div
@@ -291,11 +459,22 @@
                     :key="cat.id"
                     class="rec-select-option"
                     :class="{ selected: form.riskCategoryId === cat.id }"
-                    @click="form.riskCategoryId = cat.id; closeAllDropdowns()"
+                    @click="
+                      form.riskCategoryId = cat.id;
+                      closeAllDropdowns();
+                    "
                   >
-                    <span class="rec-cat-dot" :style="{ background: cat.color ?? 'var(--color-text-muted)' }" />
+                    <span
+                      class="rec-cat-dot"
+                      :style="{
+                        background: cat.color ?? 'var(--color-text-muted)',
+                      }"
+                    />
                     <span class="rec-select-option-name">{{ cat.name }}</span>
-                    <i v-if="form.riskCategoryId === cat.id" class="pi pi-check rec-select-check" />
+                    <i
+                      v-if="form.riskCategoryId === cat.id"
+                      class="pi pi-check rec-select-check"
+                    />
                   </div>
                 </div>
               </div>
@@ -304,7 +483,9 @@
 
           <!-- Name -->
           <div class="rec-form-group">
-            <label class="rec-label">Nama / Peristiwa Risiko <span class="rec-req">*</span></label>
+            <label class="rec-label"
+              >Ancaman <span class="rec-req">*</span></label
+            >
             <input
               v-model="form.name"
               type="text"
@@ -316,35 +497,56 @@
             <span v-if="errors.name" class="rec-err">{{ errors.name }}</span>
           </div>
 
-          <!-- Description / Kerawanan -->
+          <!-- Description / Kerentanan -->
           <div class="rec-form-group">
-            <label class="rec-label">Kerawanan <span class="rec-opt">(opsional)</span></label>
-            <textarea v-model="form.description" class="rec-input rec-textarea" rows="2" />
+            <label class="rec-label"
+              >Kerentanan <span class="rec-opt">(opsional)</span></label
+            >
+            <textarea
+              v-model="form.description"
+              class="rec-input rec-textarea"
+              rows="2"
+            />
           </div>
-
         </div>
 
         <!-- ══════════════════ STEP 2: Kontrol yang Ada ══════════════════════ -->
         <div v-if="currentStep === 2" class="rec-step-body">
           <div class="rec-step-header-row">
             <div>
-              <h2 class="rec-step-title" style="margin-bottom: 0.25rem">Kontrol yang Ada</h2>
-              <p class="rec-hint">Daftar kontrol yang sudah ada sebelum penilaian risiko dilakukan.</p>
+              <h2 class="rec-step-title" style="margin-bottom: 0.25rem">
+                Kontrol yang Ada
+              </h2>
+              <p class="rec-hint">
+                Daftar kontrol yang sudah ada sebelum penilaian risiko
+                dilakukan.
+              </p>
             </div>
             <button type="button" class="rec-add-btn" @click="addControl">
               <i class="pi pi-plus" /> Tambah Kontrol
             </button>
           </div>
 
-          <div v-if="form.controls.length === 0" class="rec-empty-inline" style="margin-top: 1rem">
+          <div
+            v-if="form.controls.length === 0"
+            class="rec-empty-inline"
+            style="margin-top: 1rem"
+          >
             <i class="pi pi-shield" />
-            <span>Belum ada kontrol. Klik "Tambah Kontrol" atau lanjutkan jika tidak ada.</span>
+            <span
+              >Belum ada kontrol. Klik "Tambah Kontrol" atau lanjutkan jika
+              tidak ada.</span
+            >
           </div>
 
-          <div v-for="(ctrl, i) in form.controls" :key="i" class="ctrl-card" :class="`ctrl-eff-${ctrl.effectiveness ? ctrl.effectiveness.toLowerCase() : 'unset'}`">
+          <div
+            v-for="(ctrl, i) in form.controls"
+            :key="i"
+            class="ctrl-card"
+            :class="`ctrl-eff-${ctrl.effectiveness ? ctrl.effectiveness.toLowerCase() : 'unset'}`"
+          >
             <div class="ctrl-accent-bar" />
             <div class="ctrl-card-body">
-
               <!-- Row 1: number + name + remove -->
               <div class="ctrl-row-top">
                 <span class="ctrl-num-badge">{{ i + 1 }}</span>
@@ -358,9 +560,16 @@
                     maxlength="500"
                     autocomplete="off"
                   />
-                  <span v-if="controlErrors[i]?.name" class="rec-err">{{ controlErrors[i].name }}</span>
+                  <span v-if="controlErrors[i]?.name" class="rec-err">{{
+                    controlErrors[i].name
+                  }}</span>
                 </div>
-                <button type="button" class="ctrl-remove-btn" @click="removeControl(i)" title="Hapus kontrol">
+                <button
+                  type="button"
+                  class="ctrl-remove-btn"
+                  @click="removeControl(i)"
+                  title="Hapus kontrol"
+                >
                   <i class="pi pi-times" />
                 </button>
               </div>
@@ -373,15 +582,38 @@
                     v-for="opt in effectivenessOptions"
                     :key="opt.value"
                     class="ctrl-eff-pill"
-                    :class="{ selected: ctrl.effectiveness === opt.value, [`pill-${opt.value.toLowerCase()}`]: true }"
+                    :class="{
+                      selected: ctrl.effectiveness === opt.value,
+                      [`pill-${opt.value.toLowerCase()}`]: true,
+                    }"
                     :title="opt.desc"
                   >
-                    <input type="radio" :name="`eff-${i}`" :value="opt.value" v-model="ctrl.effectiveness" style="display:none" />
-                    <i class="pi" :class="opt.value === 'ADEQUATE' ? 'pi-check-circle' : opt.value === 'PARTIAL' ? 'pi-minus-circle' : 'pi-times-circle'" />
+                    <input
+                      type="radio"
+                      :name="`eff-${i}`"
+                      :value="opt.value"
+                      v-model="ctrl.effectiveness"
+                      style="display: none"
+                    />
+                    <i
+                      class="pi"
+                      :class="
+                        opt.value === 'ADEQUATE'
+                          ? 'pi-check-circle'
+                          : opt.value === 'PARTIAL'
+                            ? 'pi-minus-circle'
+                            : 'pi-times-circle'
+                      "
+                    />
                     {{ opt.label }}
                   </label>
                 </div>
-                <span v-if="controlErrors[i]?.effectiveness" class="rec-err" style="margin-left: 0.25rem">{{ controlErrors[i].effectiveness }}</span>
+                <span
+                  v-if="controlErrors[i]?.effectiveness"
+                  class="rec-err"
+                  style="margin-left: 0.25rem"
+                  >{{ controlErrors[i].effectiveness }}</span
+                >
               </div>
 
               <!-- Row 3: description -->
@@ -391,7 +623,6 @@
                 rows="2"
                 placeholder="Deskripsi kontrol (opsional)..."
               />
-
             </div>
           </div>
         </div>
@@ -433,315 +664,362 @@
         <div v-if="submitError" class="rec-api-error">
           <i class="pi pi-exclamation-triangle" /> {{ submitError }}
         </div>
-
-      </div><!-- /.rec-card -->
+      </div>
+      <!-- /.rec-card -->
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import ProgressSpinner from 'primevue/progressspinner'
-import { useToast } from 'primevue/usetoast'
-import { workingPaperApi } from '@/api/workingPaper'
-import { programFrameworkApi } from '@/api/programFramework'
-import { riskContextApi, type RiskContextDetail } from '@/api/riskContext'
-import { riskEntryApi, type ControlEffectiveness } from '@/api/riskEntry'
-import { assetApi, type Asset } from '@/api/asset'
-import { prosesBisnisApi, type ProsesBisnis } from '@/api/prosesBisnis'
-import { extractApiError } from '@/utils/apiError'
+import { ref, reactive, computed, onMounted, onUnmounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import ProgressSpinner from "primevue/progressspinner";
+import { useToast } from "primevue/usetoast";
+import { workingPaperApi } from "@/api/workingPaper";
+import { programFrameworkApi } from "@/api/programFramework";
+import { riskContextApi, type RiskContextDetail } from "@/api/riskContext";
+import { riskEntryApi, type ControlEffectiveness } from "@/api/riskEntry";
+import { assetApi, type Asset } from "@/api/asset";
+import { KegiatanApi, type Kegiatan } from "@/api/Kegiatan";
+import { extractApiError } from "@/utils/apiError";
 
-const router = useRouter()
-const route = useRoute()
-const toast = useToast()
+const router = useRouter();
+const route = useRoute();
+const toast = useToast();
 
-const wpId = route.params.id as string
-const unitKerjaId = ref('')
+const wpId = route.params.id as string;
+const unitKerjaId = ref("");
 
-const steps = ['Konteks & Subjek', 'Deskripsi Risiko', 'Kontrol']
-const currentStep = ref(0)
+const steps = ["Konteks & Subjek", "Deskripsi Risiko", "Kontrol"];
+const currentStep = ref(0);
 
 // ─── Init loading ─────────────────────────────────────────────────────────────
 
-const initLoading = ref(true)
-const initError = ref('')
+const initLoading = ref(true);
+const initError = ref("");
 
 interface PfGroup {
-  pfId: string
-  frameworkCode: string
-  frameworkName: string
-  contexts: Array<{ riskContextId: string; programFrameworkId: string; code: string; name: string }>
+  pfId: string;
+  frameworkCode: string;
+  frameworkName: string;
+  contexts: Array<{
+    riskContextId: string;
+    programFrameworkId: string;
+    code: string;
+    name: string;
+  }>;
 }
 
-const pfGroups = ref<PfGroup[]>([])
+const pfGroups = ref<PfGroup[]>([]);
 
 async function init() {
-  initLoading.value = true
-  initError.value = ''
+  initLoading.value = true;
+  initError.value = "";
   try {
-    const wpRes = await workingPaperApi.getById(wpId)
-    const wp = wpRes.data.data
-    if (wp.status !== 'DRAFT' && wp.status !== 'REVISION') {
-      initError.value = `Kertas kerja berstatus "${wp.status}" tidak dapat diedit.`
-      return
+    const wpRes = await workingPaperApi.getById(wpId);
+    const wp = wpRes.data.data;
+    if (wp.status !== "DRAFT" && wp.status !== "REVISION") {
+      initError.value = `Kertas kerja berstatus "${wp.status}" tidak dapat diedit.`;
+      return;
     }
-    unitKerjaId.value = wp.unitKerjaId
+    unitKerjaId.value = wp.unitKerjaId;
 
-    const pfRes = await programFrameworkApi.listByProgram(wp.programId)
-    const pfs = pfRes.data.data ?? []
+    const pfRes = await programFrameworkApi.listByProgram(wp.programId);
+    const pfs = pfRes.data.data ?? [];
 
     const groups = await Promise.all(
-      pfs.map(pf =>
-        riskContextApi.listByFramework(pf.frameworkId).then(r => ({
+      pfs.map((pf) =>
+        riskContextApi.listByFramework(pf.frameworkId).then((r) => ({
           pf,
-          contexts: (r.data.data ?? []).filter(c => c.status === 'ACTIVE'),
-        }))
-      )
-    )
+          contexts: (r.data.data ?? []).filter((c) => c.status === "ACTIVE"),
+        })),
+      ),
+    );
 
     pfGroups.value = groups
-      .filter(r => r.contexts.length > 0)
-      .map(r => ({
+      .filter((r) => r.contexts.length > 0)
+      .map((r) => ({
         pfId: r.pf.id,
         frameworkCode: r.pf.framework.code,
         frameworkName: r.pf.framework.name,
-        contexts: r.contexts.map(ctx => ({
+        contexts: r.contexts.map((ctx) => ({
           riskContextId: ctx.id,
           programFrameworkId: r.pf.id,
           code: ctx.code,
           name: ctx.name,
         })),
-      }))
+      }));
   } catch (err: any) {
-    initError.value = extractApiError(err, 'Gagal memuat data kertas kerja.')
+    initError.value = extractApiError(err, "Gagal memuat data kertas kerja.");
   } finally {
-    initLoading.value = false
+    initLoading.value = false;
   }
 }
 
 // ─── Context loading ──────────────────────────────────────────────────────────
 
-const contextLoading = ref(false)
-const contextDetail = ref<RiskContextDetail | null>(null)
-const availableAssets = ref<Asset[]>([])
-const availableProcesses = ref<ProsesBisnis[]>([])
+const contextLoading = ref(false);
+const contextDetail = ref<RiskContextDetail | null>(null);
+const availableAssets = ref<Asset[]>([]);
+const availableProcesses = ref<Kegiatan[]>([]);
 
 async function loadContext(riskContextId: string) {
-  contextLoading.value = true
-  contextDetail.value = null
-  availableAssets.value = []
-  availableProcesses.value = []
+  contextLoading.value = true;
+  contextDetail.value = null;
+  availableAssets.value = [];
+  availableProcesses.value = [];
   try {
-    const res = await riskContextApi.getById(riskContextId)
-    contextDetail.value = res.data.data
-    if (res.data.data.contextType === 'ASSET') {
-      const assetRes = await assetApi.search(unitKerjaId.value, { status: 'ACTIVE', limit: 100 })
-      availableAssets.value = assetRes.data.data ?? []
+    const res = await riskContextApi.getById(riskContextId);
+    contextDetail.value = res.data.data;
+    if (res.data.data.contextType === "ASSET") {
+      const assetRes = await assetApi.search(unitKerjaId.value, {
+        status: "ACTIVE",
+        limit: 100,
+      });
+      availableAssets.value = assetRes.data.data ?? [];
     } else {
-      const procRes = await prosesBisnisApi.search(unitKerjaId.value, { status: 'ACTIVE', limit: 100 })
-      availableProcesses.value = procRes.data.data ?? []
+      const procRes = await KegiatanApi.search(unitKerjaId.value, {
+        status: "ACTIVE",
+        limit: 100,
+      });
+      availableProcesses.value = procRes.data.data ?? [];
     }
   } catch (err: any) {
-    initError.value = extractApiError(err, 'Gagal memuat detail konteks.')
+    initError.value = extractApiError(err, "Gagal memuat detail konteks.");
   } finally {
-    contextLoading.value = false
+    contextLoading.value = false;
   }
 }
 
 // ─── Dropdown state ───────────────────────────────────────────────────────────
 
-const openDropdown = ref<string | null>(null)
-const searchContext = ref('')
-const searchSubject = ref('')
-const searchCategory = ref('')
+const openDropdown = ref<string | null>(null);
+const searchContext = ref("");
+const searchSubject = ref("");
+const searchCategory = ref("");
 
 function toggleDropdown(name: string) {
   if (openDropdown.value === name) {
-    openDropdown.value = null
+    openDropdown.value = null;
   } else {
-    openDropdown.value = name
-    if (name === 'context') searchContext.value = ''
-    if (name === 'subject') searchSubject.value = ''
-    if (name === 'category') searchCategory.value = ''
+    openDropdown.value = name;
+    if (name === "context") searchContext.value = "";
+    if (name === "subject") searchSubject.value = "";
+    if (name === "category") searchCategory.value = "";
   }
 }
 
 function closeAllDropdowns() {
-  openDropdown.value = null
+  openDropdown.value = null;
 }
 
 function handleOutsideClick(e: MouseEvent) {
-  if (!(e.target as HTMLElement).closest('.rec-select-wrap')) {
-    closeAllDropdowns()
+  if (!(e.target as HTMLElement).closest(".rec-select-wrap")) {
+    closeAllDropdowns();
   }
 }
 
-function selectContext(opt: { riskContextId: string; programFrameworkId: string; code: string; name: string }) {
-  form.riskContextId = opt.riskContextId
-  form.programFrameworkId = opt.programFrameworkId
-  form.assetId = ''
-  form.businessProcessId = ''
-  closeAllDropdowns()
-  loadContext(opt.riskContextId)
+function selectContext(opt: {
+  riskContextId: string;
+  programFrameworkId: string;
+  code: string;
+  name: string;
+}) {
+  form.riskContextId = opt.riskContextId;
+  form.programFrameworkId = opt.programFrameworkId;
+  form.assetId = "";
+  form.businessProcessId = "";
+  closeAllDropdowns();
+  loadContext(opt.riskContextId);
 }
 
 const selectedContextOption = computed(() => {
-  if (!form.riskContextId) return null
+  if (!form.riskContextId) return null;
   for (const g of pfGroups.value) {
-    const ctx = g.contexts.find(c => c.riskContextId === form.riskContextId)
-    if (ctx) return ctx
+    const ctx = g.contexts.find((c) => c.riskContextId === form.riskContextId);
+    if (ctx) return ctx;
   }
-  return null
-})
+  return null;
+});
 
 const selectedAsset = computed(() =>
-  form.assetId ? (availableAssets.value.find(a => a.id === form.assetId) ?? null) : null
-)
+  form.assetId
+    ? (availableAssets.value.find((a) => a.id === form.assetId) ?? null)
+    : null,
+);
 
 const selectedProcess = computed(() =>
   form.businessProcessId
-    ? (availableProcesses.value.find(p => p.id === form.businessProcessId) ?? null)
-    : null
-)
+    ? (availableProcesses.value.find((p) => p.id === form.businessProcessId) ??
+      null)
+    : null,
+);
 
 const selectedCategory = computed(() =>
   form.riskCategoryId
-    ? (contextDetail.value?.riskCategories.find(c => c.id === form.riskCategoryId) ?? null)
-    : null
-)
+    ? (contextDetail.value?.riskCategories.find(
+        (c) => c.id === form.riskCategoryId,
+      ) ?? null)
+    : null,
+);
 
 const filteredPfGroups = computed(() => {
-  const q = searchContext.value.toLowerCase()
-  if (!q) return pfGroups.value
+  const q = searchContext.value.toLowerCase();
+  if (!q) return pfGroups.value;
   return pfGroups.value
-    .map(pf => ({
+    .map((pf) => ({
       ...pf,
       contexts: pf.contexts.filter(
-        c => c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q)
+        (c) =>
+          c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q),
       ),
     }))
-    .filter(pf => pf.contexts.length > 0)
-})
+    .filter((pf) => pf.contexts.length > 0);
+});
 
 const filteredAssets = computed(() => {
-  const q = searchSubject.value.toLowerCase()
-  if (!q) return availableAssets.value
+  const q = searchSubject.value.toLowerCase();
+  if (!q) return availableAssets.value;
   return availableAssets.value.filter(
-    a => a.name.toLowerCase().includes(q) || a.code.toLowerCase().includes(q)
-  )
-})
+    (a) => a.name.toLowerCase().includes(q) || a.code.toLowerCase().includes(q),
+  );
+});
 
 const filteredProcesses = computed(() => {
-  const q = searchSubject.value.toLowerCase()
-  if (!q) return availableProcesses.value
+  const q = searchSubject.value.toLowerCase();
+  if (!q) return availableProcesses.value;
   return availableProcesses.value.filter(
-    p => p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q)
-  )
-})
+    (p) => p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q),
+  );
+});
 
 const filteredCategories = computed(() => {
-  const q = searchCategory.value.toLowerCase()
-  const cats = contextDetail.value?.riskCategories ?? []
-  if (!q) return cats
-  return cats.filter(c => c.name.toLowerCase().includes(q))
-})
+  const q = searchCategory.value.toLowerCase();
+  const cats = contextDetail.value?.riskCategories ?? [];
+  if (!q) return cats;
+  return cats.filter((c) => c.name.toLowerCase().includes(q));
+});
 
 // ─── Form state ───────────────────────────────────────────────────────────────
 
 const form = reactive({
-  programFrameworkId: '',
-  riskContextId: '',
-  assetId: '',
-  businessProcessId: '',
-  name: '',
-  description: '',
-  riskCategoryId: '',
-  controls: [] as Array<{ name: string; description: string; effectiveness: ControlEffectiveness | '' }>,
-})
+  programFrameworkId: "",
+  riskContextId: "",
+  assetId: "",
+  businessProcessId: "",
+  name: "",
+  description: "",
+  riskCategoryId: "",
+  controls: [] as Array<{
+    name: string;
+    description: string;
+    effectiveness: ControlEffectiveness | "";
+  }>,
+});
 
 const errors = reactive({
-  programFrameworkContextId: '',
-  name: '',
-})
+  programFrameworkContextId: "",
+  name: "",
+});
 
-const controlErrors = ref<Array<{ name?: string; effectiveness?: string }>>([])
-const submitError = ref('')
-const submitLoading = ref(false)
+const controlErrors = ref<Array<{ name?: string; effectiveness?: string }>>([]);
+const submitError = ref("");
+const submitLoading = ref(false);
 
 // ─── Controls ─────────────────────────────────────────────────────────────────
 
-const effectivenessOptions: Array<{ value: ControlEffectiveness; label: string; desc: string }> = [
-  { value: 'ADEQUATE', label: 'Memadai', desc: 'Kontrol sudah efektif mengurangi risiko' },
-  { value: 'PARTIAL', label: 'Sebagian', desc: 'Kontrol sudah ada namun belum sepenuhnya efektif' },
-  { value: 'INADEQUATE', label: 'Tidak Memadai', desc: 'Kontrol belum efektif atau tidak ada' },
-]
+const effectivenessOptions: Array<{
+  value: ControlEffectiveness;
+  label: string;
+  desc: string;
+}> = [
+  {
+    value: "ADEQUATE",
+    label: "Memadai",
+    desc: "Kontrol sudah efektif mengurangi risiko",
+  },
+  {
+    value: "PARTIAL",
+    label: "Sebagian",
+    desc: "Kontrol sudah ada namun belum sepenuhnya efektif",
+  },
+  {
+    value: "INADEQUATE",
+    label: "Tidak Memadai",
+    desc: "Kontrol belum efektif atau tidak ada",
+  },
+];
 
 function addControl() {
-  form.controls.push({ name: '', description: '', effectiveness: '' })
-  controlErrors.value.push({})
+  form.controls.push({ name: "", description: "", effectiveness: "" });
+  controlErrors.value.push({});
 }
 
 function removeControl(i: number) {
-  form.controls.splice(i, 1)
-  controlErrors.value.splice(i, 1)
+  form.controls.splice(i, 1);
+  controlErrors.value.splice(i, 1);
 }
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
 function validateStep0(): boolean {
-  errors.programFrameworkContextId = ''
+  errors.programFrameworkContextId = "";
   if (!form.riskContextId) {
-    errors.programFrameworkContextId = 'Konteks wajib dipilih'
-    return false
+    errors.programFrameworkContextId = "Konteks wajib dipilih";
+    return false;
   }
   if (!contextDetail.value) {
-    errors.programFrameworkContextId = 'Data konteks belum termuat, coba pilih ulang'
-    return false
+    errors.programFrameworkContextId =
+      "Data konteks belum termuat, coba pilih ulang";
+    return false;
   }
-  return true
+  return true;
 }
 
 function validateStep1(): boolean {
-  errors.name = ''
-  let ok = true
-  if (!form.name.trim()) { errors.name = 'Nama risiko tidak boleh kosong'; ok = false }
-  return ok
+  errors.name = "";
+  let ok = true;
+  if (!form.name.trim()) {
+    errors.name = "Nama risiko tidak boleh kosong";
+    ok = false;
+  }
+  return ok;
 }
 
 function validateStep2(): boolean {
-  controlErrors.value = form.controls.map(ctrl => {
-    const e: { name?: string; effectiveness?: string } = {}
-    if (!ctrl.name.trim()) e.name = 'Nama kontrol tidak boleh kosong'
-    if (!ctrl.effectiveness) e.effectiveness = 'Kemampuan kontrol wajib dipilih'
-    return e
-  })
-  return controlErrors.value.every(e => !e.name && !e.effectiveness)
+  controlErrors.value = form.controls.map((ctrl) => {
+    const e: { name?: string; effectiveness?: string } = {};
+    if (!ctrl.name.trim()) e.name = "Nama kontrol tidak boleh kosong";
+    if (!ctrl.effectiveness)
+      e.effectiveness = "Kemampuan kontrol wajib dipilih";
+    return e;
+  });
+  return controlErrors.value.every((e) => !e.name && !e.effectiveness);
 }
 
 function nextStep() {
-  let valid = true
-  if (currentStep.value === 0) valid = validateStep0()
-  else if (currentStep.value === 1) valid = validateStep1()
-  else if (currentStep.value === 2) valid = validateStep2()
-  if (valid) currentStep.value++
+  let valid = true;
+  if (currentStep.value === 0) valid = validateStep0();
+  else if (currentStep.value === 1) valid = validateStep1();
+  else if (currentStep.value === 2) valid = validateStep2();
+  if (valid) currentStep.value++;
 }
 
 function prevStep() {
-  if (currentStep.value > 0) currentStep.value--
+  if (currentStep.value > 0) currentStep.value--;
 }
 
 function goBack() {
-  router.push({ name: 'working-paper-detail', params: { id: wpId } })
+  router.push({ name: "working-paper-detail", params: { id: wpId } });
 }
 
 // ─── Submit ───────────────────────────────────────────────────────────────────
 
 async function submitForm() {
-  if (!validateStep2()) return
+  if (!validateStep2()) return;
 
-  submitLoading.value = true
-  submitError.value = ''
+  submitLoading.value = true;
+  submitError.value = "";
   try {
     await riskEntryApi.create(wpId, {
       programFrameworkId: form.programFrameworkId,
@@ -757,34 +1035,33 @@ async function submitForm() {
         effectiveness: c.effectiveness as ControlEffectiveness,
         order: i,
       })),
-    })
+    });
 
     toast.add({
-      severity: 'success',
-      summary: 'Berhasil',
-      detail: 'Entri risiko berhasil disimpan',
+      severity: "success",
+      summary: "Berhasil",
+      detail: "Entri risiko berhasil disimpan",
       life: 3000,
-    })
-    router.push({ name: 'working-paper-detail', params: { id: wpId } })
+    });
+    router.push({ name: "working-paper-detail", params: { id: wpId } });
   } catch (err: any) {
-    submitError.value = extractApiError(err, 'Gagal menyimpan entri risiko.')
+    submitError.value = extractApiError(err, "Gagal menyimpan entri risiko.");
   } finally {
-    submitLoading.value = false
+    submitLoading.value = false;
   }
 }
 
 onMounted(() => {
-  init()
-  document.addEventListener('mousedown', handleOutsideClick)
-})
+  init();
+  document.addEventListener("mousedown", handleOutsideClick);
+});
 
 onUnmounted(() => {
-  document.removeEventListener('mousedown', handleOutsideClick)
-})
+  document.removeEventListener("mousedown", handleOutsideClick);
+});
 </script>
 
 <style scoped>
-
 .rec-page {
   padding: 2rem;
   max-width: 800px;
@@ -801,29 +1078,45 @@ onUnmounted(() => {
 }
 
 .rec-back-btn {
-  width: 28px; height: 28px;
+  width: 28px;
+  height: 28px;
   background: transparent;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   color: var(--color-text-muted);
   cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 11px;
   transition: all 0.15s;
 }
 
-.rec-back-btn:hover { border-color: var(--color-accent); color: var(--color-accent); }
-
-.rec-breadcrumb-text {
-  font-size: 13px; color: var(--color-text-muted); cursor: pointer;
+.rec-back-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
-.rec-breadcrumb-text:hover { color: var(--color-accent); }
+.rec-breadcrumb-text {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
 
-.rec-breadcrumb-sep { font-size: 13px; color: var(--color-text-muted); opacity: 0.4; }
+.rec-breadcrumb-text:hover {
+  color: var(--color-accent);
+}
+
+.rec-breadcrumb-sep {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  opacity: 0.4;
+}
 
 .rec-breadcrumb-current {
-  font-size: 13px; color: var(--color-text-dim); font-weight: 500;
+  font-size: 13px;
+  color: var(--color-text-dim);
+  font-weight: 500;
 }
 
 /* ─── Steps ───────────────────────────────────────────────────────────────── */
@@ -846,7 +1139,7 @@ onUnmounted(() => {
 }
 
 .rec-step:not(:last-child)::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 13px;
   left: calc(50% + 14px);
@@ -855,15 +1148,20 @@ onUnmounted(() => {
   background: var(--color-border);
 }
 
-.rec-step.done:not(:last-child)::after { background: var(--color-accent); }
+.rec-step.done:not(:last-child)::after {
+  background: var(--color-accent);
+}
 
 .rec-step-circle {
-  width: 28px; height: 28px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   border: 2px solid var(--color-border);
   background: var(--color-bg-card);
   color: var(--color-text-muted);
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 12px;
   font-weight: 600;
   z-index: 1;
@@ -888,8 +1186,13 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
-.rec-step.active .rec-step-label { color: var(--color-accent); font-weight: 600; }
-.rec-step.done .rec-step-label { color: var(--color-text-dim); }
+.rec-step.active .rec-step-label {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+.rec-step.done .rec-step-label {
+  color: var(--color-text-dim);
+}
 
 /* ─── Card ────────────────────────────────────────────────────────────────── */
 
@@ -934,8 +1237,18 @@ onUnmounted(() => {
   letter-spacing: 0.04em;
 }
 
-.rec-req { color: #f87171; margin-left: 2px; }
-.rec-opt { font-size: 11px; color: var(--color-text-muted); font-weight: 400; margin-left: 4px; text-transform: none; letter-spacing: 0; }
+.rec-req {
+  color: #f87171;
+  margin-left: 2px;
+}
+.rec-opt {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-weight: 400;
+  margin-left: 4px;
+  text-transform: none;
+  letter-spacing: 0;
+}
 
 .rec-input {
   width: 100%;
@@ -950,15 +1263,31 @@ onUnmounted(() => {
   box-sizing: border-box;
 }
 
-.rec-input:focus { border-color: var(--color-accent); }
-.rec-input.is-error { border-color: #f87171; }
+.rec-input:focus {
+  border-color: var(--color-accent);
+}
+.rec-input.is-error {
+  border-color: #f87171;
+}
 
-.rec-textarea { resize: vertical; min-height: 60px; }
+.rec-textarea {
+  resize: vertical;
+  min-height: 60px;
+}
 
-select.rec-input { cursor: pointer; }
+select.rec-input {
+  cursor: pointer;
+}
 
-.rec-hint { font-size: 11px; color: var(--color-text-muted); font-style: italic; }
-.rec-err { font-size: 11px; color: #f87171; }
+.rec-hint {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+.rec-err {
+  font-size: 11px;
+  color: #f87171;
+}
 
 /* ─── Custom Select Dropdown ──────────────────────────────────────────────── */
 
@@ -1280,10 +1609,19 @@ select.rec-input { cursor: pointer; }
   font-weight: 600;
 }
 
-.badge-asset { background: rgba(96, 165, 250, 0.12); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.25); }
-.badge-process { background: rgba(167, 139, 250, 0.12); color: #a78bfa; border: 1px solid rgba(167, 139, 250, 0.25); }
+.badge-asset {
+  background: rgba(96, 165, 250, 0.12);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.25);
+}
+.badge-process {
+  background: rgba(167, 139, 250, 0.12);
+  color: #a78bfa;
+  border: 1px solid rgba(167, 139, 250, 0.25);
+}
 
-.rec-ctx-matrix, .rec-ctx-areas {
+.rec-ctx-matrix,
+.rec-ctx-areas {
   font-size: 12px;
   color: var(--color-text-muted);
 }
@@ -1312,18 +1650,24 @@ select.rec-input { cursor: pointer; }
 }
 
 .rec-remove-btn {
-  width: 24px; height: 24px;
+  width: 24px;
+  height: 24px;
   background: transparent;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   color: var(--color-text-muted);
   cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 10px;
   transition: all 0.15s;
 }
 
-.rec-remove-btn:hover { border-color: #f87171; color: #f87171; }
+.rec-remove-btn:hover {
+  border-color: #f87171;
+  color: #f87171;
+}
 
 /* ─── Treatment Plan card (per impact area) ───────────────────────────────── */
 
@@ -1386,12 +1730,14 @@ select.rec-input { cursor: pointer; }
   border-radius: var(--radius-md);
   margin-bottom: 0.75rem;
   overflow: hidden;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   background: var(--color-bg-card);
 }
 
 .ctrl-card:hover {
-  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
 }
 
 .ctrl-accent-bar {
@@ -1401,9 +1747,15 @@ select.rec-input { cursor: pointer; }
   transition: background 0.2s;
 }
 
-.ctrl-card.ctrl-eff-adequate .ctrl-accent-bar { background: #34d399; }
-.ctrl-card.ctrl-eff-partial .ctrl-accent-bar { background: #fbbf24; }
-.ctrl-card.ctrl-eff-inadequate .ctrl-accent-bar { background: #f87171; }
+.ctrl-card.ctrl-eff-adequate .ctrl-accent-bar {
+  background: #34d399;
+}
+.ctrl-card.ctrl-eff-partial .ctrl-accent-bar {
+  background: #fbbf24;
+}
+.ctrl-card.ctrl-eff-inadequate .ctrl-accent-bar {
+  background: #f87171;
+}
 
 .ctrl-card-body {
   flex: 1;
@@ -1464,7 +1816,10 @@ select.rec-input { cursor: pointer; }
   margin-top: 2px;
 }
 
-.ctrl-remove-btn:hover { border-color: #f87171; color: #f87171; }
+.ctrl-remove-btn:hover {
+  border-color: #f87171;
+  color: #f87171;
+}
 
 .ctrl-eff-row {
   display: flex;
@@ -1502,11 +1857,26 @@ select.rec-input { cursor: pointer; }
   user-select: none;
 }
 
-.ctrl-eff-pill:hover { border-color: var(--color-text-muted); color: var(--color-text); }
+.ctrl-eff-pill:hover {
+  border-color: var(--color-text-muted);
+  color: var(--color-text);
+}
 
-.ctrl-eff-pill.selected.pill-adequate { border-color: #34d399; color: #34d399; background: rgba(52,211,153,0.1); }
-.ctrl-eff-pill.selected.pill-partial { border-color: #fbbf24; color: #fbbf24; background: rgba(251,191,36,0.1); }
-.ctrl-eff-pill.selected.pill-inadequate { border-color: #f87171; color: #f87171; background: rgba(248,113,113,0.1); }
+.ctrl-eff-pill.selected.pill-adequate {
+  border-color: #34d399;
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.1);
+}
+.ctrl-eff-pill.selected.pill-partial {
+  border-color: #fbbf24;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+}
+.ctrl-eff-pill.selected.pill-inadequate {
+  border-color: #f87171;
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
+}
 
 .ctrl-desc-input {
   font-size: 12px;
@@ -1522,8 +1892,8 @@ select.rec-input { cursor: pointer; }
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 0.875rem;
-  background: rgba(248,113,113,0.08);
-  border: 1px solid rgba(248,113,113,0.25);
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.25);
   border-radius: var(--radius-md);
   color: #f87171;
   font-size: 13px;
@@ -1540,7 +1910,9 @@ select.rec-input { cursor: pointer; }
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   overflow: hidden;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .assess-area-item.is-active {
@@ -1654,7 +2026,10 @@ select.rec-input { cursor: pointer; }
   flex-shrink: 0;
 }
 
-.assess-remove-btn:hover { border-color: #f87171; color: #f87171; }
+.assess-remove-btn:hover {
+  border-color: #f87171;
+  color: #f87171;
+}
 
 .assess-desc-row {
   display: flex;
@@ -1683,9 +2058,15 @@ select.rec-input { cursor: pointer; }
 }
 
 @media (max-width: 560px) {
-  .rec-area-selects { grid-template-columns: 1fr; }
-  .assess-desc-row { flex-direction: column; }
-  .assess-area-count { display: none; }
+  .rec-area-selects {
+    grid-template-columns: 1fr;
+  }
+  .assess-desc-row {
+    flex-direction: column;
+  }
+  .assess-area-count {
+    display: none;
+  }
 }
 
 /* ─── Score summary ───────────────────────────────────────────────────────── */
@@ -1738,7 +2119,9 @@ select.rec-input { cursor: pointer; }
   transition: all 0.15s;
 }
 
-.rec-add-btn:hover { background: rgba(0, 229, 184, 0.18); }
+.rec-add-btn:hover {
+  background: rgba(0, 229, 184, 0.18);
+}
 
 /* ─── Empty inline ────────────────────────────────────────────────────────── */
 
@@ -1765,51 +2148,75 @@ select.rec-input { cursor: pointer; }
   margin-top: 1rem;
 }
 
-.rec-nav-spacer { flex: 1; }
+.rec-nav-spacer {
+  flex: 1;
+}
 
 .rec-btn-secondary {
-  display: inline-flex; align-items: center; gap: 0.375rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
   padding: 8px 16px;
   background: transparent;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   color: var(--color-text-dim);
-  font-size: 13px; font-weight: 500;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.15s;
 }
 
-.rec-btn-secondary:hover { border-color: var(--color-accent); color: var(--color-accent); }
-.rec-btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+.rec-btn-secondary:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+.rec-btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 .rec-btn-primary {
-  display: inline-flex; align-items: center; gap: 0.375rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
   padding: 8px 20px;
   background: var(--color-accent);
   border: none;
   border-radius: var(--radius-md);
   color: #000;
-  font-size: 13px; font-weight: 600;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   transition: opacity 0.15s;
 }
 
-.rec-btn-primary:hover { opacity: 0.85; }
+.rec-btn-primary:hover {
+  opacity: 0.85;
+}
 
 .rec-btn-submit {
-  display: inline-flex; align-items: center; gap: 0.375rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
   padding: 8px 20px;
   background: var(--color-accent);
   border: none;
   border-radius: var(--radius-md);
   color: #000;
-  font-size: 13px; font-weight: 600;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   transition: opacity 0.15s;
 }
 
-.rec-btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
-.rec-btn-submit:not(:disabled):hover { opacity: 0.85; }
+.rec-btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.rec-btn-submit:not(:disabled):hover {
+  opacity: 0.85;
+}
 
 /* ─── API error ───────────────────────────────────────────────────────────── */
 
@@ -1826,7 +2233,9 @@ select.rec-input { cursor: pointer; }
 /* ─── Loading / error states ──────────────────────────────────────────────── */
 
 .rec-centered {
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-height: 200px;
 }
 
@@ -1840,7 +2249,9 @@ select.rec-input { cursor: pointer; }
 }
 
 .rec-loading-inline {
-  display: flex; align-items: center; gap: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   color: var(--color-text-muted);
   font-size: 13px;
   margin-bottom: 1rem;
@@ -1863,5 +2274,4 @@ select.rec-input { cursor: pointer; }
   cursor: pointer;
   accent-color: var(--color-accent);
 }
-
 </style>

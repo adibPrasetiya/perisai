@@ -1,0 +1,16 @@
+export { authRoutes, authProtectedRoutes } from "./auth/auth.route.js";
+export { unitKerjaRoutes, unitKerjaProtectedRoutes } from "./unit-kerja/unit-kerja.route.js";
+export { userRoutes } from "./user/user.route.js";
+export { assetCategoryRoutes } from "./asset-category/asset-category.route.js";
+export { assetRoutes } from "./asset/asset.route.js";
+export { kegiatanRoutes } from "./kegiatan/kegiatan.route.js";
+export { frameworkRoutes } from "./framework/framework.route.js";
+export { riskProgramRoutes } from "./risk-program/risk-program.route.js";
+export { programFrameworkRoutes } from "./program-framework/program-framework.route.js";
+export { programFrameworkContextRoutes } from "./program-framework-context/program-framework-context.route.js";
+export { riskContextRoutes } from "./risk-context/risk-context.route.js";
+export { riskLevelRoutes } from "./risk-level/risk-level.route.js";
+export { workingPaperRoutes } from "./working-paper/working-paper.route.js";
+export { riskEntryRoutes } from "./risk-entry/risk-entry.route.js";
+export { systemConfigRoutes } from "./system-config/system-config.route.js";
+export { dashboardRoutes } from "./dashboard/dashboard.route.js";

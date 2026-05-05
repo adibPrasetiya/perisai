@@ -74,7 +74,9 @@ const createFull = async (frameworkId, reqBody, userId) => {
   });
 
   if (contextData.periodEnd < contextData.periodStart) {
-    throw new BadRequestError("Periode akhir tidak boleh sebelum periode awal.");
+    throw new BadRequestError(
+      "Periode akhir tidak boleh sebelum periode awal.",
+    );
   }
 
   const existing = await prismaClient.riskContext.findUnique({
@@ -103,10 +105,14 @@ const createFull = async (frameworkId, reqBody, userId) => {
       throw new BadRequestError(`${pos}: nama level wajib diisi.`);
     }
     if (typeof lvl.minScore !== "number" || typeof lvl.maxScore !== "number") {
-      throw new BadRequestError(`${pos} (${lvl.name}): skor harus berupa angka.`);
+      throw new BadRequestError(
+        `${pos} (${lvl.name}): skor harus berupa angka.`,
+      );
     }
     if (lvl.minScore < 0 || lvl.maxScore < 0) {
-      throw new BadRequestError(`${pos} (${lvl.name}): skor tidak boleh negatif.`);
+      throw new BadRequestError(
+        `${pos} (${lvl.name}): skor tidak boleh negatif.`,
+      );
     }
     if (lvl.maxScore < lvl.minScore) {
       throw new BadRequestError(
@@ -116,21 +122,25 @@ const createFull = async (frameworkId, reqBody, userId) => {
     if (lvl.maxScore > maxAllowed) {
       throw new BadRequestError(
         `${pos} (${lvl.name}): skor maksimum (${lvl.maxScore}) melebihi batas matriks ` +
-        `${contextData.matrixRows}×${contextData.matrixCols}. Nilai maksimal yang diizinkan adalah ${maxAllowed}.`,
+          `${contextData.matrixRows}×${contextData.matrixCols}. Nilai maksimal yang diizinkan adalah ${maxAllowed}.`,
       );
     }
     if (lvl.minScore > maxAllowed) {
       throw new BadRequestError(
         `${pos} (${lvl.name}): skor minimum (${lvl.minScore}) melebihi batas matriks ` +
-        `${contextData.matrixRows}×${contextData.matrixCols}. Nilai maksimal yang diizinkan adalah ${maxAllowed}.`,
+          `${contextData.matrixRows}×${contextData.matrixCols}. Nilai maksimal yang diizinkan adalah ${maxAllowed}.`,
       );
     }
     if (levelNames.has(lvl.name.trim())) {
-      throw new BadRequestError(`Level risiko dengan nama "${lvl.name}" duplikat.`);
+      throw new BadRequestError(
+        `Level risiko dengan nama "${lvl.name}" duplikat.`,
+      );
     }
     const order = lvl.order ?? i;
     if (levelOrders.has(order)) {
-      throw new BadRequestError(`Level risiko dengan urutan ${order} duplikat.`);
+      throw new BadRequestError(
+        `Level risiko dengan urutan ${order} duplikat.`,
+      );
     }
     levelNames.add(lvl.name.trim());
     levelOrders.add(order);
@@ -143,7 +153,7 @@ const createFull = async (frameworkId, reqBody, userId) => {
     if (matrixCells.length !== expectedCount) {
       throw new BadRequestError(
         `Jumlah sel matriks tidak sesuai. Dibutuhkan tepat ${expectedCount} sel ` +
-        `(${contextData.matrixRows}×${contextData.matrixCols}), diterima ${matrixCells.length}.`,
+          `(${contextData.matrixRows}×${contextData.matrixCols}), diterima ${matrixCells.length}.`,
       );
     }
     const seen = new Set();
@@ -160,7 +170,9 @@ const createFull = async (frameworkId, reqBody, userId) => {
       }
       const key = `${cell.row}-${cell.col}`;
       if (seen.has(key)) {
-        throw new BadRequestError(`Duplikat sel pada baris ${cell.row}, kolom ${cell.col}.`);
+        throw new BadRequestError(
+          `Duplikat sel pada baris ${cell.row}, kolom ${cell.col}.`,
+        );
       }
       seen.add(key);
     }
@@ -171,7 +183,9 @@ const createFull = async (frameworkId, reqBody, userId) => {
   for (let i = 0; i < treatmentOptions.length; i++) {
     const opt = treatmentOptions[i];
     if (!opt.name || !opt.name.trim()) {
-      throw new BadRequestError(`Opsi penanganan ke-${i + 1}: nama wajib diisi.`);
+      throw new BadRequestError(
+        `Opsi penanganan ke-${i + 1}: nama wajib diisi.`,
+      );
     }
   }
 
@@ -273,7 +287,10 @@ const listByFramework = async (frameworkId) => {
     orderBy: { createdAt: "asc" },
   });
 
-  return { message: "Daftar konteks risiko berhasil ditemukan", data: contexts };
+  return {
+    message: "Daftar konteks risiko berhasil ditemukan",
+    data: contexts,
+  };
 };
 
 const listByProgramFramework = async (programFrameworkId) => {
@@ -309,7 +326,11 @@ const listByProgramFramework = async (programFrameworkId) => {
 
   return {
     message: "Daftar konteks risiko dalam program berhasil ditemukan",
-    data: links.map((l) => ({ ...l.riskContext, _linkId: l.id, addedAt: l.addedAt })),
+    data: links.map((l) => ({
+      ...l.riskContext,
+      _linkId: l.id,
+      addedAt: l.addedAt,
+    })),
   };
 };
 
@@ -324,7 +345,14 @@ const getById = async (id) => {
         select: { id: true, code: true, name: true, version: true },
       },
       riskCategories: {
-        select: { id: true, name: true, description: true, color: true, code: true, order: true },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          color: true,
+          code: true,
+          order: true,
+        },
         orderBy: { order: "asc" },
       },
       impactAreas: {
@@ -334,26 +362,59 @@ const getById = async (id) => {
           description: true,
           order: true,
           impactCriteria: {
-            select: { id: true, level: true, name: true, description: true, score: true },
+            select: {
+              id: true,
+              level: true,
+              name: true,
+              description: true,
+              score: true,
+            },
             orderBy: { level: "asc" },
           },
           likelihoodCriteria: {
-            select: { id: true, level: true, name: true, description: true, score: true },
+            select: {
+              id: true,
+              level: true,
+              name: true,
+              description: true,
+              score: true,
+            },
             orderBy: { level: "asc" },
           },
         },
         orderBy: { order: "asc" },
       },
       treatmentOptions: {
-        select: { id: true, name: true, description: true, isAcceptance: true, order: true },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          isAcceptance: true,
+          order: true,
+        },
         orderBy: { order: "asc" },
       },
       riskLevels: {
-        select: { id: true, name: true, description: true, minScore: true, maxScore: true, color: true, order: true },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          minScore: true,
+          maxScore: true,
+          color: true,
+          order: true,
+        },
         orderBy: { order: "asc" },
       },
       matrixCells: {
-        select: { id: true, row: true, col: true, value: true, label: true, color: true },
+        select: {
+          id: true,
+          row: true,
+          col: true,
+          value: true,
+          label: true,
+          color: true,
+        },
         orderBy: [{ row: "asc" }, { col: "asc" }],
       },
       contextAssets: {
@@ -365,7 +426,9 @@ const getById = async (id) => {
       contextProcesses: {
         select: {
           id: true,
-          process: { select: { id: true, name: true, code: true, status: true } },
+          process: {
+            select: { id: true, name: true, code: true, status: true },
+          },
         },
       },
     },
@@ -384,7 +447,7 @@ const update = async (id, reqBody, userId) => {
 
   if (existing.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks risiko yang sedang aktif tidak dapat diubah. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks risiko yang sedang aktif tidak dapat diubah. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
 
@@ -392,11 +455,16 @@ const update = async (id, reqBody, userId) => {
     const start = reqBody.periodStart ?? existing.periodStart;
     const end = reqBody.periodEnd ?? existing.periodEnd;
     if (end < start) {
-      throw new BadRequestError("Periode akhir tidak boleh sebelum periode awal.");
+      throw new BadRequestError(
+        "Periode akhir tidak boleh sebelum periode awal.",
+      );
     }
   }
 
-  if (reqBody.matrixRows !== undefined && reqBody.matrixRows < existing.matrixRows) {
+  if (
+    reqBody.matrixRows !== undefined &&
+    reqBody.matrixRows < existing.matrixRows
+  ) {
     const exceeding = await prismaClient.likelihoodCriteria.count({
       where: { contextId: validId, level: { gt: reqBody.matrixRows } },
     });
@@ -407,9 +475,15 @@ const update = async (id, reqBody, userId) => {
     }
   }
 
-  if (reqBody.matrixCols !== undefined && reqBody.matrixCols < existing.matrixCols) {
+  if (
+    reqBody.matrixCols !== undefined &&
+    reqBody.matrixCols < existing.matrixCols
+  ) {
     const exceeding = await prismaClient.impactCriteria.count({
-      where: { impactArea: { contextId: validId }, level: { gt: reqBody.matrixCols } },
+      where: {
+        impactArea: { contextId: validId },
+        level: { gt: reqBody.matrixCols },
+      },
     });
     if (exceeding > 0) {
       throw new ConflictError(
@@ -471,7 +545,10 @@ const remove = async (id) => {
 
   await prismaClient.riskContext.delete({ where: { id: validId } });
 
-  await activityLog.notice("RISK_CONTEXT_DELETED", { actionType: "DELETE", contextId: validId });
+  await activityLog.notice("RISK_CONTEXT_DELETED", {
+    actionType: "DELETE",
+    contextId: validId,
+  });
 
   return { message: "Konteks risiko berhasil dihapus" };
 };
@@ -490,7 +567,7 @@ const activate = async (id) => {
   });
   if (categoryCount === 0) {
     throw new BadRequestError(
-      "Konteks belum dapat diaktifkan: minimal 1 kategori risiko harus ditambahkan."
+      "Konteks belum dapat diaktifkan: minimal 1 kategori risiko harus ditambahkan.",
     );
   }
 
@@ -511,19 +588,19 @@ const activate = async (id) => {
 
   if (impactAreas.length === 0) {
     throw new BadRequestError(
-      "Konteks belum dapat diaktifkan: minimal 1 area dampak harus ditambahkan."
+      "Konteks belum dapat diaktifkan: minimal 1 area dampak harus ditambahkan.",
     );
   }
 
   for (const area of impactAreas) {
     if (area._count.impactCriteria < context.matrixCols) {
       throw new BadRequestError(
-        `Konteks belum dapat diaktifkan: area dampak "${area.name}" belum memiliki kriteria dampak untuk semua level (${area._count.impactCriteria}/${context.matrixCols} level terisi).`
+        `Konteks belum dapat diaktifkan: area dampak "${area.name}" belum memiliki kriteria dampak untuk semua level (${area._count.impactCriteria}/${context.matrixCols} level terisi).`,
       );
     }
     if (area._count.likelihoodCriteria < context.matrixRows) {
       throw new BadRequestError(
-        `Konteks belum dapat diaktifkan: area dampak "${area.name}" belum memiliki kriteria kemungkinan untuk semua level (${area._count.likelihoodCriteria}/${context.matrixRows} level terisi).`
+        `Konteks belum dapat diaktifkan: area dampak "${area.name}" belum memiliki kriteria kemungkinan untuk semua level (${area._count.likelihoodCriteria}/${context.matrixRows} level terisi).`,
       );
     }
   }
@@ -537,14 +614,14 @@ const activate = async (id) => {
 
   if (matrixCells.length < totalRequired) {
     throw new BadRequestError(
-      `Konteks belum dapat diaktifkan: matriks risiko belum lengkap (${matrixCells.length}/${totalRequired} sel terisi).`
+      `Konteks belum dapat diaktifkan: matriks risiko belum lengkap (${matrixCells.length}/${totalRequired} sel terisi).`,
     );
   }
 
   const hasZeroValue = matrixCells.some((cell) => cell.value === 0);
   if (hasZeroValue) {
     throw new BadRequestError(
-      "Konteks belum dapat diaktifkan: semua sel matriks harus memiliki nilai lebih dari 0."
+      "Konteks belum dapat diaktifkan: semua sel matriks harus memiliki nilai lebih dari 0.",
     );
   }
 
@@ -559,7 +636,10 @@ const activate = async (id) => {
     select: riskContextBaseSelect,
   });
 
-  await activityLog.notice("RISK_CONTEXT_ACTIVATED", { actionType: "UPDATE", contextId: validId });
+  await activityLog.notice("RISK_CONTEXT_ACTIVATED", {
+    actionType: "UPDATE",
+    contextId: validId,
+  });
 
   return { message: "Konteks risiko berhasil diaktifkan", data: updated };
 };
@@ -569,7 +649,9 @@ const deactivate = async (id) => {
   const context = await verifyContextExists(validId);
 
   if (context.status === "INACTIVE") {
-    throw new BadRequestError("Konteks risiko sudah dalam keadaan tidak aktif.");
+    throw new BadRequestError(
+      "Konteks risiko sudah dalam keadaan tidak aktif.",
+    );
   }
 
   await prismaClient.riskContext.update({
@@ -582,7 +664,10 @@ const deactivate = async (id) => {
     select: riskContextBaseSelect,
   });
 
-  await activityLog.notice("RISK_CONTEXT_DEACTIVATED", { actionType: "UPDATE", contextId: validId });
+  await activityLog.notice("RISK_CONTEXT_DEACTIVATED", {
+    actionType: "UPDATE",
+    contextId: validId,
+  });
 
   return { message: "Konteks risiko berhasil dinonaktifkan", data: updated };
 };
@@ -595,7 +680,7 @@ const createCategory = async (contextId, reqBody) => {
   const context = await verifyContextExists(contextId);
   if (context.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
   reqBody = validate(createRiskCategorySchema, reqBody);
@@ -609,7 +694,15 @@ const createCategory = async (contextId, reqBody) => {
       code: reqBody.code || null,
       order: reqBody.order ?? 0,
     },
-    select: { id: true, name: true, description: true, color: true, code: true, order: true, createdAt: true },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      color: true,
+      code: true,
+      order: true,
+      createdAt: true,
+    },
   });
 
   return { message: "Kategori risiko berhasil ditambahkan", data: category };
@@ -620,18 +713,28 @@ const updateCategory = async (contextId, categoryId, reqBody) => {
   const context = await verifyContextExists(contextId);
   if (context.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
   reqBody = validate(updateRiskCategorySchema, reqBody);
 
-  const existing = await prismaClient.riskCategory.findFirst({ where: { id: validId, contextId } });
+  const existing = await prismaClient.riskCategory.findFirst({
+    where: { id: validId, contextId },
+  });
   if (!existing) throw new NotFoundError("Kategori risiko tidak ditemukan.");
 
   const updated = await prismaClient.riskCategory.update({
     where: { id: validId },
     data: reqBody,
-    select: { id: true, name: true, description: true, color: true, code: true, order: true, updatedAt: true },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      color: true,
+      code: true,
+      order: true,
+      updatedAt: true,
+    },
   });
 
   return { message: "Kategori risiko berhasil diperbarui", data: updated };
@@ -642,11 +745,13 @@ const removeCategory = async (contextId, categoryId) => {
   const context = await verifyContextExists(contextId);
   if (context.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
 
-  const existing = await prismaClient.riskCategory.findFirst({ where: { id: validId, contextId } });
+  const existing = await prismaClient.riskCategory.findFirst({
+    where: { id: validId, contextId },
+  });
   if (!existing) throw new NotFoundError("Kategori risiko tidak ditemukan.");
 
   await prismaClient.riskCategory.delete({ where: { id: validId } });
@@ -662,7 +767,7 @@ const createLikelihoodCriteria = async (contextId, areaId, reqBody) => {
   const context = await verifyContextExists(contextId);
   if (context.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
   await verifyImpactAreaBelongsToContext(validAreaId, contextId);
@@ -675,10 +780,14 @@ const createLikelihoodCriteria = async (contextId, areaId, reqBody) => {
   }
 
   const existing = await prismaClient.likelihoodCriteria.findUnique({
-    where: { impactAreaId_level: { impactAreaId: validAreaId, level: reqBody.level } },
+    where: {
+      impactAreaId_level: { impactAreaId: validAreaId, level: reqBody.level },
+    },
   });
   if (existing) {
-    throw new ConflictError(`Kriteria kemungkinan untuk level ${reqBody.level} sudah ada di area dampak ini.`);
+    throw new ConflictError(
+      `Kriteria kemungkinan untuk level ${reqBody.level} sudah ada di area dampak ini.`,
+    );
   }
 
   const criteria = await prismaClient.likelihoodCriteria.create({
@@ -690,19 +799,35 @@ const createLikelihoodCriteria = async (contextId, areaId, reqBody) => {
       description: reqBody.description || null,
       score: reqBody.level,
     },
-    select: { id: true, impactAreaId: true, level: true, name: true, description: true, score: true, createdAt: true },
+    select: {
+      id: true,
+      impactAreaId: true,
+      level: true,
+      name: true,
+      description: true,
+      score: true,
+      createdAt: true,
+    },
   });
 
-  return { message: "Kriteria kemungkinan berhasil ditambahkan", data: criteria };
+  return {
+    message: "Kriteria kemungkinan berhasil ditambahkan",
+    data: criteria,
+  };
 };
 
-const updateLikelihoodCriteria = async (contextId, areaId, criteriaId, reqBody) => {
+const updateLikelihoodCriteria = async (
+  contextId,
+  areaId,
+  criteriaId,
+  reqBody,
+) => {
   const { id: validCriteriaId } = validate(idSchema, { id: criteriaId });
   const { id: validAreaId } = validate(idSchema, { id: areaId });
   const context = await verifyContextExists(contextId);
   if (context.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
   await verifyImpactAreaBelongsToContext(validAreaId, contextId);
@@ -711,7 +836,8 @@ const updateLikelihoodCriteria = async (contextId, areaId, criteriaId, reqBody) 
   const existing = await prismaClient.likelihoodCriteria.findFirst({
     where: { id: validCriteriaId, impactAreaId: validAreaId },
   });
-  if (!existing) throw new NotFoundError("Kriteria kemungkinan tidak ditemukan.");
+  if (!existing)
+    throw new NotFoundError("Kriteria kemungkinan tidak ditemukan.");
 
   if (reqBody.level !== undefined && reqBody.level > context.matrixRows) {
     throw new BadRequestError(
@@ -722,7 +848,15 @@ const updateLikelihoodCriteria = async (contextId, areaId, criteriaId, reqBody) 
   const updated = await prismaClient.likelihoodCriteria.update({
     where: { id: validCriteriaId },
     data: reqBody,
-    select: { id: true, impactAreaId: true, level: true, name: true, description: true, score: true, updatedAt: true },
+    select: {
+      id: true,
+      impactAreaId: true,
+      level: true,
+      name: true,
+      description: true,
+      score: true,
+      updatedAt: true,
+    },
   });
 
   return { message: "Kriteria kemungkinan berhasil diperbarui", data: updated };
@@ -734,7 +868,7 @@ const removeLikelihoodCriteria = async (contextId, areaId, criteriaId) => {
   const context = await verifyContextExists(contextId);
   if (context.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
   await verifyImpactAreaBelongsToContext(validAreaId, contextId);
@@ -742,9 +876,12 @@ const removeLikelihoodCriteria = async (contextId, areaId, criteriaId) => {
   const existing = await prismaClient.likelihoodCriteria.findFirst({
     where: { id: validCriteriaId, impactAreaId: validAreaId },
   });
-  if (!existing) throw new NotFoundError("Kriteria kemungkinan tidak ditemukan.");
+  if (!existing)
+    throw new NotFoundError("Kriteria kemungkinan tidak ditemukan.");
 
-  await prismaClient.likelihoodCriteria.delete({ where: { id: validCriteriaId } });
+  await prismaClient.likelihoodCriteria.delete({
+    where: { id: validCriteriaId },
+  });
   return { message: "Kriteria kemungkinan berhasil dihapus" };
 };
 
@@ -756,7 +893,7 @@ const createImpactArea = async (contextId, reqBody) => {
   const context = await verifyContextExists(contextId);
   if (context.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
   reqBody = validate(createImpactAreaSchema, reqBody);
@@ -768,7 +905,13 @@ const createImpactArea = async (contextId, reqBody) => {
       description: reqBody.description || null,
       order: reqBody.order ?? 0,
     },
-    select: { id: true, name: true, description: true, order: true, createdAt: true },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      order: true,
+      createdAt: true,
+    },
   });
 
   return { message: "Area dampak berhasil ditambahkan", data: area };
@@ -779,7 +922,7 @@ const updateImpactArea = async (contextId, areaId, reqBody) => {
   const context = await verifyContextExists(contextId);
   if (context.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
   reqBody = validate(updateImpactAreaSchema, reqBody);
@@ -788,7 +931,13 @@ const updateImpactArea = async (contextId, areaId, reqBody) => {
   const updated = await prismaClient.impactArea.update({
     where: { id: validId },
     data: reqBody,
-    select: { id: true, name: true, description: true, order: true, updatedAt: true },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      order: true,
+      updatedAt: true,
+    },
   });
 
   return { message: "Area dampak berhasil diperbarui", data: updated };
@@ -799,7 +948,7 @@ const removeImpactArea = async (contextId, areaId) => {
   const context = await verifyContextExists(contextId);
   if (context.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
   await verifyImpactAreaBelongsToContext(validId, contextId);
@@ -816,7 +965,7 @@ const createImpactCriteria = async (contextId, areaId, reqBody) => {
   const context = await verifyContextExists(contextId);
   if (context.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
   await verifyImpactAreaBelongsToContext(validAreaId, contextId);
@@ -829,10 +978,14 @@ const createImpactCriteria = async (contextId, areaId, reqBody) => {
   }
 
   const existing = await prismaClient.impactCriteria.findUnique({
-    where: { impactAreaId_level: { impactAreaId: validAreaId, level: reqBody.level } },
+    where: {
+      impactAreaId_level: { impactAreaId: validAreaId, level: reqBody.level },
+    },
   });
   if (existing) {
-    throw new ConflictError(`Kriteria dampak untuk level ${reqBody.level} sudah ada di area ini.`);
+    throw new ConflictError(
+      `Kriteria dampak untuk level ${reqBody.level} sudah ada di area ini.`,
+    );
   }
 
   const criteria = await prismaClient.impactCriteria.create({
@@ -843,7 +996,14 @@ const createImpactCriteria = async (contextId, areaId, reqBody) => {
       description: reqBody.description || null,
       score: reqBody.level,
     },
-    select: { id: true, level: true, name: true, description: true, score: true, createdAt: true },
+    select: {
+      id: true,
+      level: true,
+      name: true,
+      description: true,
+      score: true,
+      createdAt: true,
+    },
   });
 
   return { message: "Kriteria dampak berhasil ditambahkan", data: criteria };
@@ -855,7 +1015,7 @@ const updateImpactCriteria = async (contextId, areaId, criteriaId, reqBody) => {
   const context = await verifyContextExists(contextId);
   if (context.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
   await verifyImpactAreaBelongsToContext(validAreaId, contextId);
@@ -875,7 +1035,14 @@ const updateImpactCriteria = async (contextId, areaId, criteriaId, reqBody) => {
   const updated = await prismaClient.impactCriteria.update({
     where: { id: validCriteriaId },
     data: reqBody,
-    select: { id: true, level: true, name: true, description: true, score: true, updatedAt: true },
+    select: {
+      id: true,
+      level: true,
+      name: true,
+      description: true,
+      score: true,
+      updatedAt: true,
+    },
   });
 
   return { message: "Kriteria dampak berhasil diperbarui", data: updated };
@@ -887,7 +1054,7 @@ const removeImpactCriteria = async (contextId, areaId, criteriaId) => {
   const context = await verifyContextExists(contextId);
   if (context.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
   await verifyImpactAreaBelongsToContext(validAreaId, contextId);
@@ -909,7 +1076,7 @@ const createTreatmentOption = async (contextId, reqBody) => {
   const context = await verifyContextExists(contextId);
   if (context.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
   reqBody = validate(createTreatmentOptionSchema, reqBody);
@@ -922,10 +1089,20 @@ const createTreatmentOption = async (contextId, reqBody) => {
       isAcceptance: reqBody.isAcceptance ?? false,
       order: reqBody.order ?? 0,
     },
-    select: { id: true, name: true, description: true, isAcceptance: true, order: true, createdAt: true },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      isAcceptance: true,
+      order: true,
+      createdAt: true,
+    },
   });
 
-  return { message: "Opsi penanganan risiko berhasil ditambahkan", data: option };
+  return {
+    message: "Opsi penanganan risiko berhasil ditambahkan",
+    data: option,
+  };
 };
 
 const updateTreatmentOption = async (contextId, optionId, reqBody) => {
@@ -933,21 +1110,33 @@ const updateTreatmentOption = async (contextId, optionId, reqBody) => {
   const context = await verifyContextExists(contextId);
   if (context.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
   reqBody = validate(updateTreatmentOptionSchema, reqBody);
 
-  const existing = await prismaClient.treatmentOption.findFirst({ where: { id: validId, contextId } });
+  const existing = await prismaClient.treatmentOption.findFirst({
+    where: { id: validId, contextId },
+  });
   if (!existing) throw new NotFoundError("Opsi penanganan tidak ditemukan.");
 
   const updated = await prismaClient.treatmentOption.update({
     where: { id: validId },
     data: reqBody,
-    select: { id: true, name: true, description: true, isAcceptance: true, order: true, updatedAt: true },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      isAcceptance: true,
+      order: true,
+      updatedAt: true,
+    },
   });
 
-  return { message: "Opsi penanganan risiko berhasil diperbarui", data: updated };
+  return {
+    message: "Opsi penanganan risiko berhasil diperbarui",
+    data: updated,
+  };
 };
 
 const removeTreatmentOption = async (contextId, optionId) => {
@@ -955,11 +1144,13 @@ const removeTreatmentOption = async (contextId, optionId) => {
   const context = await verifyContextExists(contextId);
   if (context.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
 
-  const existing = await prismaClient.treatmentOption.findFirst({ where: { id: validId, contextId } });
+  const existing = await prismaClient.treatmentOption.findFirst({
+    where: { id: validId, contextId },
+  });
   if (!existing) throw new NotFoundError("Opsi penanganan tidak ditemukan.");
 
   await prismaClient.treatmentOption.delete({ where: { id: validId } });
@@ -974,7 +1165,7 @@ const setMatrix = async (contextId, reqBody) => {
   const context = await verifyContextExists(contextId);
   if (context.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
   reqBody = validate(setMatrixSchema, reqBody);
@@ -1025,7 +1216,14 @@ const setMatrix = async (contextId, reqBody) => {
 
   const updatedCells = await prismaClient.matrixCell.findMany({
     where: { contextId },
-    select: { id: true, row: true, col: true, value: true, label: true, color: true },
+    select: {
+      id: true,
+      row: true,
+      col: true,
+      value: true,
+      label: true,
+      color: true,
+    },
     orderBy: [{ row: "asc" }, { col: "asc" }],
   });
 
@@ -1033,11 +1231,28 @@ const setMatrix = async (contextId, reqBody) => {
 };
 
 export default {
-  createFull, listByFramework, listByProgramFramework, getById, update, remove, activate, deactivate,
-  createCategory, updateCategory, removeCategory,
-  createLikelihoodCriteria, updateLikelihoodCriteria, removeLikelihoodCriteria,
-  createImpactArea, updateImpactArea, removeImpactArea,
-  createImpactCriteria, updateImpactCriteria, removeImpactCriteria,
-  createTreatmentOption, updateTreatmentOption, removeTreatmentOption,
+  createFull,
+  listByFramework,
+  listByProgramFramework,
+  getById,
+  update,
+  remove,
+  activate,
+  deactivate,
+  createCategory,
+  updateCategory,
+  removeCategory,
+  createLikelihoodCriteria,
+  updateLikelihoodCriteria,
+  removeLikelihoodCriteria,
+  createImpactArea,
+  updateImpactArea,
+  removeImpactArea,
+  createImpactCriteria,
+  updateImpactCriteria,
+  removeImpactCriteria,
+  createTreatmentOption,
+  updateTreatmentOption,
+  removeTreatmentOption,
   setMatrix,
 };

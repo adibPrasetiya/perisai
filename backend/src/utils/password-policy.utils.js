@@ -112,10 +112,7 @@ export const validatePasswordPolicy = async (
     });
   }
 
-  if (
-    policy.requireSpecialChar &&
-    !/[@$!%*?&#^()_\-+=]/.test(password)
-  ) {
+  if (policy.requireSpecialChar && !/[@$!%*?&#^()_\-+=]/.test(password)) {
     errors.push({
       path: fieldName,
       detail:

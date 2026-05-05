@@ -12,7 +12,10 @@ export const errorMiddleware = (err, req, res, next) => {
   }
 
   if (err instanceof ValidationError) {
-    logger.notice(`${err.name}: ${req.method} ${req.path}`, buildErrorFields(req, err));
+    logger.notice(
+      `${err.name}: ${req.method} ${req.path}`,
+      buildErrorFields(req, err),
+    );
     return res.status(err.statusCode).json({
       errors: err.message,
       details: err.details,
@@ -21,7 +24,10 @@ export const errorMiddleware = (err, req, res, next) => {
 
   // warning: potensi brute force atau privilege escalation — perlu dimonitor
   if (err instanceof UnauthorizedError || err instanceof ForbiddenError) {
-    logger.warning(`${err.name}: ${req.method} ${req.path}`, buildErrorFields(req, err));
+    logger.warning(
+      `${err.name}: ${req.method} ${req.path}`,
+      buildErrorFields(req, err),
+    );
     return res.status(err.statusCode).json({
       errors: err.message,
     });
@@ -32,7 +38,10 @@ export const errorMiddleware = (err, req, res, next) => {
     err instanceof NotFoundError ||
     err instanceof ConflictError
   ) {
-    logger.notice(`${err.name}: ${req.method} ${req.path}`, buildErrorFields(req, err));
+    logger.notice(
+      `${err.name}: ${req.method} ${req.path}`,
+      buildErrorFields(req, err),
+    );
     return res.status(err.statusCode).json({
       errors: err.message,
     });

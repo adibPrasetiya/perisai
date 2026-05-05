@@ -152,7 +152,13 @@ const getById = async (programId, id) => {
     select: {
       ...programFrameworkSelect,
       framework: {
-        select: { id: true, code: true, name: true, version: true, description: true },
+        select: {
+          id: true,
+          code: true,
+          name: true,
+          version: true,
+          description: true,
+        },
       },
     },
   });
@@ -262,4 +268,11 @@ const listByFramework = async (frameworkId) => {
   };
 };
 
-export default { addFramework, listByProgram, listByFramework, getById, update, remove };
+export default {
+  addFramework,
+  listByProgram,
+  listByFramework,
+  getById,
+  update,
+  remove,
+};

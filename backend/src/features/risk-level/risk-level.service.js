@@ -28,7 +28,9 @@ const riskLevelSelect = {
 
 const validateScoreRange = (minScore, maxScore) => {
   if (maxScore < minScore) {
-    throw new BadRequestError("Skor maksimum tidak boleh lebih kecil dari skor minimum.");
+    throw new BadRequestError(
+      "Skor maksimum tidak boleh lebih kecil dari skor minimum.",
+    );
   }
 };
 
@@ -48,19 +50,31 @@ const validateScoreAgainstMatrix = (minScore, maxScore, context) => {
 
 const checkNameConflict = async (contextId, name, excludeId = null) => {
   const existing = await prismaClient.riskLevel.findFirst({
-    where: { contextId, name, ...(excludeId ? { id: { not: excludeId } } : {}) },
+    where: {
+      contextId,
+      name,
+      ...(excludeId ? { id: { not: excludeId } } : {}),
+    },
   });
   if (existing) {
-    throw new ConflictError(`Level risiko dengan nama "${name}" sudah ada dalam konteks ini.`);
+    throw new ConflictError(
+      `Level risiko dengan nama "${name}" sudah ada dalam konteks ini.`,
+    );
   }
 };
 
 const checkOrderConflict = async (contextId, order, excludeId = null) => {
   const existing = await prismaClient.riskLevel.findFirst({
-    where: { contextId, order, ...(excludeId ? { id: { not: excludeId } } : {}) },
+    where: {
+      contextId,
+      order,
+      ...(excludeId ? { id: { not: excludeId } } : {}),
+    },
   });
   if (existing) {
-    throw new ConflictError(`Level risiko dengan urutan ${order} sudah ada dalam konteks ini.`);
+    throw new ConflictError(
+      `Level risiko dengan urutan ${order} sudah ada dalam konteks ini.`,
+    );
   }
 };
 
@@ -92,7 +106,7 @@ const create = async (contextId, reqBody) => {
   const context = await verifyContextExists(contextId);
   if (context.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
   reqBody = validate(createRiskLevelSchema, reqBody);
@@ -115,7 +129,12 @@ const create = async (contextId, reqBody) => {
     select: riskLevelSelect,
   });
 
-  await activityLog.notice("RISK_LEVEL_CREATED", { actionType: "CREATE", contextId, levelId: level.id, name: level.name });
+  await activityLog.notice("RISK_LEVEL_CREATED", {
+    actionType: "CREATE",
+    contextId,
+    levelId: level.id,
+    name: level.name,
+  });
 
   return { message: "Level risiko berhasil ditambahkan", data: level };
 };
@@ -125,7 +144,7 @@ const update = async (contextId, levelId, reqBody) => {
   const context = await verifyContextExists(contextId);
   if (context.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
   reqBody = validate(updateRiskLevelSchema, reqBody);
@@ -150,7 +169,11 @@ const update = async (contextId, levelId, reqBody) => {
     select: riskLevelSelect,
   });
 
-  await activityLog.notice("RISK_LEVEL_UPDATED", { actionType: "UPDATE", contextId, levelId: validLevelId });
+  await activityLog.notice("RISK_LEVEL_UPDATED", {
+    actionType: "UPDATE",
+    contextId,
+    levelId: validLevelId,
+  });
 
   return { message: "Level risiko berhasil diperbarui", data: updated };
 };
@@ -160,14 +183,18 @@ const remove = async (contextId, levelId) => {
   const context = await verifyContextExists(contextId);
   if (context.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
   await verifyLevelBelongsToContext(validLevelId, contextId);
 
   await prismaClient.riskLevel.delete({ where: { id: validLevelId } });
 
-  await activityLog.notice("RISK_LEVEL_DELETED", { actionType: "DELETE", contextId, levelId: validLevelId });
+  await activityLog.notice("RISK_LEVEL_DELETED", {
+    actionType: "DELETE",
+    contextId,
+    levelId: validLevelId,
+  });
 
   return { message: "Level risiko berhasil dihapus" };
 };
@@ -180,7 +207,7 @@ const bulkSet = async (contextId, reqBody) => {
   const context = await verifyContextExists(contextId);
   if (context.status === "ACTIVE") {
     throw new BadRequestError(
-      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan."
+      "Konteks yang sedang aktif tidak dapat dimodifikasi. Nonaktifkan terlebih dahulu untuk melakukan perubahan.",
     );
   }
   reqBody = validate(bulkSetRiskLevelsSchema, reqBody);
@@ -197,14 +224,18 @@ const bulkSet = async (contextId, reqBody) => {
   const names = levels.map((l) => l.name);
   const uniqueNames = new Set(names);
   if (uniqueNames.size !== names.length) {
-    throw new BadRequestError("Terdapat nama level yang duplikat dalam data yang dikirim.");
+    throw new BadRequestError(
+      "Terdapat nama level yang duplikat dalam data yang dikirim.",
+    );
   }
 
   // Validasi order unik di dalam batch
   const orders = levels.map((l) => l.order);
   const uniqueOrders = new Set(orders);
   if (uniqueOrders.size !== orders.length) {
-    throw new BadRequestError("Terdapat nilai urutan (order) yang duplikat dalam data yang dikirim.");
+    throw new BadRequestError(
+      "Terdapat nilai urutan (order) yang duplikat dalam data yang dikirim.",
+    );
   }
 
   await prismaClient.$transaction([
@@ -228,7 +259,11 @@ const bulkSet = async (contextId, reqBody) => {
     orderBy: { order: "asc" },
   });
 
-  await activityLog.notice("RISK_LEVEL_BULK_SET", { actionType: "UPDATE", contextId, count: saved.length });
+  await activityLog.notice("RISK_LEVEL_BULK_SET", {
+    actionType: "UPDATE",
+    contextId,
+    count: saved.length,
+  });
 
   return { message: "Level risiko berhasil disimpan", data: saved };
 };

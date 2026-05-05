@@ -52,7 +52,11 @@ const create = async (reqBody, userId) => {
     select: riskProgramSelect,
   });
 
-  await activityLog.notice("RISK_PROGRAM_CREATED", { actionType: "CREATE", riskProgramId: program.id, createdBy: userId });
+  await activityLog.notice("RISK_PROGRAM_CREATED", {
+    actionType: "CREATE",
+    riskProgramId: program.id,
+    createdBy: userId,
+  });
 
   return {
     message: "Program risiko berhasil dibuat",
@@ -193,7 +197,10 @@ const remove = async (id) => {
 
   await prismaClient.riskProgram.delete({ where: { id: validId } });
 
-  await activityLog.notice("RISK_PROGRAM_DELETED", { actionType: "DELETE", riskProgramId: validId });
+  await activityLog.notice("RISK_PROGRAM_DELETED", {
+    actionType: "DELETE",
+    riskProgramId: validId,
+  });
 
   return {
     message: "Program risiko berhasil dihapus",
@@ -227,7 +234,11 @@ const activate = async (id, userId) => {
     select: riskProgramSelect,
   });
 
-  await activityLog.notice("RISK_PROGRAM_ACTIVATED", { actionType: "UPDATE", riskProgramId: validId, activatedBy: userId });
+  await activityLog.notice("RISK_PROGRAM_ACTIVATED", {
+    actionType: "UPDATE",
+    riskProgramId: validId,
+    activatedBy: userId,
+  });
 
   return {
     message: "Program risiko berhasil diaktifkan",
@@ -240,7 +251,9 @@ const deactivate = async (id, userId) => {
   const program = await verifyRiskProgramExists(validId);
 
   if (program.status !== RISK_PROGRAM_STATUSES.ACTIVE) {
-    throw new BadRequestError("Hanya program risiko dengan status Aktif yang dapat dinonaktifkan.");
+    throw new BadRequestError(
+      "Hanya program risiko dengan status Aktif yang dapat dinonaktifkan.",
+    );
   }
 
   const updated = await prismaClient.riskProgram.update({
@@ -252,7 +265,11 @@ const deactivate = async (id, userId) => {
     select: riskProgramSelect,
   });
 
-  await activityLog.notice("RISK_PROGRAM_DEACTIVATED", { actionType: "UPDATE", riskProgramId: validId, deactivatedBy: userId });
+  await activityLog.notice("RISK_PROGRAM_DEACTIVATED", {
+    actionType: "UPDATE",
+    riskProgramId: validId,
+    deactivatedBy: userId,
+  });
 
   return {
     message: "Program risiko berhasil dinonaktifkan",
@@ -277,7 +294,11 @@ const setDraft = async (id, userId) => {
     select: riskProgramSelect,
   });
 
-  await activityLog.notice("RISK_PROGRAM_SET_DRAFT", { actionType: "UPDATE", riskProgramId: validId, updatedBy: userId });
+  await activityLog.notice("RISK_PROGRAM_SET_DRAFT", {
+    actionType: "UPDATE",
+    riskProgramId: validId,
+    updatedBy: userId,
+  });
 
   return {
     message: "Program risiko berhasil dikembalikan ke status Draft",
@@ -285,4 +306,13 @@ const setDraft = async (id, userId) => {
   };
 };
 
-export default { create, search, getById, update, remove, activate, deactivate, setDraft };
+export default {
+  create,
+  search,
+  getById,
+  update,
+  remove,
+  activate,
+  deactivate,
+  setDraft,
+};

@@ -1,6 +1,5 @@
 <template>
   <div class="rcl-page">
-
     <div v-if="fwLoading" class="rcl-centered">
       <ProgressSpinner style="width: 36px; height: 36px" />
     </div>
@@ -15,25 +14,28 @@
           <button
             class="rcl-back-btn"
             type="button"
-            @click="router.push({ name: 'risk-program-detail', params: { id: programId } })"
+            @click="
+              router.push({
+                name: 'risk-program-detail',
+                params: { id: programId },
+              })
+            "
           >
             <i class="pi pi-arrow-left" />
           </button>
           <div>
             <div class="rcl-breadcrumb">Program Risiko / Framework</div>
-            <h1 class="rcl-title">{{ fw?.framework.name ?? '—' }}</h1>
+            <h1 class="rcl-title">{{ fw?.framework.name ?? "—" }}</h1>
             <div class="rcl-meta">
               <span class="rcl-fw-code">{{ fw?.framework.code }}</span>
-              <span v-if="fw?.framework.version" class="rcl-fw-version">v{{ fw.framework.version }}</span>
+              <span v-if="fw?.framework.version" class="rcl-fw-version"
+                >v{{ fw.framework.version }}</span
+              >
               <span class="rcl-section-label">Konteks Risiko</span>
             </div>
           </div>
         </div>
-        <button
-          class="rcl-add-btn"
-          type="button"
-          @click="openPicker"
-        >
+        <button class="rcl-add-btn" type="button" @click="openPicker">
           <i class="pi pi-plus" />
           Tambah Konteks
         </button>
@@ -49,11 +51,7 @@
       <div v-else-if="contexts.length === 0" class="rcl-empty">
         <i class="pi pi-inbox" />
         <span>Belum ada konteks risiko dalam framework ini</span>
-        <button
-          class="rcl-add-inline-btn"
-          type="button"
-          @click="openPicker"
-        >
+        <button class="rcl-add-inline-btn" type="button" @click="openPicker">
           <i class="pi pi-plus" /> Tambah Konteks
         </button>
       </div>
@@ -67,8 +65,13 @@
           <div class="rcl-card-top">
             <div class="rcl-card-badges">
               <span class="rcl-ctx-code">{{ ctx.code }}</span>
-              <span class="rcl-ctx-type">{{ CONTEXT_TYPE_LABELS[ctx.contextType] }}</span>
-              <span class="rcl-ctx-status" :class="`cs-${ctx.status.toLowerCase()}`">
+              <span class="rcl-ctx-type">{{
+                CONTEXT_TYPE_LABELS[ctx.contextType]
+              }}</span>
+              <span
+                class="rcl-ctx-status"
+                :class="`cs-${ctx.status.toLowerCase()}`"
+              >
                 {{ RISK_CONTEXT_STATUS_LABELS[ctx.status] }}
               </span>
             </div>
@@ -76,7 +79,12 @@
               <button
                 class="btn-icon"
                 title="Kelola Konteks"
-                @click="router.push({ name: 'risk-context-detail', params: { contextId: ctx.id } })"
+                @click="
+                  router.push({
+                    name: 'risk-context-detail',
+                    params: { contextId: ctx.id },
+                  })
+                "
               >
                 <i class="pi pi-cog" />
               </button>
@@ -91,7 +99,11 @@
               >
                 <i class="pi pi-check-circle" />
               </button>
-              <button class="btn-icon btn-icon-danger" title="Hapus" @click="openDelete(ctx)">
+              <button
+                class="btn-icon btn-icon-danger"
+                title="Hapus"
+                @click="openDelete(ctx)"
+              >
                 <i class="pi pi-trash" />
               </button>
             </div>
@@ -99,26 +111,33 @@
 
           <div class="rcl-ctx-name">{{ ctx.name }}</div>
           <div class="rcl-ctx-period">
-            Periode {{ ctx.periodStart }}–{{ ctx.periodEnd }}
-            &nbsp;·&nbsp;
+            Periode {{ ctx.periodStart }}–{{ ctx.periodEnd }} &nbsp;·&nbsp;
             Matriks {{ ctx.matrixRows }}×{{ ctx.matrixCols }}
           </div>
 
           <div class="rcl-ctx-counts">
             <div class="rcl-count-item">
-              <span class="rcl-count-val">{{ ctx._count?.riskCategories ?? 0 }}</span>
+              <span class="rcl-count-val">{{
+                ctx._count?.riskCategories ?? 0
+              }}</span>
               <span class="rcl-count-lbl">Kategori</span>
             </div>
             <div class="rcl-count-item">
-              <span class="rcl-count-val">{{ ctx._count?.likelihoodCriteria ?? 0 }}</span>
+              <span class="rcl-count-val">{{
+                ctx._count?.likelihoodCriteria ?? 0
+              }}</span>
               <span class="rcl-count-lbl">Kemungkinan</span>
             </div>
             <div class="rcl-count-item">
-              <span class="rcl-count-val">{{ ctx._count?.impactAreas ?? 0 }}</span>
+              <span class="rcl-count-val">{{
+                ctx._count?.impactAreas ?? 0
+              }}</span>
               <span class="rcl-count-lbl">Area Dampak</span>
             </div>
             <div class="rcl-count-item">
-              <span class="rcl-count-val">{{ ctx._count?.treatmentOptions ?? 0 }}</span>
+              <span class="rcl-count-val">{{
+                ctx._count?.treatmentOptions ?? 0
+              }}</span>
               <span class="rcl-count-lbl">Penanganan</span>
             </div>
           </div>
@@ -126,7 +145,12 @@
           <button
             class="rcl-detail-btn"
             type="button"
-            @click="router.push({ name: 'risk-context-detail', params: { contextId: ctx.id } })"
+            @click="
+              router.push({
+                name: 'risk-context-detail',
+                params: { contextId: ctx.id },
+              })
+            "
           >
             Kelola Konteks <i class="pi pi-arrow-right" />
           </button>
@@ -135,16 +159,31 @@
     </template>
 
     <!-- ─── Picker Dialog ───────────────────────────────────────────────────── -->
-    <Dialog v-model:visible="showPicker" modal header="Pilih Konteks Template" :style="{ width: '520px' }">
+    <Dialog
+      v-model:visible="showPicker"
+      modal
+      header="Pilih Konteks Template"
+      :style="{ width: '520px' }"
+    >
       <div v-if="pickerLoading" class="rcl-centered" style="padding: 2rem">
         <ProgressSpinner style="width: 28px; height: 28px" />
       </div>
-      <div v-else-if="pickerError" class="rcl-alert-error" style="margin: 0.5rem 0 1rem">
+      <div
+        v-else-if="pickerError"
+        class="rcl-alert-error"
+        style="margin: 0.5rem 0 1rem"
+      >
         <i class="pi pi-exclamation-triangle" /> {{ pickerError }}
       </div>
-      <div v-else-if="availableTemplates.length === 0" class="rcl-empty" style="padding: 2rem 1rem">
+      <div
+        v-else-if="availableTemplates.length === 0"
+        class="rcl-empty"
+        style="padding: 2rem 1rem"
+      >
         <i class="pi pi-inbox" />
-        <span style="font-size: 13px">Tidak ada template konteks yang tersedia untuk ditambahkan.</span>
+        <span style="font-size: 13px"
+          >Tidak ada template konteks yang tersedia untuk ditambahkan.</span
+        >
       </div>
       <div v-else class="picker-list">
         <button
@@ -160,24 +199,41 @@
             <div>
               <div class="picker-item-name">{{ tpl.name }}</div>
               <div class="picker-item-meta">
-                {{ tpl.contextType === 'ASSET' ? 'Aset' : 'Proses Bisnis' }}
-                &nbsp;·&nbsp; {{ tpl.periodStart }}–{{ tpl.periodEnd }}
+                {{ tpl.contextType === "ASSET" ? "Aset" : "Kegiatan" }}
+                &nbsp;·&nbsp; {{ tpl.periodStart }}–{{
+                  tpl.periodEnd
+                }}
                 &nbsp;·&nbsp; Matriks {{ tpl.matrixRows }}×{{ tpl.matrixCols }}
               </div>
             </div>
           </div>
-          <i v-if="pickerAdding === tpl.id" class="pi pi-spin pi-spinner" style="color: var(--color-accent)" />
-          <i v-else class="pi pi-plus-circle" style="color: var(--color-accent); flex-shrink: 0" />
+          <i
+            v-if="pickerAdding === tpl.id"
+            class="pi pi-spin pi-spinner"
+            style="color: var(--color-accent)"
+          />
+          <i
+            v-else
+            class="pi pi-plus-circle"
+            style="color: var(--color-accent); flex-shrink: 0"
+          />
         </button>
       </div>
     </Dialog>
 
     <!-- ─── Edit Dialog ──────────────────────────────────────────────────────── -->
-    <Dialog v-model:visible="showEdit" modal header="Edit Konteks Risiko" :style="{ width: '560px' }">
+    <Dialog
+      v-model:visible="showEdit"
+      modal
+      header="Edit Konteks Risiko"
+      :style="{ width: '560px' }"
+    >
       <form class="rcl-form" @submit.prevent="submitEdit">
         <div class="form-row-2">
           <div class="form-group">
-            <label class="form-label">Nama Konteks <span class="req">*</span></label>
+            <label class="form-label"
+              >Nama Konteks <span class="req">*</span></label
+            >
             <input
               v-model="editForm.name"
               class="rcl-input"
@@ -185,7 +241,9 @@
               type="text"
               autocomplete="off"
             />
-            <span v-if="editErrors.name" class="form-err">{{ editErrors.name }}</span>
+            <span v-if="editErrors.name" class="form-err">{{
+              editErrors.name
+            }}</span>
           </div>
           <div class="form-group">
             <label class="form-label">Kode <span class="req">*</span></label>
@@ -196,21 +254,27 @@
               type="text"
               autocomplete="off"
             />
-            <span v-if="editErrors.code" class="form-err">{{ editErrors.code }}</span>
+            <span v-if="editErrors.code" class="form-err">{{
+              editErrors.code
+            }}</span>
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Tipe Konteks <span class="req">*</span></label>
+          <label class="form-label"
+            >Tipe Konteks <span class="req">*</span></label
+          >
           <select v-model="editForm.contextType" class="rcl-input rcl-select">
             <option value="ASSET">Aset</option>
-            <option value="PROCESS">Proses Bisnis</option>
+            <option value="PROCESS">Kegiatan</option>
           </select>
         </div>
 
         <div class="form-row-2">
           <div class="form-group">
-            <label class="form-label">Periode Awal <span class="req">*</span></label>
+            <label class="form-label"
+              >Periode Awal <span class="req">*</span></label
+            >
             <input
               v-model.number="editForm.periodStart"
               class="rcl-input"
@@ -219,10 +283,14 @@
               min="2000"
               max="2100"
             />
-            <span v-if="editErrors.periodStart" class="form-err">{{ editErrors.periodStart }}</span>
+            <span v-if="editErrors.periodStart" class="form-err">{{
+              editErrors.periodStart
+            }}</span>
           </div>
           <div class="form-group">
-            <label class="form-label">Periode Akhir <span class="req">*</span></label>
+            <label class="form-label"
+              >Periode Akhir <span class="req">*</span></label
+            >
             <input
               v-model.number="editForm.periodEnd"
               class="rcl-input"
@@ -231,23 +299,47 @@
               min="2000"
               max="2100"
             />
-            <span v-if="editErrors.periodEnd" class="form-err">{{ editErrors.periodEnd }}</span>
+            <span v-if="editErrors.periodEnd" class="form-err">{{
+              editErrors.periodEnd
+            }}</span>
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Deskripsi <span class="form-opt">(opsional)</span></label>
-          <textarea v-model="editForm.description" class="rcl-input rcl-textarea" rows="2" />
+          <label class="form-label"
+            >Deskripsi <span class="form-opt">(opsional)</span></label
+          >
+          <textarea
+            v-model="editForm.description"
+            class="rcl-input rcl-textarea"
+            rows="2"
+          />
         </div>
 
         <div class="form-row-2">
           <div class="form-group">
-            <label class="form-label">Level Selera Risiko <span class="form-opt">(opsional)</span></label>
-            <input v-model="editForm.riskAppetiteLevel" class="rcl-input" type="text" autocomplete="off" />
+            <label class="form-label"
+              >Level Selera Risiko
+              <span class="form-opt">(opsional)</span></label
+            >
+            <input
+              v-model="editForm.riskAppetiteLevel"
+              class="rcl-input"
+              type="text"
+              autocomplete="off"
+            />
           </div>
           <div class="form-group">
-            <label class="form-label">Deskripsi Selera Risiko <span class="form-opt">(opsional)</span></label>
-            <input v-model="editForm.riskAppetiteDescription" class="rcl-input" type="text" autocomplete="off" />
+            <label class="form-label"
+              >Deskripsi Selera Risiko
+              <span class="form-opt">(opsional)</span></label
+            >
+            <input
+              v-model="editForm.riskAppetiteDescription"
+              class="rcl-input"
+              type="text"
+              autocomplete="off"
+            />
           </div>
         </div>
 
@@ -256,211 +348,279 @@
         </div>
 
         <div class="form-actions">
-          <Button label="Batal" severity="secondary" type="button" :disabled="editLoading" @click="showEdit = false" />
+          <Button
+            label="Batal"
+            severity="secondary"
+            type="button"
+            :disabled="editLoading"
+            @click="showEdit = false"
+          />
           <Button label="Simpan" type="submit" :loading="editLoading" />
         </div>
       </form>
     </Dialog>
 
     <!-- ─── Activate Dialog ──────────────────────────────────────────────────── -->
-    <Dialog v-model:visible="showActivate" modal header="Aktifkan Konteks" :style="{ width: '400px' }">
+    <Dialog
+      v-model:visible="showActivate"
+      modal
+      header="Aktifkan Konteks"
+      :style="{ width: '400px' }"
+    >
       <div class="del-body">
         <div class="act-icon-wrap">
           <i class="pi pi-check-circle" />
         </div>
         <p class="del-text">
-          Aktifkan konteks <strong>{{ activateTarget?.name }}</strong>?
+          Aktifkan konteks <strong>{{ activateTarget?.name }}</strong
+          >?
         </p>
         <p class="del-warn">
-          Konteks yang sedang aktif di framework ini akan dinonaktifkan secara otomatis.
+          Konteks yang sedang aktif di framework ini akan dinonaktifkan secara
+          otomatis.
         </p>
         <div v-if="activateError" class="rcl-alert-error">
           <i class="pi pi-exclamation-triangle" /> {{ activateError }}
         </div>
       </div>
       <template #footer>
-        <Button label="Batal" severity="secondary" :disabled="activateLoading" @click="showActivate = false" />
-        <Button label="Aktifkan" :loading="activateLoading" @click="submitActivate" />
+        <Button
+          label="Batal"
+          severity="secondary"
+          :disabled="activateLoading"
+          @click="showActivate = false"
+        />
+        <Button
+          label="Aktifkan"
+          :loading="activateLoading"
+          @click="submitActivate"
+        />
       </template>
     </Dialog>
 
     <!-- ─── Delete Dialog ────────────────────────────────────────────────────── -->
-    <Dialog v-model:visible="showDelete" modal header="Hapus Konteks Risiko" :style="{ width: '400px' }">
+    <Dialog
+      v-model:visible="showDelete"
+      modal
+      header="Hapus Konteks Risiko"
+      :style="{ width: '400px' }"
+    >
       <div class="del-body">
         <div class="del-icon-wrap">
           <i class="pi pi-exclamation-triangle" />
         </div>
         <p class="del-text">
-          Hapus konteks <strong>{{ deleteTarget?.name }}</strong>?
+          Hapus konteks <strong>{{ deleteTarget?.name }}</strong
+          >?
         </p>
         <p class="del-warn">
-          Konteks akan dihapus dari program ini. Template aslinya di framework tidak terpengaruh.
+          Konteks akan dihapus dari program ini. Template aslinya di framework
+          tidak terpengaruh.
         </p>
         <div v-if="deleteError" class="rcl-alert-error">
           <i class="pi pi-exclamation-triangle" /> {{ deleteError }}
         </div>
       </div>
       <template #footer>
-        <Button label="Batal" severity="secondary" :disabled="deleteLoading" @click="showDelete = false" />
-        <Button label="Hapus" severity="danger" :loading="deleteLoading" @click="submitDelete" />
+        <Button
+          label="Batal"
+          severity="secondary"
+          :disabled="deleteLoading"
+          @click="showDelete = false"
+        />
+        <Button
+          label="Hapus"
+          severity="danger"
+          :loading="deleteLoading"
+          @click="submitDelete"
+        />
       </template>
     </Dialog>
-
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import Button from 'primevue/button'
-import Dialog from 'primevue/dialog'
-import ProgressSpinner from 'primevue/progressspinner'
-import { useToast } from 'primevue/usetoast'
+import { ref, reactive, onMounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import Button from "primevue/button";
+import Dialog from "primevue/dialog";
+import ProgressSpinner from "primevue/progressspinner";
+import { useToast } from "primevue/usetoast";
 import {
   riskContextApi,
   RISK_CONTEXT_STATUS_LABELS,
   CONTEXT_TYPE_LABELS,
   type RiskContext,
-} from '@/api/riskContext'
-import { programFrameworkApi, type ProgramFramework } from '@/api/programFramework'
-import { programFrameworkContextApi, type ProgramFrameworkContext } from '@/api/programFrameworkContext'
-import { extractApiError } from '@/utils/apiError'
+} from "@/api/riskContext";
+import {
+  programFrameworkApi,
+  type ProgramFramework,
+} from "@/api/programFramework";
+import {
+  programFrameworkContextApi,
+  type ProgramFrameworkContext,
+} from "@/api/programFrameworkContext";
+import { extractApiError } from "@/utils/apiError";
 
-const router = useRouter()
-const route = useRoute()
-const toast = useToast()
+const router = useRouter();
+const route = useRoute();
+const toast = useToast();
 
-const programId = route.params.id as string
-const frameworkId = route.params.frameworkId as string
+const programId = route.params.id as string;
+const frameworkId = route.params.frameworkId as string;
 
 // ─── Framework info ───────────────────────────────────────────────────────────
 
-const fw = ref<ProgramFramework | null>(null)
-const fwLoading = ref(false)
-const fwError = ref('')
+const fw = ref<ProgramFramework | null>(null);
+const fwLoading = ref(false);
+const fwError = ref("");
 
 async function loadFramework() {
-  fwLoading.value = true
-  fwError.value = ''
+  fwLoading.value = true;
+  fwError.value = "";
   try {
-    const res = await programFrameworkApi.getById(programId, frameworkId)
-    fw.value = res.data.data
+    const res = await programFrameworkApi.getById(programId, frameworkId);
+    fw.value = res.data.data;
   } catch (err: any) {
-    fwError.value = extractApiError(err, 'Gagal memuat data framework.')
+    fwError.value = extractApiError(err, "Gagal memuat data framework.");
   } finally {
-    fwLoading.value = false
+    fwLoading.value = false;
   }
 }
 
 // ─── Contexts (linked to program-framework) ───────────────────────────────────
 
-const contexts = ref<ProgramFrameworkContext[]>([])
-const loading = ref(false)
-const error = ref('')
+const contexts = ref<ProgramFrameworkContext[]>([]);
+const loading = ref(false);
+const error = ref("");
 
 async function loadContexts() {
-  loading.value = true
-  error.value = ''
+  loading.value = true;
+  error.value = "";
   try {
-    const res = await programFrameworkContextApi.list(frameworkId)
-    contexts.value = res.data.data ?? []
+    const res = await programFrameworkContextApi.list(frameworkId);
+    contexts.value = res.data.data ?? [];
   } catch (err: any) {
-    error.value = extractApiError(err, 'Gagal memuat daftar konteks risiko.')
+    error.value = extractApiError(err, "Gagal memuat daftar konteks risiko.");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 // ─── Picker ───────────────────────────────────────────────────────────────────
 
-const showPicker = ref(false)
-const pickerLoading = ref(false)
-const pickerError = ref('')
-const pickerAdding = ref<string | null>(null)
-const availableTemplates = ref<RiskContext[]>([])
+const showPicker = ref(false);
+const pickerLoading = ref(false);
+const pickerError = ref("");
+const pickerAdding = ref<string | null>(null);
+const availableTemplates = ref<RiskContext[]>([]);
 
 async function openPicker() {
-  pickerError.value = ''
-  availableTemplates.value = []
-  showPicker.value = true
-  pickerLoading.value = true
+  pickerError.value = "";
+  availableTemplates.value = [];
+  showPicker.value = true;
+  pickerLoading.value = true;
   try {
-    const masterFrameworkId = fw.value?.frameworkId
-    if (!masterFrameworkId) throw new Error('Framework ID tidak ditemukan.')
-    const res = await riskContextApi.listByFramework(masterFrameworkId)
-    const allTemplates = res.data.data ?? []
-    const linkedIds = new Set(contexts.value.map((c) => c.id))
-    availableTemplates.value = allTemplates.filter((t) => !linkedIds.has(t.id))
+    const masterFrameworkId = fw.value?.frameworkId;
+    if (!masterFrameworkId) throw new Error("Framework ID tidak ditemukan.");
+    const res = await riskContextApi.listByFramework(masterFrameworkId);
+    const allTemplates = res.data.data ?? [];
+    const linkedIds = new Set(contexts.value.map((c) => c.id));
+    availableTemplates.value = allTemplates.filter((t) => !linkedIds.has(t.id));
   } catch (err: any) {
-    pickerError.value = extractApiError(err, 'Gagal memuat template konteks.')
+    pickerError.value = extractApiError(err, "Gagal memuat template konteks.");
   } finally {
-    pickerLoading.value = false
+    pickerLoading.value = false;
   }
 }
 
 async function addContext(riskContextId: string) {
-  pickerAdding.value = riskContextId
+  pickerAdding.value = riskContextId;
   try {
-    await programFrameworkContextApi.add(frameworkId, { riskContextId })
-    toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Konteks berhasil ditambahkan ke program', life: 3000 })
-    showPicker.value = false
-    loadContexts()
+    await programFrameworkContextApi.add(frameworkId, { riskContextId });
+    toast.add({
+      severity: "success",
+      summary: "Berhasil",
+      detail: "Konteks berhasil ditambahkan ke program",
+      life: 3000,
+    });
+    showPicker.value = false;
+    loadContexts();
   } catch (err: any) {
-    pickerError.value = extractApiError(err, 'Gagal menambahkan konteks.')
+    pickerError.value = extractApiError(err, "Gagal menambahkan konteks.");
   } finally {
-    pickerAdding.value = null
+    pickerAdding.value = null;
   }
 }
 
 // ─── Edit ─────────────────────────────────────────────────────────────────────
 
-const showEdit = ref(false)
-const editLoading = ref(false)
-const editApiError = ref('')
-const editTarget = ref<RiskContext | null>(null)
+const showEdit = ref(false);
+const editLoading = ref(false);
+const editApiError = ref("");
+const editTarget = ref<RiskContext | null>(null);
 const editForm = reactive({
-  name: '',
-  code: '',
-  contextType: '',
+  name: "",
+  code: "",
+  contextType: "",
   periodStart: 2025,
   periodEnd: 2025,
-  description: '',
-  riskAppetiteLevel: '',
-  riskAppetiteDescription: '',
-})
-const editErrors = reactive({ name: '', code: '', contextType: '', periodStart: '', periodEnd: '' })
+  description: "",
+  riskAppetiteLevel: "",
+  riskAppetiteDescription: "",
+});
+const editErrors = reactive({
+  name: "",
+  code: "",
+  contextType: "",
+  periodStart: "",
+  periodEnd: "",
+});
 
 function openEdit(ctx: RiskContext) {
-  editTarget.value = ctx
-  editForm.name = ctx.name
-  editForm.code = ctx.code
-  editForm.contextType = ctx.contextType
-  editForm.periodStart = ctx.periodStart
-  editForm.periodEnd = ctx.periodEnd
-  editForm.description = ctx.description ?? ''
-  editForm.riskAppetiteLevel = ctx.riskAppetiteLevel ?? ''
-  editForm.riskAppetiteDescription = ctx.riskAppetiteDescription ?? ''
-  Object.assign(editErrors, { name: '', code: '', contextType: '', periodStart: '', periodEnd: '' })
-  editApiError.value = ''
-  showEdit.value = true
+  editTarget.value = ctx;
+  editForm.name = ctx.name;
+  editForm.code = ctx.code;
+  editForm.contextType = ctx.contextType;
+  editForm.periodStart = ctx.periodStart;
+  editForm.periodEnd = ctx.periodEnd;
+  editForm.description = ctx.description ?? "";
+  editForm.riskAppetiteLevel = ctx.riskAppetiteLevel ?? "";
+  editForm.riskAppetiteDescription = ctx.riskAppetiteDescription ?? "";
+  Object.assign(editErrors, {
+    name: "",
+    code: "",
+    contextType: "",
+    periodStart: "",
+    periodEnd: "",
+  });
+  editApiError.value = "";
+  showEdit.value = true;
 }
 
 async function submitEdit() {
-  if (!editTarget.value) return
-  let valid = true
-  editErrors.name = ''
-  editErrors.code = ''
-  editErrors.periodStart = ''
-  editErrors.periodEnd = ''
-  if (!editForm.name.trim()) { editErrors.name = 'Nama wajib diisi'; valid = false }
-  if (!editForm.code.trim()) { editErrors.code = 'Kode wajib diisi'; valid = false }
-  if (editForm.periodEnd < editForm.periodStart) {
-    editErrors.periodEnd = 'Periode akhir tidak boleh sebelum periode awal'; valid = false
+  if (!editTarget.value) return;
+  let valid = true;
+  editErrors.name = "";
+  editErrors.code = "";
+  editErrors.periodStart = "";
+  editErrors.periodEnd = "";
+  if (!editForm.name.trim()) {
+    editErrors.name = "Nama wajib diisi";
+    valid = false;
   }
-  if (!valid) return
+  if (!editForm.code.trim()) {
+    editErrors.code = "Kode wajib diisi";
+    valid = false;
+  }
+  if (editForm.periodEnd < editForm.periodStart) {
+    editErrors.periodEnd = "Periode akhir tidak boleh sebelum periode awal";
+    valid = false;
+  }
+  if (!valid) return;
 
-  editLoading.value = true
-  editApiError.value = ''
+  editLoading.value = true;
+  editApiError.value = "";
   try {
     await riskContextApi.update(editTarget.value.id, {
       name: editForm.name.trim(),
@@ -470,82 +630,107 @@ async function submitEdit() {
       periodEnd: editForm.periodEnd,
       description: editForm.description.trim() || undefined,
       riskAppetiteLevel: editForm.riskAppetiteLevel.trim() || undefined,
-      riskAppetiteDescription: editForm.riskAppetiteDescription.trim() || undefined,
-    })
-    showEdit.value = false
-    toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Konteks risiko berhasil diperbarui', life: 3000 })
-    loadContexts()
+      riskAppetiteDescription:
+        editForm.riskAppetiteDescription.trim() || undefined,
+    });
+    showEdit.value = false;
+    toast.add({
+      severity: "success",
+      summary: "Berhasil",
+      detail: "Konteks risiko berhasil diperbarui",
+      life: 3000,
+    });
+    loadContexts();
   } catch (err: any) {
-    editApiError.value = extractApiError(err, 'Gagal memperbarui konteks risiko.')
+    editApiError.value = extractApiError(
+      err,
+      "Gagal memperbarui konteks risiko.",
+    );
   } finally {
-    editLoading.value = false
+    editLoading.value = false;
   }
 }
 
 // ─── Activate ─────────────────────────────────────────────────────────────────
 
-const showActivate = ref(false)
-const activateLoading = ref(false)
-const activateError = ref('')
-const activateTarget = ref<RiskContext | null>(null)
+const showActivate = ref(false);
+const activateLoading = ref(false);
+const activateError = ref("");
+const activateTarget = ref<RiskContext | null>(null);
 
 function openActivate(ctx: RiskContext) {
-  activateTarget.value = ctx
-  activateError.value = ''
-  showActivate.value = true
+  activateTarget.value = ctx;
+  activateError.value = "";
+  showActivate.value = true;
 }
 
 async function submitActivate() {
-  if (!activateTarget.value) return
-  activateLoading.value = true
-  activateError.value = ''
+  if (!activateTarget.value) return;
+  activateLoading.value = true;
+  activateError.value = "";
   try {
-    await riskContextApi.activate(activateTarget.value.id)
-    showActivate.value = false
-    toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Konteks risiko berhasil diaktifkan', life: 3000 })
-    loadContexts()
+    await riskContextApi.activate(activateTarget.value.id);
+    showActivate.value = false;
+    toast.add({
+      severity: "success",
+      summary: "Berhasil",
+      detail: "Konteks risiko berhasil diaktifkan",
+      life: 3000,
+    });
+    loadContexts();
   } catch (err: any) {
-    activateError.value = extractApiError(err, 'Gagal mengaktifkan konteks risiko.')
+    activateError.value = extractApiError(
+      err,
+      "Gagal mengaktifkan konteks risiko.",
+    );
   } finally {
-    activateLoading.value = false
+    activateLoading.value = false;
   }
 }
 
 // ─── Delete ───────────────────────────────────────────────────────────────────
 
-const showDelete = ref(false)
-const deleteLoading = ref(false)
-const deleteError = ref('')
-const deleteTarget = ref<RiskContext | null>(null)
+const showDelete = ref(false);
+const deleteLoading = ref(false);
+const deleteError = ref("");
+const deleteTarget = ref<RiskContext | null>(null);
 
 function openDelete(ctx: RiskContext) {
-  deleteTarget.value = ctx
-  deleteError.value = ''
-  showDelete.value = true
+  deleteTarget.value = ctx;
+  deleteError.value = "";
+  showDelete.value = true;
 }
 
 async function submitDelete() {
-  if (!deleteTarget.value) return
-  deleteLoading.value = true
-  deleteError.value = ''
+  if (!deleteTarget.value) return;
+  deleteLoading.value = true;
+  deleteError.value = "";
   try {
-    await programFrameworkContextApi.remove(frameworkId, deleteTarget.value.id)
-    showDelete.value = false
-    toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Konteks risiko berhasil dihapus dari program', life: 3000 })
-    loadContexts()
+    await programFrameworkContextApi.remove(frameworkId, deleteTarget.value.id);
+    showDelete.value = false;
+    toast.add({
+      severity: "success",
+      summary: "Berhasil",
+      detail: "Konteks risiko berhasil dihapus dari program",
+      life: 3000,
+    });
+    loadContexts();
   } catch (err: any) {
-    deleteError.value = extractApiError(err, 'Gagal menghapus konteks risiko dari program.')
+    deleteError.value = extractApiError(
+      err,
+      "Gagal menghapus konteks risiko dari program.",
+    );
   } finally {
-    deleteLoading.value = false
+    deleteLoading.value = false;
   }
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 onMounted(() => {
-  loadFramework()
-  loadContexts()
-})
+  loadFramework();
+  loadContexts();
+});
 </script>
 
 <style scoped>
@@ -728,7 +913,6 @@ onMounted(() => {
   border-radius: 100px;
 }
 
-
 .rcl-card-actions {
   display: flex;
   gap: 3px;
@@ -882,7 +1066,9 @@ onMounted(() => {
   color: var(--color-text-dim);
 }
 
-.req { color: var(--color-danger); }
+.req {
+  color: var(--color-danger);
+}
 
 .form-opt {
   font-size: 10px;
@@ -901,7 +1087,9 @@ onMounted(() => {
   font-family: var(--font-body);
   font-size: 13px;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   width: 100%;
 }
 
@@ -914,7 +1102,9 @@ onMounted(() => {
   border-color: var(--color-danger);
 }
 
-.rcl-select { cursor: pointer; }
+.rcl-select {
+  cursor: pointer;
+}
 
 .rcl-textarea {
   resize: vertical;
@@ -948,7 +1138,6 @@ onMounted(() => {
   margin-top: 0.5rem;
 }
 
-
 .act-icon-wrap {
   width: 52px;
   height: 52px;
@@ -960,7 +1149,10 @@ onMounted(() => {
   justify-content: center;
 }
 
-.act-icon-wrap .pi { font-size: 1.4rem; color: var(--color-accent); }
+.act-icon-wrap .pi {
+  font-size: 1.4rem;
+  color: var(--color-accent);
+}
 
 /* ─── Picker dialog ───────────────────────────────────────────────────────── */
 
@@ -987,9 +1179,16 @@ onMounted(() => {
   font-family: var(--font-body);
 }
 
-.picker-item:last-child { border-bottom: none; }
-.picker-item:hover:not(:disabled) { background: rgba(0, 229, 184, 0.04); }
-.picker-item:disabled { opacity: 0.6; cursor: default; }
+.picker-item:last-child {
+  border-bottom: none;
+}
+.picker-item:hover:not(:disabled) {
+  background: rgba(0, 229, 184, 0.04);
+}
+.picker-item:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
 
 .picker-item-left {
   display: flex;

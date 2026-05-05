@@ -1,15 +1,20 @@
 <template>
   <div class="rp-page">
-
     <!-- ─── Page header ──────────────────────────────────────────────────────── -->
     <div class="rp-page-header">
       <div>
         <h1 class="rp-page-title">Program Risiko</h1>
         <p class="rp-page-desc">
-          Kelola program manajemen risiko tahunan institusi. Setiap program dapat menggunakan beberapa framework sekaligus.
+          Kelola program manajemen risiko tahunan institusi. Setiap program
+          dapat menggunakan beberapa framework sekaligus.
         </p>
       </div>
-      <Button label="Tambah Program" icon="pi pi-plus" size="small" @click="openCreate" />
+      <Button
+        label="Tambah Program"
+        icon="pi pi-plus"
+        size="small"
+        @click="openCreate"
+      />
     </div>
 
     <!-- ─── Filter row ────────────────────────────────────────────────────────── -->
@@ -23,7 +28,12 @@
           placeholder="Cari nama program..."
           @input="onSearchInput"
         />
-        <button v-if="searchQuery" class="rp-search-clear" type="button" @click="clearSearch">
+        <button
+          v-if="searchQuery"
+          class="rp-search-clear"
+          type="button"
+          @click="clearSearch"
+        >
           <i class="pi pi-times" />
         </button>
       </div>
@@ -35,7 +45,11 @@
 
       <select v-model="filterStatus" class="rp-select" @change="onFilterChange">
         <option value="">Semua Status</option>
-        <option v-for="(label, val) in RISK_PROGRAM_STATUS_LABELS" :key="val" :value="val">
+        <option
+          v-for="(label, val) in RISK_PROGRAM_STATUS_LABELS"
+          :key="val"
+          :value="val"
+        >
           {{ label }}
         </option>
       </select>
@@ -73,7 +87,9 @@
             <tr v-for="rp in programs" :key="rp.id">
               <td class="rp-td-name">
                 <span class="rp-name">{{ rp.name }}</span>
-                <span v-if="rp.description" class="rp-desc-snippet">{{ rp.description }}</span>
+                <span v-if="rp.description" class="rp-desc-snippet">{{
+                  rp.description
+                }}</span>
               </td>
               <td class="rp-td-center">
                 <span class="rp-year-badge">{{ rp.year }}</span>
@@ -85,7 +101,10 @@
                 </span>
               </td>
               <td class="rp-td-center">
-                <span class="rp-status-chip" :class="`chip-${rp.status.toLowerCase()}`">
+                <span
+                  class="rp-status-chip"
+                  :class="`chip-${rp.status.toLowerCase()}`"
+                >
                   {{ RISK_PROGRAM_STATUS_LABELS[rp.status] }}
                 </span>
               </td>
@@ -96,30 +115,35 @@
                   title="Kelola Framework"
                   @click="goToDetail(rp.id)"
                 >
-                  <i class="pi pi-sitemap" />
+                  <i class="pi pi-cog" />
                 </button>
-                <button class="btn-icon" type="button" title="Edit" @click="openEdit(rp)">
+                <button
+                  class="btn-icon"
+                  type="button"
+                  title="Edit"
+                  @click="openEdit(rp)"
+                >
                   <i class="pi pi-pencil" />
                 </button>
                 <button
                   v-if="rp.status === 'DRAFT'"
-                  class="btn-icon btn-icon-success"
+                  class="btn-icon"
                   type="button"
                   title="Aktifkan"
                   :disabled="statusActionLoading === rp.id"
                   @click="doActivate(rp)"
                 >
-                  <i class="pi pi-play" />
+                  <i class="pi pi-check-circle" />
                 </button>
                 <button
                   v-if="rp.status === 'ACTIVE'"
-                  class="btn-icon btn-icon-warn"
+                  class="btn-icon btn-icon-ban"
                   type="button"
                   title="Nonaktifkan"
                   :disabled="statusActionLoading === rp.id"
                   @click="doDeactivate(rp)"
                 >
-                  <i class="pi pi-pause" />
+                  <i class="pi pi-ban" />
                 </button>
                 <button
                   v-if="rp.status === 'ACTIVE' || rp.status === 'CLOSED'"
@@ -145,7 +169,10 @@
         </table>
 
         <!-- Pagination -->
-        <div v-if="pagination && pagination.totalPages > 1" class="rp-pagination">
+        <div
+          v-if="pagination && pagination.totalPages > 1"
+          class="rp-pagination"
+        >
           <button
             class="rp-page-btn"
             type="button"
@@ -159,7 +186,10 @@
             :key="String(p)"
             class="rp-page-btn"
             type="button"
-            :class="{ 'is-active': p === currentPage, 'is-ellipsis': p === '...' }"
+            :class="{
+              'is-active': p === currentPage,
+              'is-ellipsis': p === '...',
+            }"
             :disabled="p === '...'"
             @click="typeof p === 'number' && changePage(p)"
           >
@@ -176,7 +206,8 @@
         </div>
 
         <div v-if="pagination" class="rp-total-count">
-          Menampilkan {{ programs.length }} dari {{ pagination.totalItems }} program
+          Menampilkan {{ programs.length }} dari
+          {{ pagination.totalItems }} program
         </div>
       </template>
     </div>
@@ -189,9 +220,10 @@
       :style="{ width: '520px' }"
     >
       <form class="rp-form" @submit.prevent="submitForm">
-
         <div class="form-group">
-          <label class="form-label">Nama Program <span class="req">*</span></label>
+          <label class="form-label"
+            >Nama Program <span class="req">*</span></label
+          >
           <input
             v-model="form.name"
             class="rp-field-input"
@@ -200,7 +232,9 @@
             placeholder="Nama program manajemen risiko"
             autocomplete="off"
           />
-          <span v-if="formErrors.name" class="form-err">{{ formErrors.name }}</span>
+          <span v-if="formErrors.name" class="form-err">{{
+            formErrors.name
+          }}</span>
         </div>
 
         <div class="form-group">
@@ -215,11 +249,15 @@
             max="2100"
             autocomplete="off"
           />
-          <span v-if="formErrors.year" class="form-err">{{ formErrors.year }}</span>
+          <span v-if="formErrors.year" class="form-err">{{
+            formErrors.year
+          }}</span>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Deskripsi <span class="form-opt">(opsional)</span></label>
+          <label class="form-label"
+            >Deskripsi <span class="form-opt">(opsional)</span></label
+          >
           <textarea
             v-model="form.description"
             class="rp-field-input rp-field-textarea"
@@ -231,7 +269,10 @@
 
         <div v-if="!editTarget" class="rp-info-box">
           <i class="pi pi-info-circle" />
-          <span>Setelah program dibuat, tambahkan framework melalui halaman detail program.</span>
+          <span
+            >Setelah program dibuat, tambahkan framework melalui halaman detail
+            program.</span
+          >
         </div>
 
         <div v-if="formApiError" class="rp-alert-error">
@@ -268,11 +309,12 @@
           <i class="pi pi-exclamation-triangle" />
         </div>
         <p class="del-text">
-          Hapus program <strong>{{ deleteTarget?.name }}</strong>?
+          Hapus program <strong>{{ deleteTarget?.name }}</strong
+          >?
         </p>
         <p class="del-warn">
-          Tindakan ini tidak dapat dibatalkan. Program hanya dapat dihapus jika belum memiliki
-          framework yang terdaftar.
+          Tindakan ini tidak dapat dibatalkan. Program hanya dapat dihapus jika
+          belum memiliki framework yang terdaftar.
         </p>
         <div v-if="deleteApiError" class="rp-alert-error">
           <i class="pi pi-exclamation-triangle" />
@@ -294,273 +336,330 @@
         />
       </template>
     </Dialog>
-
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import Button from 'primevue/button'
-import Dialog from 'primevue/dialog'
-import ProgressSpinner from 'primevue/progressspinner'
-import { useToast } from 'primevue/usetoast'
+import { ref, reactive, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import Button from "primevue/button";
+import Dialog from "primevue/dialog";
+import ProgressSpinner from "primevue/progressspinner";
+import { useToast } from "primevue/usetoast";
 import {
   riskProgramApi,
   RISK_PROGRAM_STATUS_LABELS,
   type RiskProgram,
-} from '@/api/riskProgram'
-import { extractApiError } from '@/utils/apiError'
-import { usePagination } from '@/composables/usePagination'
+} from "@/api/riskProgram";
+import { extractApiError } from "@/utils/apiError";
+import { usePagination } from "@/composables/usePagination";
 
-const toast = useToast()
-const router = useRouter()
+const toast = useToast();
+const router = useRouter();
 
 // ─── Year options ─────────────────────────────────────────────────────────────
 
-const currentYear = new Date().getFullYear()
+const currentYear = new Date().getFullYear();
 const yearOptions = computed(() => {
-  const years: number[] = []
-  for (let y = currentYear + 1; y >= 2020; y--) years.push(y)
-  return years
-})
+  const years: number[] = [];
+  for (let y = currentYear + 1; y >= 2020; y--) years.push(y);
+  return years;
+});
 
 // ─── List state ───────────────────────────────────────────────────────────────
 
-const programs = ref<RiskProgram[]>([])
-const loading = ref(false)
-const fetchError = ref('')
-const searchQuery = ref('')
-const filterYear = ref<number | ''>('')
-const filterStatus = ref('')
-const { currentPage, pagination, pageNumbers, PAGE_LIMIT } = usePagination()
+const programs = ref<RiskProgram[]>([]);
+const loading = ref(false);
+const fetchError = ref("");
+const searchQuery = ref("");
+const filterYear = ref<number | "">("");
+const filterStatus = ref("");
+const { currentPage, pagination, pageNumbers, PAGE_LIMIT } = usePagination();
 
-let searchTimer: ReturnType<typeof setTimeout> | null = null
+let searchTimer: ReturnType<typeof setTimeout> | null = null;
 
 // ─── Form / dialog state ──────────────────────────────────────────────────────
 
-const showFormDialog = ref(false)
-const editTarget = ref<RiskProgram | null>(null)
-const formLoading = ref(false)
-const formApiError = ref('')
+const showFormDialog = ref(false);
+const editTarget = ref<RiskProgram | null>(null);
+const formLoading = ref(false);
+const formApiError = ref("");
 const form = reactive({
-  name: '',
-  description: '',
+  name: "",
+  description: "",
   year: currentYear,
-})
+});
 
-const statusActionLoading = ref<string | null>(null)
-const formErrors = reactive({ name: '', year: '' })
+const statusActionLoading = ref<string | null>(null);
+const formErrors = reactive({ name: "", year: "" });
 
-const showDeleteDialog = ref(false)
-const deleteTarget = ref<RiskProgram | null>(null)
-const deleteLoading = ref(false)
-const deleteApiError = ref('')
+const showDeleteDialog = ref(false);
+const deleteTarget = ref<RiskProgram | null>(null);
+const deleteLoading = ref(false);
+const deleteApiError = ref("");
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
 function goToDetail(id: string) {
-  router.push({ name: 'risk-program-detail', params: { id } })
+  router.push({ name: "risk-program-detail", params: { id } });
 }
 
 // ─── Fetch ────────────────────────────────────────────────────────────────────
 
 async function fetchData() {
-  loading.value = true
-  fetchError.value = ''
+  loading.value = true;
+  fetchError.value = "";
   try {
-    const params: Record<string, any> = { page: currentPage.value, limit: PAGE_LIMIT }
-    if (searchQuery.value) params.name = searchQuery.value
-    if (filterYear.value !== '') params.year = filterYear.value
-    if (filterStatus.value) params.status = filterStatus.value
+    const params: Record<string, any> = {
+      page: currentPage.value,
+      limit: PAGE_LIMIT,
+    };
+    if (searchQuery.value) params.name = searchQuery.value;
+    if (filterYear.value !== "") params.year = filterYear.value;
+    if (filterStatus.value) params.status = filterStatus.value;
 
-    const res = await riskProgramApi.search(params)
-    programs.value = res.data.data ?? []
-    pagination.value = res.data.pagination ?? null
+    const res = await riskProgramApi.search(params);
+    programs.value = res.data.data ?? [];
+    pagination.value = res.data.pagination ?? null;
   } catch (err: any) {
-    fetchError.value = extractApiError(err, 'Gagal memuat data program risiko.')
+    fetchError.value = extractApiError(
+      err,
+      "Gagal memuat data program risiko.",
+    );
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 function onSearchInput() {
-  if (searchTimer) clearTimeout(searchTimer)
+  if (searchTimer) clearTimeout(searchTimer);
   searchTimer = setTimeout(() => {
-    currentPage.value = 1
-    fetchData()
-  }, 400)
+    currentPage.value = 1;
+    fetchData();
+  }, 400);
 }
 
 function onFilterChange() {
-  currentPage.value = 1
-  fetchData()
+  currentPage.value = 1;
+  fetchData();
 }
 
 function clearSearch() {
-  searchQuery.value = ''
-  currentPage.value = 1
-  fetchData()
+  searchQuery.value = "";
+  currentPage.value = 1;
+  fetchData();
 }
 
 function changePage(page: number) {
-  currentPage.value = page
-  fetchData()
+  currentPage.value = page;
+  fetchData();
 }
 
 // ─── Create / Edit ────────────────────────────────────────────────────────────
 
 function resetForm() {
-  form.name = ''
-  form.description = ''
-  form.year = currentYear
-  formErrors.name = ''
-  formErrors.year = ''
-  formApiError.value = ''
+  form.name = "";
+  form.description = "";
+  form.year = currentYear;
+  formErrors.name = "";
+  formErrors.year = "";
+  formApiError.value = "";
 }
 
 function openCreate() {
-  editTarget.value = null
-  resetForm()
-  showFormDialog.value = true
+  editTarget.value = null;
+  resetForm();
+  showFormDialog.value = true;
 }
 
 function openEdit(rp: RiskProgram) {
-  editTarget.value = rp
-  form.name = rp.name
-  form.description = rp.description ?? ''
-  form.year = rp.year
-  formErrors.name = ''
-  formErrors.year = ''
-  formApiError.value = ''
-  showFormDialog.value = true
+  editTarget.value = rp;
+  form.name = rp.name;
+  form.description = rp.description ?? "";
+  form.year = rp.year;
+  formErrors.name = "";
+  formErrors.year = "";
+  formApiError.value = "";
+  showFormDialog.value = true;
 }
 
 function validateForm(): boolean {
-  formErrors.name = ''
-  formErrors.year = ''
-  let valid = true
+  formErrors.name = "";
+  formErrors.year = "";
+  let valid = true;
 
   if (!form.name.trim()) {
-    formErrors.name = 'Nama program risiko wajib diisi'
-    valid = false
+    formErrors.name = "Nama program risiko wajib diisi";
+    valid = false;
   } else if (form.name.trim().length < 2) {
-    formErrors.name = 'Nama minimal 2 karakter'
-    valid = false
+    formErrors.name = "Nama minimal 2 karakter";
+    valid = false;
   }
 
   if (!form.year) {
-    formErrors.year = 'Tahun wajib diisi'
-    valid = false
+    formErrors.year = "Tahun wajib diisi";
+    valid = false;
   } else if (form.year < 2000 || form.year > 2100) {
-    formErrors.year = 'Tahun harus antara 2000 dan 2100'
-    valid = false
+    formErrors.year = "Tahun harus antara 2000 dan 2100";
+    valid = false;
   }
 
-  return valid
+  return valid;
 }
 
 async function submitForm() {
-  if (!validateForm()) return
-  formLoading.value = true
-  formApiError.value = ''
+  if (!validateForm()) return;
+  formLoading.value = true;
+  formApiError.value = "";
   try {
     const payload = {
       name: form.name.trim(),
       description: form.description.trim() || undefined,
       year: form.year,
-    }
+    };
 
     if (editTarget.value) {
-      await riskProgramApi.update(editTarget.value.id, payload)
-      toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Program risiko berhasil diperbarui', life: 3000 })
+      await riskProgramApi.update(editTarget.value.id, payload);
+      toast.add({
+        severity: "success",
+        summary: "Berhasil",
+        detail: "Program risiko berhasil diperbarui",
+        life: 3000,
+      });
     } else {
-      const res = await riskProgramApi.create(payload)
-      toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Program risiko berhasil dibuat', life: 3000 })
-      showFormDialog.value = false
-      router.push({ name: 'risk-program-detail', params: { id: res.data.data.id } })
-      return
+      const res = await riskProgramApi.create(payload);
+      toast.add({
+        severity: "success",
+        summary: "Berhasil",
+        detail: "Program risiko berhasil dibuat",
+        life: 3000,
+      });
+      showFormDialog.value = false;
+      router.push({
+        name: "risk-program-detail",
+        params: { id: res.data.data.id },
+      });
+      return;
     }
-    showFormDialog.value = false
-    fetchData()
+    showFormDialog.value = false;
+    fetchData();
   } catch (err: any) {
-    formApiError.value = extractApiError(err, 'Terjadi kesalahan. Coba lagi.')
+    formApiError.value = extractApiError(err, "Terjadi kesalahan. Coba lagi.");
   } finally {
-    formLoading.value = false
+    formLoading.value = false;
   }
 }
 
 // ─── Status actions ───────────────────────────────────────────────────────────
 
 async function doActivate(rp: RiskProgram) {
-  statusActionLoading.value = rp.id
+  statusActionLoading.value = rp.id;
   try {
-    await riskProgramApi.activate(rp.id)
-    toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Program risiko berhasil diaktifkan', life: 3000 })
-    fetchData()
+    await riskProgramApi.activate(rp.id);
+    toast.add({
+      severity: "success",
+      summary: "Berhasil",
+      detail: "Program risiko berhasil diaktifkan",
+      life: 3000,
+    });
+    fetchData();
   } catch (err: any) {
-    toast.add({ severity: 'error', summary: 'Gagal', detail: extractApiError(err, 'Gagal mengaktifkan program risiko.'), life: 5000 })
+    toast.add({
+      severity: "error",
+      summary: "Gagal",
+      detail: extractApiError(err, "Gagal mengaktifkan program risiko."),
+      life: 5000,
+    });
   } finally {
-    statusActionLoading.value = null
+    statusActionLoading.value = null;
   }
 }
 
 async function doDeactivate(rp: RiskProgram) {
-  statusActionLoading.value = rp.id
+  statusActionLoading.value = rp.id;
   try {
-    await riskProgramApi.deactivate(rp.id)
-    toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Program risiko berhasil dinonaktifkan', life: 3000 })
-    fetchData()
+    await riskProgramApi.deactivate(rp.id);
+    toast.add({
+      severity: "success",
+      summary: "Berhasil",
+      detail: "Program risiko berhasil dinonaktifkan",
+      life: 3000,
+    });
+    fetchData();
   } catch (err: any) {
-    toast.add({ severity: 'error', summary: 'Gagal', detail: extractApiError(err, 'Gagal menonaktifkan program risiko.'), life: 5000 })
+    toast.add({
+      severity: "error",
+      summary: "Gagal",
+      detail: extractApiError(err, "Gagal menonaktifkan program risiko."),
+      life: 5000,
+    });
   } finally {
-    statusActionLoading.value = null
+    statusActionLoading.value = null;
   }
 }
 
 async function doSetDraft(rp: RiskProgram) {
-  statusActionLoading.value = rp.id
+  statusActionLoading.value = rp.id;
   try {
-    await riskProgramApi.setDraft(rp.id)
-    toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Program risiko dikembalikan ke Draft', life: 3000 })
-    fetchData()
+    await riskProgramApi.setDraft(rp.id);
+    toast.add({
+      severity: "success",
+      summary: "Berhasil",
+      detail: "Program risiko dikembalikan ke Draft",
+      life: 3000,
+    });
+    fetchData();
   } catch (err: any) {
-    toast.add({ severity: 'error', summary: 'Gagal', detail: extractApiError(err, 'Gagal mengubah status program risiko.'), life: 5000 })
+    toast.add({
+      severity: "error",
+      summary: "Gagal",
+      detail: extractApiError(err, "Gagal mengubah status program risiko."),
+      life: 5000,
+    });
   } finally {
-    statusActionLoading.value = null
+    statusActionLoading.value = null;
   }
 }
 
 // ─── Delete ───────────────────────────────────────────────────────────────────
 
 function openDelete(rp: RiskProgram) {
-  deleteTarget.value = rp
-  deleteApiError.value = ''
-  showDeleteDialog.value = true
+  deleteTarget.value = rp;
+  deleteApiError.value = "";
+  showDeleteDialog.value = true;
 }
 
 async function submitDelete() {
-  if (!deleteTarget.value) return
-  deleteLoading.value = true
-  deleteApiError.value = ''
+  if (!deleteTarget.value) return;
+  deleteLoading.value = true;
+  deleteApiError.value = "";
   try {
-    await riskProgramApi.remove(deleteTarget.value.id)
-    toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Program risiko berhasil dihapus', life: 3000 })
-    showDeleteDialog.value = false
-    if (programs.value.length === 1 && currentPage.value > 1) currentPage.value--
-    fetchData()
+    await riskProgramApi.remove(deleteTarget.value.id);
+    toast.add({
+      severity: "success",
+      summary: "Berhasil",
+      detail: "Program risiko berhasil dihapus",
+      life: 3000,
+    });
+    showDeleteDialog.value = false;
+    if (programs.value.length === 1 && currentPage.value > 1)
+      currentPage.value--;
+    fetchData();
   } catch (err: any) {
-    deleteApiError.value = extractApiError(err, 'Gagal menghapus program risiko.')
+    deleteApiError.value = extractApiError(
+      err,
+      "Gagal menghapus program risiko.",
+    );
   } finally {
-    deleteLoading.value = false
+    deleteLoading.value = false;
   }
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 onMounted(() => {
-  fetchData()
-})
+  fetchData();
+});
 </script>
 
 <style scoped>
@@ -818,7 +917,6 @@ onMounted(() => {
   border: 1px solid var(--color-border);
 }
 
-
 /* ─── Pagination ──────────────────────────────────────────────────────────── */
 
 .rp-pagination {
@@ -960,7 +1058,9 @@ onMounted(() => {
   font-family: var(--font-body);
   font-size: 13px;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   width: 100%;
 }
 
@@ -1051,4 +1151,9 @@ onMounted(() => {
   border-color: rgba(251, 146, 60, 0.3);
 }
 
+.btn-icon-ban:hover {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+  border-color: rgba(251, 191, 36, 0.35);
+}
 </style>

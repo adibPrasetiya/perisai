@@ -1,8 +1,8 @@
-import prosesBisnisService from "./proses-bisnis.service.js";
+import KegiatanService from "./kegiatan.service.js";
 
 const create = async (req, res, next) => {
   try {
-    const result = await prosesBisnisService.create(
+    const result = await KegiatanService.create(
       req.params.unitKerjaId,
       req.body,
       req.user,
@@ -15,7 +15,7 @@ const create = async (req, res, next) => {
 
 const search = async (req, res, next) => {
   try {
-    const result = await prosesBisnisService.search(
+    const result = await KegiatanService.search(
       req.params.unitKerjaId,
       req.query,
       req.user,
@@ -35,7 +35,7 @@ const search = async (req, res, next) => {
 
 const update = async (req, res, next) => {
   try {
-    const result = await prosesBisnisService.update(
+    const result = await KegiatanService.update(
       req.params.unitKerjaId,
       req.params.id,
       req.body,
@@ -49,7 +49,7 @@ const update = async (req, res, next) => {
 
 const setActive = async (req, res, next) => {
   try {
-    const result = await prosesBisnisService.setActive(
+    const result = await KegiatanService.setActive(
       req.params.unitKerjaId,
       req.params.id,
       req.user,
@@ -62,7 +62,7 @@ const setActive = async (req, res, next) => {
 
 const setInactive = async (req, res, next) => {
   try {
-    const result = await prosesBisnisService.setInactive(
+    const result = await KegiatanService.setInactive(
       req.params.unitKerjaId,
       req.params.id,
       req.user,
@@ -75,7 +75,7 @@ const setInactive = async (req, res, next) => {
 
 const archive = async (req, res, next) => {
   try {
-    const result = await prosesBisnisService.archive(
+    const result = await KegiatanService.archive(
       req.params.unitKerjaId,
       req.params.id,
       req.user,
@@ -87,3 +87,4 @@ const archive = async (req, res, next) => {
 };
 
 export default { create, search, update, setActive, setInactive, archive };
+

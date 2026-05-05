@@ -1,6 +1,5 @@
 <template>
   <div class="fcv-page">
-
     <!-- Full-page loading -->
     <div v-if="fwLoading" class="fcv-centered">
       <ProgressSpinner style="width: 36px; height: 36px" />
@@ -10,31 +9,36 @@
     </div>
 
     <template v-else>
-
       <!-- ─── Breadcrumb ──────────────────────────────────────────────────────── -->
       <div class="fcv-breadcrumb-row">
-        <button class="fcv-back-btn" type="button" @click="router.push({ name: 'frameworks' })">
-          <i class="pi pi-arrow-left" />
-        </button>
-        <span class="fcv-crumb-link" @click="router.push({ name: 'frameworks' })">Framework</span>
+        <span
+          class="fcv-crumb-link"
+          @click="router.push({ name: 'frameworks' })"
+          >Framework</span
+        >
         <i class="pi pi-chevron-right fcv-crumb-sep" />
-        <span class="fcv-crumb-current">{{ fw?.name ?? '—' }}</span>
+        <span class="fcv-crumb-current">{{ fw?.name ?? "—" }}</span>
       </div>
 
       <!-- ─── Two-column layout ──────────────────────────────────────────────── -->
       <div class="fcv-layout">
-
         <!-- Sidebar -->
         <aside class="fcv-sidebar">
           <div class="fcv-sidebar-header">
             <span class="fcv-sidebar-code">{{ fw?.code }}</span>
-            <span v-if="fw?.version" class="fcv-sidebar-version">v{{ fw.version }}</span>
+            <span v-if="fw?.version" class="fcv-sidebar-version"
+              >v{{ fw.version }}</span
+            >
           </div>
 
-          <h2 class="fcv-sidebar-name">{{ fw?.name ?? '—' }}</h2>
+          <h2 class="fcv-sidebar-name">{{ fw?.name ?? "—" }}</h2>
 
-          <p v-if="fw?.description" class="fcv-sidebar-desc">{{ fw.description }}</p>
-          <p v-else class="fcv-sidebar-desc fcv-sidebar-desc--empty">Tidak ada deskripsi.</p>
+          <p v-if="fw?.description" class="fcv-sidebar-desc">
+            {{ fw.description }}
+          </p>
+          <p v-else class="fcv-sidebar-desc fcv-sidebar-desc--empty">
+            Tidak ada deskripsi.
+          </p>
 
           <div class="fcv-sidebar-divider" />
 
@@ -55,26 +59,31 @@
               class="fcv-status-badge"
               :class="fw?.isActive ? 'badge-active' : 'badge-inactive'"
             >
-              {{ fw?.isActive ? 'Aktif' : 'Nonaktif' }}
+              {{ fw?.isActive ? "Aktif" : "Nonaktif" }}
             </span>
           </div>
         </aside>
 
         <!-- Main content -->
         <main class="fcv-main">
-
           <!-- Section header -->
           <div class="fcv-section-header">
             <div>
               <h3 class="fcv-section-title">Konteks Risiko Template</h3>
               <p class="fcv-section-sub">
-                Template konteks yang dapat digunakan pada semua program risiko yang menggunakan framework ini.
+                Template konteks yang dapat digunakan pada semua program risiko
+                yang menggunakan framework ini.
               </p>
             </div>
             <button
               class="fcv-add-btn"
               type="button"
-              @click="router.push({ name: 'framework-context-create', params: { frameworkId } })"
+              @click="
+                router.push({
+                  name: 'framework-context-create',
+                  params: { frameworkId },
+                })
+              "
             >
               <i class="pi pi-plus" />
               Tambah Konteks
@@ -99,13 +108,18 @@
             <div class="fcv-empty-body">
               <p class="fcv-empty-title">Belum ada konteks template</p>
               <p class="fcv-empty-desc">
-                Tambahkan konteks risiko sebagai template global untuk framework ini.
-                Konteks dapat digunakan ulang di berbagai program risiko.
+                Tambahkan konteks risiko sebagai template global untuk framework
+                ini. Konteks dapat digunakan ulang di berbagai program risiko.
               </p>
               <button
                 class="fcv-add-btn"
                 type="button"
-                @click="router.push({ name: 'framework-context-create', params: { frameworkId } })"
+                @click="
+                  router.push({
+                    name: 'framework-context-create',
+                    params: { frameworkId },
+                  })
+                "
               >
                 <i class="pi pi-plus" /> Tambah Konteks Template
               </button>
@@ -124,23 +138,32 @@
               <div class="fcv-row-info">
                 <div class="fcv-row-badges">
                   <span class="badge-code">{{ ctx.code }}</span>
-                  <span class="badge-type">{{ CONTEXT_TYPE_LABELS[ctx.contextType] }}</span>
+                  <span class="badge-type">{{
+                    CONTEXT_TYPE_LABELS[ctx.contextType]
+                  }}</span>
                   <span
                     class="badge-status"
-                    :class="ctx.status === 'ACTIVE' ? 'bs-active' : 'bs-inactive'"
+                    :class="
+                      ctx.status === 'ACTIVE' ? 'bs-active' : 'bs-inactive'
+                    "
                   >
                     {{ RISK_CONTEXT_STATUS_LABELS[ctx.status] }}
                   </span>
                 </div>
                 <div class="fcv-row-name">{{ ctx.name }}</div>
                 <div class="fcv-row-meta">
-                  Periode {{ ctx.periodStart }}–{{ ctx.periodEnd }}
-                  &nbsp;·&nbsp;
-                  Matriks {{ ctx.matrixRows }}×{{ ctx.matrixCols }}
+                  Periode {{ ctx.periodStart }}–{{
+                    ctx.periodEnd
+                  }}
+                  &nbsp;·&nbsp; Matriks {{ ctx.matrixRows }}×{{
+                    ctx.matrixCols
+                  }}
                   &nbsp;·&nbsp;
                   <span>{{ ctx._count?.riskCategories ?? 0 }} Kategori</span>
                   &nbsp;·&nbsp;
-                  <span>{{ ctx._count?.likelihoodCriteria ?? 0 }} Kemungkinan</span>
+                  <span
+                    >{{ ctx._count?.likelihoodCriteria ?? 0 }} Kemungkinan</span
+                  >
                   &nbsp;·&nbsp;
                   <span>{{ ctx._count?.impactAreas ?? 0 }} Area Dampak</span>
                 </div>
@@ -151,7 +174,12 @@
                 <button
                   class="fcv-manage-btn"
                   type="button"
-                  @click="router.push({ name: 'risk-context-detail', params: { contextId: ctx.id } })"
+                  @click="
+                    router.push({
+                      name: 'risk-context-detail',
+                      params: { contextId: ctx.id },
+                    })
+                  "
                 >
                   Kelola <i class="pi pi-arrow-right" />
                 </button>
@@ -173,26 +201,36 @@
                     title="Nonaktifkan"
                     @click="openDeactivate(ctx)"
                   >
-                    <i class="pi pi-pause-circle" />
+                    <i class="pi pi-ban" />
                   </button>
-                  <button class="btn-icon btn-icon-danger" title="Hapus" @click="openDelete(ctx)">
+                  <button
+                    class="btn-icon btn-icon-danger"
+                    title="Hapus"
+                    @click="openDelete(ctx)"
+                  >
                     <i class="pi pi-trash" />
                   </button>
                 </div>
               </div>
             </div>
           </div>
-
         </main>
       </div>
     </template>
 
     <!-- ─── Edit Dialog ──────────────────────────────────────────────────────── -->
-    <Dialog v-model:visible="showEdit" modal header="Edit Konteks Template" :style="{ width: '560px' }">
+    <Dialog
+      v-model:visible="showEdit"
+      modal
+      header="Edit Konteks Template"
+      :style="{ width: '560px' }"
+    >
       <form class="fcv-form" @submit.prevent="submitEdit">
         <div class="form-row-2">
           <div class="form-group">
-            <label class="form-label">Nama Konteks <span class="req">*</span></label>
+            <label class="form-label"
+              >Nama Konteks <span class="req">*</span></label
+            >
             <input
               v-model="editForm.name"
               class="fcv-input"
@@ -200,7 +238,9 @@
               type="text"
               autocomplete="off"
             />
-            <span v-if="editErrors.name" class="form-err">{{ editErrors.name }}</span>
+            <span v-if="editErrors.name" class="form-err">{{
+              editErrors.name
+            }}</span>
           </div>
           <div class="form-group">
             <label class="form-label">Kode <span class="req">*</span></label>
@@ -211,21 +251,27 @@
               type="text"
               autocomplete="off"
             />
-            <span v-if="editErrors.code" class="form-err">{{ editErrors.code }}</span>
+            <span v-if="editErrors.code" class="form-err">{{
+              editErrors.code
+            }}</span>
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Tipe Konteks <span class="req">*</span></label>
+          <label class="form-label"
+            >Tipe Konteks <span class="req">*</span></label
+          >
           <select v-model="editForm.contextType" class="fcv-input fcv-select">
             <option value="ASSET">Aset</option>
-            <option value="PROCESS">Proses Bisnis</option>
+            <option value="PROCESS">Kegiatan</option>
           </select>
         </div>
 
         <div class="form-row-2">
           <div class="form-group">
-            <label class="form-label">Periode Awal <span class="req">*</span></label>
+            <label class="form-label"
+              >Periode Awal <span class="req">*</span></label
+            >
             <input
               v-model.number="editForm.periodStart"
               class="fcv-input"
@@ -234,10 +280,14 @@
               min="2000"
               max="2100"
             />
-            <span v-if="editErrors.periodStart" class="form-err">{{ editErrors.periodStart }}</span>
+            <span v-if="editErrors.periodStart" class="form-err">{{
+              editErrors.periodStart
+            }}</span>
           </div>
           <div class="form-group">
-            <label class="form-label">Periode Akhir <span class="req">*</span></label>
+            <label class="form-label"
+              >Periode Akhir <span class="req">*</span></label
+            >
             <input
               v-model.number="editForm.periodEnd"
               class="fcv-input"
@@ -246,13 +296,21 @@
               min="2000"
               max="2100"
             />
-            <span v-if="editErrors.periodEnd" class="form-err">{{ editErrors.periodEnd }}</span>
+            <span v-if="editErrors.periodEnd" class="form-err">{{
+              editErrors.periodEnd
+            }}</span>
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Deskripsi <span class="form-opt">(opsional)</span></label>
-          <textarea v-model="editForm.description" class="fcv-input fcv-textarea" rows="2" />
+          <label class="form-label"
+            >Deskripsi <span class="form-opt">(opsional)</span></label
+          >
+          <textarea
+            v-model="editForm.description"
+            class="fcv-input fcv-textarea"
+            rows="2"
+          />
         </div>
 
         <div v-if="editApiError" class="fcv-alert-error">
@@ -260,62 +318,110 @@
         </div>
 
         <div class="form-actions">
-          <Button label="Batal" severity="secondary" type="button" :disabled="editLoading" @click="showEdit = false" />
+          <Button
+            label="Batal"
+            severity="secondary"
+            type="button"
+            :disabled="editLoading"
+            @click="showEdit = false"
+          />
           <Button label="Simpan" type="submit" :loading="editLoading" />
         </div>
       </form>
     </Dialog>
 
     <!-- ─── Activate Dialog ──────────────────────────────────────────────────── -->
-    <Dialog v-model:visible="showActivate" modal header="Aktifkan Konteks" :style="{ width: '400px' }">
+    <Dialog
+      v-model:visible="showActivate"
+      modal
+      header="Aktifkan Konteks"
+      :style="{ width: '400px' }"
+    >
       <div class="del-body">
         <div class="act-icon-wrap">
           <i class="pi pi-check-circle" />
         </div>
         <p class="del-text">
-          Aktifkan konteks template <strong>{{ activateTarget?.name }}</strong>?
+          Aktifkan konteks template <strong>{{ activateTarget?.name }}</strong
+          >?
         </p>
         <div v-if="activateError" class="fcv-alert-error">
           <i class="pi pi-exclamation-triangle" /> {{ activateError }}
         </div>
       </div>
       <template #footer>
-        <Button label="Batal" severity="secondary" :disabled="activateLoading" @click="showActivate = false" />
-        <Button label="Aktifkan" :loading="activateLoading" @click="submitActivate" />
+        <Button
+          label="Batal"
+          severity="secondary"
+          :disabled="activateLoading"
+          @click="showActivate = false"
+        />
+        <Button
+          label="Aktifkan"
+          :loading="activateLoading"
+          @click="submitActivate"
+        />
       </template>
     </Dialog>
 
     <!-- ─── Deactivate Dialog ────────────────────────────────────────────────── -->
-    <Dialog v-model:visible="showDeactivate" modal header="Nonaktifkan Konteks" :style="{ width: '400px' }">
+    <Dialog
+      v-model:visible="showDeactivate"
+      modal
+      header="Nonaktifkan Konteks"
+      :style="{ width: '400px' }"
+    >
       <div class="del-body">
         <div class="del-icon-wrap del-icon-warn">
-          <i class="pi pi-pause-circle" />
+          <i class="pi pi-ban" />
         </div>
         <p class="del-text">
-          Nonaktifkan konteks template <strong>{{ deactivateTarget?.name }}</strong>?
+          Nonaktifkan konteks template
+          <strong>{{ deactivateTarget?.name }}</strong
+          >?
         </p>
         <div v-if="deactivateError" class="fcv-alert-error">
           <i class="pi pi-exclamation-triangle" /> {{ deactivateError }}
         </div>
       </div>
       <template #footer>
-        <Button label="Batal" severity="secondary" :disabled="deactivateLoading" @click="showDeactivate = false" />
-        <Button label="Nonaktifkan" severity="warn" :loading="deactivateLoading" @click="submitDeactivate" />
+        <Button
+          label="Batal"
+          severity="secondary"
+          :disabled="deactivateLoading"
+          @click="showDeactivate = false"
+        />
+        <Button
+          label="Nonaktifkan"
+          severity="warn"
+          :loading="deactivateLoading"
+          @click="submitDeactivate"
+        />
       </template>
     </Dialog>
 
     <!-- ─── Delete Dialog ────────────────────────────────────────────────────── -->
-    <Dialog v-model:visible="showDelete" modal header="Hapus Konteks Template" :style="{ width: '420px' }">
+    <Dialog
+      v-model:visible="showDelete"
+      modal
+      header="Hapus Konteks Template"
+      :style="{ width: '420px' }"
+    >
       <div class="del-body">
         <!-- ACTIVE: blocked state -->
         <template v-if="deleteTarget?.status === 'ACTIVE'">
           <div class="del-icon-wrap del-icon-warn">
             <i class="pi pi-lock" />
           </div>
-          <p class="del-text">Tidak dapat menghapus <strong>{{ deleteTarget?.name }}</strong></p>
+          <p class="del-text">
+            Tidak dapat menghapus <strong>{{ deleteTarget?.name }}</strong>
+          </p>
           <div class="fcv-alert-blocked">
             <i class="pi pi-info-circle" />
-            <span>Konteks sedang dalam status <strong>Aktif</strong>. Nonaktifkan konteks terlebih dahulu sebelum menghapus.</span>
+            <span
+              >Konteks sedang dalam status <strong>Aktif</strong>. Nonaktifkan
+              konteks terlebih dahulu sebelum menghapus.</span
+            >
           </div>
         </template>
 
@@ -325,11 +431,15 @@
             <i class="pi pi-exclamation-triangle" />
           </div>
           <p class="del-text">
-            Hapus konteks template <strong>{{ deleteTarget?.name }}</strong>?
+            Hapus konteks template <strong>{{ deleteTarget?.name }}</strong
+            >?
           </p>
           <div class="fcv-alert-info">
             <i class="pi pi-info-circle" />
-            <span>Konteks tidak dapat dihapus jika masih digunakan dalam program risiko.</span>
+            <span
+              >Konteks tidak dapat dihapus jika masih digunakan dalam program
+              risiko.</span
+            >
           </div>
           <div v-if="deleteError" class="fcv-alert-error">
             <i class="pi pi-exclamation-triangle" /> {{ deleteError }}
@@ -337,7 +447,12 @@
         </template>
       </div>
       <template #footer>
-        <Button label="Batal" severity="secondary" :disabled="deleteLoading" @click="showDelete = false" />
+        <Button
+          label="Batal"
+          severity="secondary"
+          :disabled="deleteLoading"
+          @click="showDelete = false"
+        />
         <Button
           v-if="deleteTarget?.status !== 'ACTIVE'"
           label="Hapus"
@@ -347,121 +462,141 @@
         />
       </template>
     </Dialog>
-
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import Button from 'primevue/button'
-import Dialog from 'primevue/dialog'
-import ProgressSpinner from 'primevue/progressspinner'
-import { useToast } from 'primevue/usetoast'
+import { ref, reactive, computed, onMounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import Button from "primevue/button";
+import Dialog from "primevue/dialog";
+import ProgressSpinner from "primevue/progressspinner";
+import { useToast } from "primevue/usetoast";
 import {
   riskContextApi,
   RISK_CONTEXT_STATUS_LABELS,
   CONTEXT_TYPE_LABELS,
   type RiskContext,
-} from '@/api/riskContext'
-import { frameworkApi, type Framework } from '@/api/framework'
-import { extractApiError } from '@/utils/apiError'
+} from "@/api/riskContext";
+import { frameworkApi, type Framework } from "@/api/framework";
+import { extractApiError } from "@/utils/apiError";
 
-const router = useRouter()
-const route = useRoute()
-const toast = useToast()
+const router = useRouter();
+const route = useRoute();
+const toast = useToast();
 
-const frameworkId = route.params.frameworkId as string
+const frameworkId = route.params.frameworkId as string;
 
 // ─── Framework info ───────────────────────────────────────────────────────────
 
-const fw = ref<Framework | null>(null)
-const fwLoading = ref(false)
-const fwError = ref('')
+const fw = ref<Framework | null>(null);
+const fwLoading = ref(false);
+const fwError = ref("");
 
 async function loadFramework() {
-  fwLoading.value = true
-  fwError.value = ''
+  fwLoading.value = true;
+  fwError.value = "";
   try {
-    const res = await frameworkApi.getById(frameworkId)
-    fw.value = res.data.data
+    const res = await frameworkApi.getById(frameworkId);
+    fw.value = res.data.data;
   } catch (err: any) {
-    fwError.value = extractApiError(err, 'Gagal memuat data framework.')
+    fwError.value = extractApiError(err, "Gagal memuat data framework.");
   } finally {
-    fwLoading.value = false
+    fwLoading.value = false;
   }
 }
 
 // ─── Contexts ─────────────────────────────────────────────────────────────────
 
-const contexts = ref<RiskContext[]>([])
-const loading = ref(false)
-const error = ref('')
+const contexts = ref<RiskContext[]>([]);
+const loading = ref(false);
+const error = ref("");
 
-const activeCount = computed(() => contexts.value.filter(c => c.status === 'ACTIVE').length)
+const activeCount = computed(
+  () => contexts.value.filter((c) => c.status === "ACTIVE").length,
+);
 
 async function loadContexts() {
-  loading.value = true
-  error.value = ''
+  loading.value = true;
+  error.value = "";
   try {
-    const res = await riskContextApi.listByFramework(frameworkId)
-    contexts.value = res.data.data ?? []
+    const res = await riskContextApi.listByFramework(frameworkId);
+    contexts.value = res.data.data ?? [];
   } catch (err: any) {
-    error.value = extractApiError(err, 'Gagal memuat daftar konteks template.')
+    error.value = extractApiError(err, "Gagal memuat daftar konteks template.");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 // ─── Edit ─────────────────────────────────────────────────────────────────────
 
-const showEdit = ref(false)
-const editLoading = ref(false)
-const editApiError = ref('')
-const editTarget = ref<RiskContext | null>(null)
+const showEdit = ref(false);
+const editLoading = ref(false);
+const editApiError = ref("");
+const editTarget = ref<RiskContext | null>(null);
 const editForm = reactive({
-  name: '',
-  code: '',
-  contextType: '',
+  name: "",
+  code: "",
+  contextType: "",
   periodStart: 2025,
   periodEnd: 2025,
-  description: '',
-  riskAppetiteLevel: '',
-  riskAppetiteDescription: '',
-})
-const editErrors = reactive({ name: '', code: '', contextType: '', periodStart: '', periodEnd: '' })
+  description: "",
+  riskAppetiteLevel: "",
+  riskAppetiteDescription: "",
+});
+const editErrors = reactive({
+  name: "",
+  code: "",
+  contextType: "",
+  periodStart: "",
+  periodEnd: "",
+});
 
 function openEdit(ctx: RiskContext) {
-  editTarget.value = ctx
-  editForm.name = ctx.name
-  editForm.code = ctx.code
-  editForm.contextType = ctx.contextType
-  editForm.periodStart = ctx.periodStart
-  editForm.periodEnd = ctx.periodEnd
-  editForm.description = ctx.description ?? ''
-  editForm.riskAppetiteLevel = ctx.riskAppetiteLevel ?? ''
-  editForm.riskAppetiteDescription = ctx.riskAppetiteDescription ?? ''
-  Object.assign(editErrors, { name: '', code: '', contextType: '', periodStart: '', periodEnd: '' })
-  editApiError.value = ''
-  showEdit.value = true
+  editTarget.value = ctx;
+  editForm.name = ctx.name;
+  editForm.code = ctx.code;
+  editForm.contextType = ctx.contextType;
+  editForm.periodStart = ctx.periodStart;
+  editForm.periodEnd = ctx.periodEnd;
+  editForm.description = ctx.description ?? "";
+  editForm.riskAppetiteLevel = ctx.riskAppetiteLevel ?? "";
+  editForm.riskAppetiteDescription = ctx.riskAppetiteDescription ?? "";
+  Object.assign(editErrors, {
+    name: "",
+    code: "",
+    contextType: "",
+    periodStart: "",
+    periodEnd: "",
+  });
+  editApiError.value = "";
+  showEdit.value = true;
 }
 
 async function submitEdit() {
-  if (!editTarget.value) return
-  let valid = true
-  editErrors.name = ''
-  editErrors.code = ''
-  editErrors.periodStart = ''
-  editErrors.periodEnd = ''
-  if (!editForm.name.trim()) { editErrors.name = 'Nama wajib diisi'; valid = false }
-  if (!editForm.code.trim()) { editErrors.code = 'Kode wajib diisi'; valid = false }
-  if (editForm.periodEnd < editForm.periodStart) {
-    editErrors.periodEnd = 'Periode akhir tidak boleh sebelum periode awal'; valid = false
+  if (!editTarget.value) return;
+  let valid = true;
+  editErrors.name = "";
+  editErrors.code = "";
+  editErrors.periodStart = "";
+  editErrors.periodEnd = "";
+  if (!editForm.name.trim()) {
+    editErrors.name = "Nama wajib diisi";
+    valid = false;
   }
-  if (!valid) return
+  if (!editForm.code.trim()) {
+    editErrors.code = "Kode wajib diisi";
+    valid = false;
+  }
+  if (editForm.periodEnd < editForm.periodStart) {
+    editErrors.periodEnd = "Periode akhir tidak boleh sebelum periode awal";
+    valid = false;
+  }
+  if (!valid) return;
 
-  editLoading.value = true
-  editApiError.value = ''
+  editLoading.value = true;
+  editApiError.value = "";
   try {
     await riskContextApi.update(editTarget.value.id, {
       name: editForm.name.trim(),
@@ -471,111 +606,144 @@ async function submitEdit() {
       periodEnd: editForm.periodEnd,
       description: editForm.description.trim() || undefined,
       riskAppetiteLevel: editForm.riskAppetiteLevel.trim() || undefined,
-      riskAppetiteDescription: editForm.riskAppetiteDescription.trim() || undefined,
-    })
-    showEdit.value = false
-    toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Konteks template berhasil diperbarui', life: 3000 })
-    loadContexts()
+      riskAppetiteDescription:
+        editForm.riskAppetiteDescription.trim() || undefined,
+    });
+    showEdit.value = false;
+    toast.add({
+      severity: "success",
+      summary: "Berhasil",
+      detail: "Konteks template berhasil diperbarui",
+      life: 3000,
+    });
+    loadContexts();
   } catch (err: any) {
-    editApiError.value = extractApiError(err, 'Gagal memperbarui konteks template.')
+    editApiError.value = extractApiError(
+      err,
+      "Gagal memperbarui konteks template.",
+    );
   } finally {
-    editLoading.value = false
+    editLoading.value = false;
   }
 }
 
 // ─── Activate ─────────────────────────────────────────────────────────────────
 
-const showActivate = ref(false)
-const activateLoading = ref(false)
-const activateError = ref('')
-const activateTarget = ref<RiskContext | null>(null)
+const showActivate = ref(false);
+const activateLoading = ref(false);
+const activateError = ref("");
+const activateTarget = ref<RiskContext | null>(null);
 
 function openActivate(ctx: RiskContext) {
-  activateTarget.value = ctx
-  activateError.value = ''
-  showActivate.value = true
+  activateTarget.value = ctx;
+  activateError.value = "";
+  showActivate.value = true;
 }
 
 async function submitActivate() {
-  if (!activateTarget.value) return
-  activateLoading.value = true
-  activateError.value = ''
+  if (!activateTarget.value) return;
+  activateLoading.value = true;
+  activateError.value = "";
   try {
-    await riskContextApi.activate(activateTarget.value.id)
-    showActivate.value = false
-    toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Konteks template berhasil diaktifkan', life: 3000 })
-    loadContexts()
+    await riskContextApi.activate(activateTarget.value.id);
+    showActivate.value = false;
+    toast.add({
+      severity: "success",
+      summary: "Berhasil",
+      detail: "Konteks template berhasil diaktifkan",
+      life: 3000,
+    });
+    loadContexts();
   } catch (err: any) {
-    activateError.value = extractApiError(err, 'Gagal mengaktifkan konteks template.')
+    activateError.value = extractApiError(
+      err,
+      "Gagal mengaktifkan konteks template.",
+    );
   } finally {
-    activateLoading.value = false
+    activateLoading.value = false;
   }
 }
 
 // ─── Deactivate ───────────────────────────────────────────────────────────────
 
-const showDeactivate = ref(false)
-const deactivateLoading = ref(false)
-const deactivateError = ref('')
-const deactivateTarget = ref<RiskContext | null>(null)
+const showDeactivate = ref(false);
+const deactivateLoading = ref(false);
+const deactivateError = ref("");
+const deactivateTarget = ref<RiskContext | null>(null);
 
 function openDeactivate(ctx: RiskContext) {
-  deactivateTarget.value = ctx
-  deactivateError.value = ''
-  showDeactivate.value = true
+  deactivateTarget.value = ctx;
+  deactivateError.value = "";
+  showDeactivate.value = true;
 }
 
 async function submitDeactivate() {
-  if (!deactivateTarget.value) return
-  deactivateLoading.value = true
-  deactivateError.value = ''
+  if (!deactivateTarget.value) return;
+  deactivateLoading.value = true;
+  deactivateError.value = "";
   try {
-    await riskContextApi.deactivate(deactivateTarget.value.id)
-    showDeactivate.value = false
-    toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Konteks template berhasil dinonaktifkan', life: 3000 })
-    loadContexts()
+    await riskContextApi.deactivate(deactivateTarget.value.id);
+    showDeactivate.value = false;
+    toast.add({
+      severity: "success",
+      summary: "Berhasil",
+      detail: "Konteks template berhasil dinonaktifkan",
+      life: 3000,
+    });
+    loadContexts();
   } catch (err: any) {
-    deactivateError.value = extractApiError(err, 'Gagal menonaktifkan konteks template.')
+    deactivateError.value = extractApiError(
+      err,
+      "Gagal menonaktifkan konteks template.",
+    );
   } finally {
-    deactivateLoading.value = false
+    deactivateLoading.value = false;
   }
 }
 
 // ─── Delete ───────────────────────────────────────────────────────────────────
 
-const showDelete = ref(false)
-const deleteLoading = ref(false)
-const deleteError = ref('')
-const deleteTarget = ref<RiskContext | null>(null)
+const showDelete = ref(false);
+const deleteLoading = ref(false);
+const deleteError = ref("");
+const deleteTarget = ref<RiskContext | null>(null);
 
 function openDelete(ctx: RiskContext) {
-  deleteTarget.value = ctx
-  deleteError.value = ''
-  showDelete.value = true
+  deleteTarget.value = ctx;
+  deleteError.value = "";
+  showDelete.value = true;
 }
 
 async function submitDelete() {
-  if (!deleteTarget.value) return
-  deleteLoading.value = true
-  deleteError.value = ''
+  if (!deleteTarget.value) return;
+  deleteLoading.value = true;
+  deleteError.value = "";
   try {
-    await riskContextApi.remove(deleteTarget.value.id)
-    showDelete.value = false
-    toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Konteks template berhasil dihapus', life: 3000 })
-    loadContexts()
+    await riskContextApi.remove(deleteTarget.value.id);
+    showDelete.value = false;
+    toast.add({
+      severity: "success",
+      summary: "Berhasil",
+      detail: "Konteks template berhasil dihapus",
+      life: 3000,
+    });
+    loadContexts();
   } catch (err: any) {
-    deleteError.value = extractApiError(err, 'Gagal menghapus konteks template.')
+    deleteError.value = extractApiError(
+      err,
+      "Gagal menghapus konteks template.",
+    );
   } finally {
-    deleteLoading.value = false
+    deleteLoading.value = false;
   }
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 onMounted(() => {
-  loadFramework()
-  loadContexts()
-})
+  loadFramework();
+  loadContexts();
+});
 </script>
 
 <style scoped>
@@ -592,27 +760,6 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 2rem;
-}
-
-.fcv-back-btn {
-  width: 30px;
-  height: 30px;
-  background: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  transition: all 0.15s;
-  flex-shrink: 0;
-}
-
-.fcv-back-btn:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
 }
 
 .fcv-crumb-link {
@@ -1096,7 +1243,9 @@ onMounted(() => {
   color: var(--color-text-dim);
 }
 
-.req { color: var(--color-danger); }
+.req {
+  color: var(--color-danger);
+}
 
 .form-opt {
   font-size: 10px;
@@ -1115,7 +1264,9 @@ onMounted(() => {
   font-family: var(--font-body);
   font-size: 13px;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   width: 100%;
 }
 
@@ -1124,8 +1275,12 @@ onMounted(() => {
   box-shadow: 0 0 0 2px var(--color-accent-glow);
 }
 
-.fcv-input.is-error { border-color: var(--color-danger); }
-.fcv-select { cursor: pointer; }
+.fcv-input.is-error {
+  border-color: var(--color-danger);
+}
+.fcv-select {
+  cursor: pointer;
+}
 
 .fcv-textarea {
   resize: vertical;
@@ -1152,7 +1307,10 @@ onMounted(() => {
   line-height: 1.5;
   max-width: 340px;
 }
-.fcv-alert-blocked .pi { flex-shrink: 0; margin-top: 1px; }
+.fcv-alert-blocked .pi {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
 
 .fcv-alert-info {
   display: flex;
@@ -1168,7 +1326,10 @@ onMounted(() => {
   line-height: 1.5;
   max-width: 340px;
 }
-.fcv-alert-info .pi { flex-shrink: 0; margin-top: 1px; }
+.fcv-alert-info .pi {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
 
 .fcv-alert-error {
   display: flex;
@@ -1213,14 +1374,19 @@ onMounted(() => {
   justify-content: center;
 }
 
-.del-icon-wrap .pi { font-size: 1.4rem; color: #ff8fa3; }
+.del-icon-wrap .pi {
+  font-size: 1.4rem;
+  color: #ff8fa3;
+}
 
 .del-icon-warn {
   background: rgba(245, 158, 11, 0.1);
   border-color: rgba(245, 158, 11, 0.3);
 }
 
-.del-icon-warn .pi { color: #fbbf24; }
+.del-icon-warn .pi {
+  color: #fbbf24;
+}
 
 .del-text {
   font-size: 14px;
@@ -1246,5 +1412,9 @@ onMounted(() => {
   justify-content: center;
 }
 
-.act-icon-wrap .pi { font-size: 1.4rem; color: var(--color-accent); }
+.act-icon-wrap .pi {
+  font-size: 1.4rem;
+  color: var(--color-accent);
+}
 </style>
+<<<<<<< HEAD ======= >>>>>>> 34c523e603f6d66ea861238b031cd77994f52169

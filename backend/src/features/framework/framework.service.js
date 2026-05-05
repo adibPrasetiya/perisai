@@ -58,7 +58,11 @@ const create = async (reqBody) => {
     select: frameworkSelect,
   });
 
-  await activityLog.notice("FRAMEWORK_CREATED", { actionType: "CREATE", frameworkId: framework.id, code: framework.code });
+  await activityLog.notice("FRAMEWORK_CREATED", {
+    actionType: "CREATE",
+    frameworkId: framework.id,
+    code: framework.code,
+  });
 
   return {
     message: "Framework berhasil dibuat",
@@ -189,7 +193,10 @@ const activate = async (id) => {
     select: frameworkSelect,
   });
 
-  await activityLog.notice("FRAMEWORK_ACTIVATED", { actionType: "UPDATE", frameworkId: validId });
+  await activityLog.notice("FRAMEWORK_ACTIVATED", {
+    actionType: "UPDATE",
+    frameworkId: validId,
+  });
 
   return {
     message: "Framework berhasil diaktifkan",
@@ -211,7 +218,10 @@ const deactivate = async (id) => {
     select: frameworkSelect,
   });
 
-  await activityLog.notice("FRAMEWORK_DEACTIVATED", { actionType: "UPDATE", frameworkId: validId });
+  await activityLog.notice("FRAMEWORK_DEACTIVATED", {
+    actionType: "UPDATE",
+    frameworkId: validId,
+  });
 
   return {
     message: "Framework berhasil dinonaktifkan",
@@ -245,11 +255,22 @@ const remove = async (id) => {
 
   await prismaClient.framework.delete({ where: { id: validId } });
 
-  await activityLog.notice("FRAMEWORK_DELETED", { actionType: "DELETE", frameworkId: validId });
+  await activityLog.notice("FRAMEWORK_DELETED", {
+    actionType: "DELETE",
+    frameworkId: validId,
+  });
 
   return {
     message: "Framework berhasil dihapus",
   };
 };
 
-export default { create, search, getById, update, activate, deactivate, remove };
+export default {
+  create,
+  search,
+  getById,
+  update,
+  activate,
+  deactivate,
+  remove,
+};

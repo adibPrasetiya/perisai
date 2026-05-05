@@ -264,7 +264,9 @@ const update = async (id, reqBody, user) => {
 };
 
 const getStats = async (workingPaperId, user) => {
-  const { id: validId } = validate(workingPaperIdSchema, { id: workingPaperId });
+  const { id: validId } = validate(workingPaperIdSchema, {
+    id: workingPaperId,
+  });
 
   const paper = await prismaClient.workingPaper.findUnique({
     where: { id: validId },
@@ -314,7 +316,12 @@ const getStats = async (workingPaperId, user) => {
   for (const e of entries) {
     const key = e.inherentAssessment?.riskLevel?.name ?? "__none__";
     const color = e.inherentAssessment?.riskLevel?.color ?? "#555555";
-    if (!inherentLevelMap.has(key)) inherentLevelMap.set(key, { name: key === "__none__" ? "Belum dinilai" : key, color, count: 0 });
+    if (!inherentLevelMap.has(key))
+      inherentLevelMap.set(key, {
+        name: key === "__none__" ? "Belum dinilai" : key,
+        color,
+        count: 0,
+      });
     inherentLevelMap.get(key).count++;
   }
   const inherentLevels = [...inherentLevelMap.values()];
@@ -324,7 +331,12 @@ const getStats = async (workingPaperId, user) => {
   for (const e of entries) {
     const key = e.residualAssessment?.riskLevel?.name ?? "__none__";
     const color = e.residualAssessment?.riskLevel?.color ?? "#555555";
-    if (!residualLevelMap.has(key)) residualLevelMap.set(key, { name: key === "__none__" ? "Belum dinilai" : key, color, count: 0 });
+    if (!residualLevelMap.has(key))
+      residualLevelMap.set(key, {
+        name: key === "__none__" ? "Belum dinilai" : key,
+        color,
+        count: 0,
+      });
     residualLevelMap.get(key).count++;
   }
   const residualLevels = [...residualLevelMap.values()];
@@ -336,9 +348,14 @@ const getStats = async (workingPaperId, user) => {
   const treatmentStatusMap = new Map();
   for (const e of entries) {
     for (const p of e.treatmentPlans) {
-      if (!treatmentStatusMap.has(p.status)) treatmentStatusMap.set(p.status, { status: p.status, count: 0 });
+      if (!treatmentStatusMap.has(p.status))
+        treatmentStatusMap.set(p.status, { status: p.status, count: 0 });
       treatmentStatusMap.get(p.status).count++;
-      if (p.targetDate && new Date(p.targetDate) < now && !DONE_STATUSES.includes(p.status)) {
+      if (
+        p.targetDate &&
+        new Date(p.targetDate) < now &&
+        !DONE_STATUSES.includes(p.status)
+      ) {
         overduePlans++;
       }
     }
@@ -348,7 +365,11 @@ const getStats = async (workingPaperId, user) => {
   // Total plans and completed count
   const totalPlans = entries.reduce((s, e) => s + e.treatmentPlans.length, 0);
   const completedPlans = entries.reduce(
-    (s, e) => s + e.treatmentPlans.filter((p) => p.status === "COMPLETED" || p.status === "VERIFIED").length,
+    (s, e) =>
+      s +
+      e.treatmentPlans.filter(
+        (p) => p.status === "COMPLETED" || p.status === "VERIFIED",
+      ).length,
     0,
   );
 
@@ -356,7 +377,11 @@ const getStats = async (workingPaperId, user) => {
   const controlEffMap = new Map();
   for (const e of entries) {
     for (const c of e.controls) {
-      if (!controlEffMap.has(c.effectiveness)) controlEffMap.set(c.effectiveness, { effectiveness: c.effectiveness, count: 0 });
+      if (!controlEffMap.has(c.effectiveness))
+        controlEffMap.set(c.effectiveness, {
+          effectiveness: c.effectiveness,
+          count: 0,
+        });
       controlEffMap.get(c.effectiveness).count++;
     }
   }
@@ -367,15 +392,25 @@ const getStats = async (workingPaperId, user) => {
   for (const e of entries) {
     const key = e.riskCategory?.name ?? "__none__";
     const color = e.riskCategory?.color ?? "#888888";
-    if (!categoryMap.has(key)) categoryMap.set(key, { name: key === "__none__" ? "Tanpa Kategori" : key, color, count: 0 });
+    if (!categoryMap.has(key))
+      categoryMap.set(key, {
+        name: key === "__none__" ? "Tanpa Kategori" : key,
+        color,
+        count: 0,
+      });
     categoryMap.get(key).count++;
   }
-  const categoryDistribution = [...categoryMap.values()].sort((a, b) => b.count - a.count);
+  const categoryDistribution = [...categoryMap.values()].sort(
+    (a, b) => b.count - a.count,
+  );
 
   // Top 5 by inherent final score
   const top5ByInherent = entries
     .filter((e) => e.inherentAssessment?.finalScore != null)
-    .sort((a, b) => b.inherentAssessment.finalScore - a.inherentAssessment.finalScore)
+    .sort(
+      (a, b) =>
+        b.inherentAssessment.finalScore - a.inherentAssessment.finalScore,
+    )
     .slice(0, 5)
     .map((e) => ({
       name: e.name,
@@ -387,7 +422,10 @@ const getStats = async (workingPaperId, user) => {
   // Top 5 by residual final score
   const top5ByResidual = entries
     .filter((e) => e.residualAssessment?.finalScore != null)
-    .sort((a, b) => b.residualAssessment.finalScore - a.residualAssessment.finalScore)
+    .sort(
+      (a, b) =>
+        b.residualAssessment.finalScore - a.residualAssessment.finalScore,
+    )
     .slice(0, 5)
     .map((e) => ({
       name: e.name,
@@ -412,7 +450,9 @@ const getStats = async (workingPaperId, user) => {
 };
 
 const getReportData = async (workingPaperId, user) => {
-  const { id: validId } = validate(workingPaperIdSchema, { id: workingPaperId });
+  const { id: validId } = validate(workingPaperIdSchema, {
+    id: workingPaperId,
+  });
 
   const paper = await prismaClient.workingPaper.findUnique({
     where: { id: validId },
@@ -444,47 +484,87 @@ const getReportData = async (workingPaperId, user) => {
       order: true,
       asset: { select: { id: true, name: true, code: true } },
       businessProcess: { select: { id: true, name: true, code: true } },
-      riskCategory: { select: { id: true, name: true, code: true, color: true } },
+      riskCategory: {
+        select: { id: true, name: true, code: true, color: true },
+      },
       programFrameworkContext: {
         select: {
           riskContext: {
             select: {
-              id: true, name: true, code: true, contextType: true,
+              id: true,
+              name: true,
+              code: true,
+              contextType: true,
               description: true,
               riskAppetiteLevel: true,
               riskAppetiteDescription: true,
-              matrixRows: true, matrixCols: true,
-              periodStart: true, periodEnd: true,
+              matrixRows: true,
+              matrixCols: true,
+              periodStart: true,
+              periodEnd: true,
               likelihoodCriteria: {
-                select: { level: true, name: true, description: true, score: true, impactAreaId: true },
+                select: {
+                  level: true,
+                  name: true,
+                  description: true,
+                  score: true,
+                  impactAreaId: true,
+                },
                 orderBy: [{ impactAreaId: "asc" }, { level: "asc" }],
               },
               impactAreas: {
                 select: {
-                  id: true, name: true, order: true,
+                  id: true,
+                  name: true,
+                  order: true,
                   impactCriteria: {
-                    select: { level: true, name: true, description: true, score: true },
+                    select: {
+                      level: true,
+                      name: true,
+                      description: true,
+                      score: true,
+                    },
                     orderBy: { level: "asc" },
                   },
                 },
                 orderBy: { order: "asc" },
               },
               matrixCells: {
-                select: { row: true, col: true, value: true, label: true, color: true },
+                select: {
+                  row: true,
+                  col: true,
+                  value: true,
+                  label: true,
+                  color: true,
+                },
                 orderBy: [{ row: "asc" }, { col: "asc" }],
               },
               riskLevels: {
-                select: { name: true, description: true, color: true, minScore: true, maxScore: true, order: true },
+                select: {
+                  name: true,
+                  description: true,
+                  color: true,
+                  minScore: true,
+                  maxScore: true,
+                  order: true,
+                },
                 orderBy: { order: "asc" },
               },
               riskCategories: {
-                select: { name: true, description: true, color: true, code: true },
+                select: {
+                  name: true,
+                  description: true,
+                  color: true,
+                  code: true,
+                },
                 orderBy: { order: "asc" },
               },
             },
           },
           programFramework: {
-            select: { framework: { select: { id: true, name: true, code: true } } },
+            select: {
+              framework: { select: { id: true, name: true, code: true } },
+            },
           },
         },
       },

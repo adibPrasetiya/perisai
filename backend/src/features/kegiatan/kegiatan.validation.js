@@ -1,12 +1,12 @@
 import Joi from "joi";
 import { PROCESS_BUSINESS_STATUSES } from "../../core/config/enum.config.js";
 
-const createProsesBisnisSchema = Joi.object({
+const createKegiatanSchema = Joi.object({
   name: Joi.string().min(2).max(255).required().messages({
-    "string.empty": "Nama proses bisnis tidak boleh kosong",
-    "string.min": "Nama proses bisnis minimal 2 karakter",
-    "string.max": "Nama proses bisnis maksimal 255 karakter",
-    "any.required": "Nama proses bisnis wajib diisi",
+    "string.empty": "Nama Kegiatan tidak boleh kosong",
+    "string.min": "Nama Kegiatan minimal 2 karakter",
+    "string.max": "Nama Kegiatan maksimal 255 karakter",
+    "any.required": "Nama Kegiatan wajib diisi",
   }),
 
   code: Joi.string()
@@ -15,12 +15,12 @@ const createProsesBisnisSchema = Joi.object({
     .pattern(/^[A-Z0-9_-]+$/)
     .required()
     .messages({
-      "string.empty": "Kode proses bisnis tidak boleh kosong",
-      "string.min": "Kode proses bisnis minimal 2 karakter",
-      "string.max": "Kode proses bisnis maksimal 100 karakter",
+      "string.empty": "Kode Kegiatan tidak boleh kosong",
+      "string.min": "Kode Kegiatan minimal 2 karakter",
+      "string.max": "Kode Kegiatan maksimal 100 karakter",
       "string.pattern.base":
-        "Kode proses bisnis hanya boleh berisi huruf kapital, angka, underscore, dan dash",
-      "any.required": "Kode proses bisnis wajib diisi",
+        "Kode Kegiatan hanya boleh berisi huruf kapital, angka, underscore, dan dash",
+      "any.required": "Kode Kegiatan wajib diisi",
     }),
 
   description: Joi.string().allow("", null).messages({
@@ -39,11 +39,11 @@ const createProsesBisnisSchema = Joi.object({
     }),
 });
 
-const updateProsesBisnisSchema = Joi.object({
+const updateKegiatanSchema = Joi.object({
   name: Joi.string().min(2).max(255).messages({
-    "string.empty": "Nama proses bisnis tidak boleh kosong",
-    "string.min": "Nama proses bisnis minimal 2 karakter",
-    "string.max": "Nama proses bisnis maksimal 255 karakter",
+    "string.empty": "Nama Kegiatan tidak boleh kosong",
+    "string.min": "Nama Kegiatan minimal 2 karakter",
+    "string.max": "Nama Kegiatan maksimal 255 karakter",
   }),
 
   code: Joi.string()
@@ -51,11 +51,11 @@ const updateProsesBisnisSchema = Joi.object({
     .max(100)
     .pattern(/^[A-Z0-9_-]+$/)
     .messages({
-      "string.empty": "Kode proses bisnis tidak boleh kosong",
-      "string.min": "Kode proses bisnis minimal 2 karakter",
-      "string.max": "Kode proses bisnis maksimal 100 karakter",
+      "string.empty": "Kode Kegiatan tidak boleh kosong",
+      "string.min": "Kode Kegiatan minimal 2 karakter",
+      "string.max": "Kode Kegiatan maksimal 100 karakter",
       "string.pattern.base":
-        "Kode proses bisnis hanya boleh berisi huruf kapital, angka, underscore, dan dash",
+        "Kode Kegiatan hanya boleh berisi huruf kapital, angka, underscore, dan dash",
     }),
 
   description: Joi.string().allow("", null).messages({
@@ -67,7 +67,7 @@ const updateProsesBisnisSchema = Joi.object({
   }),
 }).min(1);
 
-const searchProsesBisnisSchema = Joi.object({
+const searchKegiatanSchema = Joi.object({
   name: Joi.string().max(255).messages({
     "string.max": "Nama maksimal 255 karakter",
   }),
@@ -103,17 +103,19 @@ const unitKerjaIdSchema = Joi.object({
   }),
 });
 
-const prosesBisnisIdSchema = Joi.object({
+const KegiatanIdSchema = Joi.object({
   id: Joi.string().required().messages({
-    "string.empty": "ID proses bisnis tidak boleh kosong",
-    "any.required": "ID proses bisnis wajib diisi",
+    "string.empty": "ID Kegiatan tidak boleh kosong",
+    "any.required": "ID Kegiatan wajib diisi",
   }),
 });
 
 export {
-  createProsesBisnisSchema,
-  updateProsesBisnisSchema,
-  searchProsesBisnisSchema,
+  createKegiatanSchema,
+  updateKegiatanSchema,
+  searchKegiatanSchema,
   unitKerjaIdSchema,
-  prosesBisnisIdSchema,
+  KegiatanIdSchema,
 };
+
+
