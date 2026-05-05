@@ -17,7 +17,7 @@ import {
   unitKerjaIdSchema,
   updateAssetSchema,
 } from "./asset.validation.js";
-import { logger } from "../../core/lib/logger.lib.js";
+import { activityLog } from "../../core/lib/activity-log.lib.js";
 
 const assetSelect = {
   id: true,
@@ -113,7 +113,8 @@ const create = async (unitKerjaId, reqBody, user) => {
     },
   });
 
-  logger.notice("ASSET_CREATED", {
+  await activityLog.notice("ASSET_CREATED", {
+    actionType: "CREATE",
     assetId: asset.id,
     assetCode: asset.code,
     unitKerjaId,
@@ -316,7 +317,8 @@ const update = async (unitKerjaId, id, reqBody, user) => {
     },
   });
 
-  logger.notice("ASSET_UPDATED", {
+  await activityLog.notice("ASSET_UPDATED", {
+    actionType: "UPDATE",
     assetId: updatedAsset.id,
     assetCode: updatedAsset.code,
     updatedBy: user.userId,
@@ -374,7 +376,8 @@ const setActive = async (unitKerjaId, id, user) => {
     select: assetSelect,
   });
 
-  logger.notice("ASSET_ACTIVATED", {
+  await activityLog.notice("ASSET_ACTIVATED", {
+    actionType: "UPDATE",
     assetId: updatedAsset.id,
     assetCode: updatedAsset.code,
     updatedBy: user.userId,
@@ -428,7 +431,8 @@ const setInactive = async (unitKerjaId, id, user) => {
     select: assetSelect,
   });
 
-  logger.notice("ASSET_DEACTIVATED", {
+  await activityLog.notice("ASSET_DEACTIVATED", {
+    actionType: "UPDATE",
     assetId: updatedAsset.id,
     assetCode: updatedAsset.code,
     updatedBy: user.userId,
@@ -483,7 +487,8 @@ const archive = async (unitKerjaId, id, user) => {
     select: assetSelect,
   });
 
-  logger.notice("ASSET_ARCHIVED", {
+  await activityLog.notice("ASSET_ARCHIVED", {
+    actionType: "UPDATE",
     assetId: archivedAsset.id,
     assetCode: archivedAsset.code,
     archivedBy: user.userId,

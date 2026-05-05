@@ -10,7 +10,7 @@ import { NotFoundError } from "../../error/not-found.error.js";
 import { BadRequestError } from "../../error/bad-request.error.js";
 import { ConflictError } from "../../error/conflict.error.js";
 import { verifyContextExists } from "../../utils/context.utils.js";
-import { logger } from "../../core/lib/logger.lib.js";
+import { activityLog } from "../../core/lib/activity-log.lib.js";
 
 const riskLevelSelect = {
   id: true,
@@ -115,7 +115,7 @@ const create = async (contextId, reqBody) => {
     select: riskLevelSelect,
   });
 
-  logger.notice("RISK_LEVEL_CREATED", { contextId, levelId: level.id, name: level.name });
+  await activityLog.notice("RISK_LEVEL_CREATED", { actionType: "CREATE", contextId, levelId: level.id, name: level.name });
 
   return { message: "Level risiko berhasil ditambahkan", data: level };
 };
@@ -150,7 +150,7 @@ const update = async (contextId, levelId, reqBody) => {
     select: riskLevelSelect,
   });
 
-  logger.notice("RISK_LEVEL_UPDATED", { contextId, levelId: validLevelId });
+  await activityLog.notice("RISK_LEVEL_UPDATED", { actionType: "UPDATE", contextId, levelId: validLevelId });
 
   return { message: "Level risiko berhasil diperbarui", data: updated };
 };
@@ -167,7 +167,7 @@ const remove = async (contextId, levelId) => {
 
   await prismaClient.riskLevel.delete({ where: { id: validLevelId } });
 
-  logger.notice("RISK_LEVEL_DELETED", { contextId, levelId: validLevelId });
+  await activityLog.notice("RISK_LEVEL_DELETED", { actionType: "DELETE", contextId, levelId: validLevelId });
 
   return { message: "Level risiko berhasil dihapus" };
 };
@@ -228,7 +228,7 @@ const bulkSet = async (contextId, reqBody) => {
     orderBy: { order: "asc" },
   });
 
-  logger.notice("RISK_LEVEL_BULK_SET", { contextId, count: saved.length });
+  await activityLog.notice("RISK_LEVEL_BULK_SET", { actionType: "UPDATE", contextId, count: saved.length });
 
   return { message: "Level risiko berhasil disimpan", data: saved };
 };

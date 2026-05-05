@@ -8,7 +8,7 @@ import {
   unitKerjaIdSchema,
   updateUnitKerjaSchema,
 } from "./unit-kerja.validation.js";
-import { logger } from "../../core/lib/logger.lib.js";
+import { activityLog } from "../../core/lib/activity-log.lib.js";
 
 const create = async (reqBody) => {
   reqBody = validate(createUnitKerjaSchema, reqBody);
@@ -41,7 +41,8 @@ const create = async (reqBody) => {
     },
   });
 
-  logger.notice("UNIT_KERJA_CREATED", {
+  await activityLog.notice("UNIT_KERJA_CREATED", {
+    actionType: "CREATE",
     unitKerjaId: unitKerja.id,
     code: unitKerja.code,
     name: unitKerja.name,
@@ -100,7 +101,8 @@ const update = async (id, reqBody) => {
     },
   });
 
-  logger.notice("UNIT_KERJA_UPDATED", {
+  await activityLog.notice("UNIT_KERJA_UPDATED", {
+    actionType: "UPDATE",
     unitKerjaId: idParams.id,
     updatedFields: Object.keys(reqBody).join(","),
   });
@@ -188,7 +190,8 @@ const remove = async (id) => {
     },
   });
 
-  logger.notice("UNIT_KERJA_DELETED", {
+  await activityLog.notice("UNIT_KERJA_DELETED", {
+    actionType: "DELETE",
     unitKerjaId: params.id,
   });
 

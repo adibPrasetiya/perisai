@@ -6,6 +6,7 @@ import { publicRoute } from "../router/public.route.js";
 import { authMiddleware } from "../middleware/authetication.middleware.js";
 import { protectedRoute } from "../router/protected.route.js";
 import { errorMiddleware } from "../middleware/error.middleware.js";
+import { requestLoggerMiddleware } from "../middleware/request-logger.middleware.js";
 
 export const app = express();
 
@@ -14,6 +15,8 @@ app.use(cookieParser());
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
+
+app.use(requestLoggerMiddleware);
 
 app.use(publicRoute);
 app.use(authMiddleware);

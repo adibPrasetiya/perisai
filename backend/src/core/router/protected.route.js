@@ -16,6 +16,7 @@ import { workingPaperRoutes } from "../../features/working-paper/working-paper.r
 import { riskEntryRoutes } from "../../features/risk-entry/risk-entry.route.js";
 import { systemConfigRoutes } from "../../features/system-config/system-config.route.js";
 import { dashboardRoutes } from "../../features/dashboard/dashboard.route.js";
+import { activityLogRoutes } from "../../features/activity-log/activity-log.route.js";
 
 export const protectedRoute = Router();
 
@@ -36,6 +37,7 @@ const routes = [
   ...riskEntryRoutes,
   ...systemConfigRoutes,
   ...dashboardRoutes,
+  ...activityLogRoutes,
 ];
 
 routes.forEach(({ method, path, handler, roles }) => {

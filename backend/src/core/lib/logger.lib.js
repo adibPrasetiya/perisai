@@ -55,6 +55,21 @@ export const logger = winston.createLogger({
 
 winston.addColors(winston.config.syslog.colors);
 
+export const buildRequestFields = (req, res, durationMs) => ({
+  method: req.method,
+  path: req.path,
+  status: res.statusCode,
+  ip:
+    req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+    req.headers["x-real-ip"] ||
+    req.socket?.remoteAddress ||
+    "-",
+  user: req.user?.username ?? "-",
+  reqid:
+    req.headers["x-request-id"] || req.headers["x-correlation-id"] || "-",
+  duration: `${durationMs}ms`,
+});
+
 export const buildErrorFields = (req, err) => ({
   method: req.method,
   path: req.path,

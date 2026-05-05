@@ -8,7 +8,7 @@ import {
 import { prismaClient } from "../../core/lib/database.lib.js";
 import { ConflictError } from "../../error/conflict.error.js";
 import { NotFoundError } from "../../error/not-found.error.js";
-import { logger } from "../../core/lib/logger.lib.js";
+import { activityLog } from "../../core/lib/activity-log.lib.js";
 
 const create = async (reqBody) => {
   reqBody = validate(createAssetCategorySchema, reqBody);
@@ -41,7 +41,8 @@ const create = async (reqBody) => {
     },
   });
 
-  logger.notice("ASSET_CATEGORY_CREATED", {
+  await activityLog.notice("ASSET_CATEGORY_CREATED", {
+    actionType: "CREATE",
     assetCategoryId: assetCategory.id,
   });
 
@@ -96,7 +97,8 @@ const update = async (id, reqBody) => {
     },
   });
 
-  logger.notice("ASSET_CATEGORY_UPDATED", {
+  await activityLog.notice("ASSET_CATEGORY_UPDATED", {
+    actionType: "UPDATE",
     assetCategoryId: idParams.id,
     updatedData: Object.keys(reqBody).join(","),
   });
@@ -194,7 +196,8 @@ const remove = async (id) => {
     },
   });
 
-  logger.notice("ASSET_CATEGORY_DELETED", {
+  await activityLog.notice("ASSET_CATEGORY_DELETED", {
+    actionType: "DELETE",
     assetCategoryId: params.id,
   });
 

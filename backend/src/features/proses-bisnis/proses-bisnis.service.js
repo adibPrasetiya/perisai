@@ -1,5 +1,5 @@
 import { PROCESS_BUSINESS_STATUSES } from "../../core/config/enum.config.js";
-import { logger } from "../../core/lib/logger.lib.js";
+import { activityLog } from "../../core/lib/activity-log.lib.js";
 import { prismaClient } from "../../core/lib/database.lib.js";
 import { BadRequestError } from "../../error/bad-request.error.js";
 import { ConflictError } from "../../error/conflict.error.js";
@@ -73,7 +73,8 @@ const create = async (unitKerjaId, reqBody, user) => {
     select: prosesBisnisSelect,
   });
 
-  logger.notice("PROSES_BISNIS_CREATED", {
+  await activityLog.notice("PROSES_BISNIS_CREATED", {
+    actionType: "CREATE",
     id: prosesBisnis.id,
     code: prosesBisnis.code,
     unitKerjaId,
@@ -188,7 +189,8 @@ const update = async (unitKerjaId, id, reqBody, user) => {
     select: prosesBisnisSelect,
   });
 
-  logger.notice("PROSES_BISNIS_UPDATED", {
+  await activityLog.notice("PROSES_BISNIS_UPDATED", {
+    actionType: "UPDATE",
     id: updated.id,
     code: updated.code,
     unitKerjaId,
@@ -237,7 +239,8 @@ const setActive = async (unitKerjaId, id, user) => {
     select: prosesBisnisSelect,
   });
 
-  logger.notice("PROSES_BISNIS_ACTIVATED", {
+  await activityLog.notice("PROSES_BISNIS_ACTIVATED", {
+    actionType: "UPDATE",
     id: updated.id,
     code: updated.code,
     unitKerjaId,
@@ -286,7 +289,8 @@ const setInactive = async (unitKerjaId, id, user) => {
     select: prosesBisnisSelect,
   });
 
-  logger.notice("PROSES_BISNIS_DEACTIVATED", {
+  await activityLog.notice("PROSES_BISNIS_DEACTIVATED", {
+    actionType: "UPDATE",
     id: updated.id,
     code: updated.code,
     unitKerjaId,
@@ -335,7 +339,8 @@ const archive = async (unitKerjaId, id, user) => {
     select: prosesBisnisSelect,
   });
 
-  logger.notice("PROSES_BISNIS_ARCHIVED", {
+  await activityLog.notice("PROSES_BISNIS_ARCHIVED", {
+    actionType: "UPDATE",
     id: archived.id,
     code: archived.code,
     unitKerjaId,

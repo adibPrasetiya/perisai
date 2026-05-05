@@ -8,7 +8,7 @@ import { SYSTEM_CONFIG_DEFAULTS } from "./system-config.defaults.js";
 import { prismaClient } from "../../core/lib/database.lib.js";
 import { NotFoundError } from "../../error/not-found.error.js";
 import { ForbiddenError } from "../../error/forbidden.error.js";
-import { logger } from "../../core/lib/logger.lib.js";
+import { activityLog } from "../../core/lib/activity-log.lib.js";
 
 const GROUP_ORDER = ["PASSWORD_POLICY", "SESSION", "SECURITY"];
 
@@ -73,7 +73,8 @@ const updateValue = async (key, reqBody, userId) => {
     data: { value, updatedBy: userId },
   });
 
-  logger.notice("SYSTEM_CONFIG_UPDATED", {
+  await activityLog.notice("SYSTEM_CONFIG_UPDATED", {
+    actionType: "UPDATE",
     key: validKey,
     oldValue: config.value,
     newValue: value,

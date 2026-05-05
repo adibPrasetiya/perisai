@@ -25,7 +25,7 @@ import {
   verifyFrameworkExists,
   verifyImpactAreaBelongsToContext,
 } from "../../utils/context.utils.js";
-import { logger } from "../../core/lib/logger.lib.js";
+import { activityLog } from "../../core/lib/activity-log.lib.js";
 
 // =============================================================================
 // SHARED SELECT
@@ -237,7 +237,8 @@ const createFull = async (frameworkId, reqBody, userId) => {
     return ctx;
   });
 
-  logger.notice("RISK_CONTEXT_CREATED", {
+  await activityLog.notice("RISK_CONTEXT_CREATED", {
+    actionType: "CREATE",
     contextId: context.id,
     code: context.code,
     frameworkId,
@@ -439,7 +440,8 @@ const update = async (id, reqBody, userId) => {
     select: riskContextBaseSelect,
   });
 
-  logger.notice("RISK_CONTEXT_UPDATED", {
+  await activityLog.notice("RISK_CONTEXT_UPDATED", {
+    actionType: "UPDATE",
     contextId: validId,
     updatedFields: Object.keys(reqBody).join(","),
     updatedBy: userId,
@@ -469,7 +471,7 @@ const remove = async (id) => {
 
   await prismaClient.riskContext.delete({ where: { id: validId } });
 
-  logger.notice("RISK_CONTEXT_DELETED", { contextId: validId });
+  await activityLog.notice("RISK_CONTEXT_DELETED", { actionType: "DELETE", contextId: validId });
 
   return { message: "Konteks risiko berhasil dihapus" };
 };
@@ -557,7 +559,7 @@ const activate = async (id) => {
     select: riskContextBaseSelect,
   });
 
-  logger.notice("RISK_CONTEXT_ACTIVATED", { contextId: validId });
+  await activityLog.notice("RISK_CONTEXT_ACTIVATED", { actionType: "UPDATE", contextId: validId });
 
   return { message: "Konteks risiko berhasil diaktifkan", data: updated };
 };
@@ -580,7 +582,7 @@ const deactivate = async (id) => {
     select: riskContextBaseSelect,
   });
 
-  logger.notice("RISK_CONTEXT_DEACTIVATED", { contextId: validId });
+  await activityLog.notice("RISK_CONTEXT_DEACTIVATED", { actionType: "UPDATE", contextId: validId });
 
   return { message: "Konteks risiko berhasil dinonaktifkan", data: updated };
 };

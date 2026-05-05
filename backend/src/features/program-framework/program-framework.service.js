@@ -8,7 +8,7 @@ import { prismaClient } from "../../core/lib/database.lib.js";
 import { NotFoundError } from "../../error/not-found.error.js";
 import { BadRequestError } from "../../error/bad-request.error.js";
 import { ConflictError } from "../../error/conflict.error.js";
-import { logger } from "../../core/lib/logger.lib.js";
+import { activityLog } from "../../core/lib/activity-log.lib.js";
 
 const programFrameworkSelect = {
   id: true,
@@ -106,7 +106,8 @@ const addFramework = async (programId, reqBody, userId) => {
     },
   });
 
-  logger.notice("PROGRAM_FRAMEWORK_ADDED", {
+  await activityLog.notice("PROGRAM_FRAMEWORK_ADDED", {
+    actionType: "CREATE",
     programId,
     frameworkId: reqBody.frameworkId,
     programFrameworkId: programFramework.id,
@@ -187,7 +188,8 @@ const update = async (programId, id, reqBody, userId) => {
     },
   });
 
-  logger.notice("PROGRAM_FRAMEWORK_UPDATED", {
+  await activityLog.notice("PROGRAM_FRAMEWORK_UPDATED", {
+    actionType: "UPDATE",
     programFrameworkId: validId,
     updatedFields: Object.keys(reqBody).join(","),
     updatedBy: userId,
@@ -217,7 +219,8 @@ const remove = async (programId, id) => {
 
   await prismaClient.programFramework.delete({ where: { id: validId } });
 
-  logger.notice("PROGRAM_FRAMEWORK_REMOVED", {
+  await activityLog.notice("PROGRAM_FRAMEWORK_REMOVED", {
+    actionType: "DELETE",
     programId,
     programFrameworkId: validId,
   });

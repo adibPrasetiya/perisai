@@ -9,7 +9,7 @@ import { prismaClient } from "../../core/lib/database.lib.js";
 import { ConflictError } from "../../error/conflict.error.js";
 import { NotFoundError } from "../../error/not-found.error.js";
 import { BadRequestError } from "../../error/bad-request.error.js";
-import { logger } from "../../core/lib/logger.lib.js";
+import { activityLog } from "../../core/lib/activity-log.lib.js";
 
 const frameworkSelect = {
   id: true,
@@ -58,7 +58,7 @@ const create = async (reqBody) => {
     select: frameworkSelect,
   });
 
-  logger.notice("FRAMEWORK_CREATED", { frameworkId: framework.id, code: framework.code });
+  await activityLog.notice("FRAMEWORK_CREATED", { actionType: "CREATE", frameworkId: framework.id, code: framework.code });
 
   return {
     message: "Framework berhasil dibuat",
@@ -153,7 +153,8 @@ const update = async (id, reqBody) => {
     select: frameworkSelect,
   });
 
-  logger.notice("FRAMEWORK_UPDATED", {
+  await activityLog.notice("FRAMEWORK_UPDATED", {
+    actionType: "UPDATE",
     frameworkId: validId,
     updatedFields: Object.keys(reqBody).join(","),
   });
@@ -188,7 +189,7 @@ const activate = async (id) => {
     select: frameworkSelect,
   });
 
-  logger.notice("FRAMEWORK_ACTIVATED", { frameworkId: validId });
+  await activityLog.notice("FRAMEWORK_ACTIVATED", { actionType: "UPDATE", frameworkId: validId });
 
   return {
     message: "Framework berhasil diaktifkan",
@@ -210,7 +211,7 @@ const deactivate = async (id) => {
     select: frameworkSelect,
   });
 
-  logger.notice("FRAMEWORK_DEACTIVATED", { frameworkId: validId });
+  await activityLog.notice("FRAMEWORK_DEACTIVATED", { actionType: "UPDATE", frameworkId: validId });
 
   return {
     message: "Framework berhasil dinonaktifkan",
@@ -244,7 +245,7 @@ const remove = async (id) => {
 
   await prismaClient.framework.delete({ where: { id: validId } });
 
-  logger.notice("FRAMEWORK_DELETED", { frameworkId: validId });
+  await activityLog.notice("FRAMEWORK_DELETED", { actionType: "DELETE", frameworkId: validId });
 
   return {
     message: "Framework berhasil dihapus",

@@ -19,7 +19,7 @@ import { ConflictError } from "../../error/conflict.error.js";
 import { hash, compare } from "../../core/lib/password.lib.js";
 import { verifyTotpCode, decryptTotpSecret } from "../../utils/totp.utils.js";
 import { verifyUnitKerjaExists } from "../../utils/unit-kerja.utils.js";
-import { logger } from "../../core/lib/logger.lib.js";
+import { activityLog } from "../../core/lib/activity-log.lib.js";
 
 const search = async (queryParams) => {
   const params = validate(searchUserSchema, queryParams);
@@ -220,7 +220,8 @@ const verify = async (userId, adminUsername) => {
     },
   });
 
-  logger.notice("USER_VERIFIED", {
+  await activityLog.notice("USER_VERIFIED", {
+    actionType: "AUTH",
     userId,
     username: updatedUser.username,
     verifiedBy: adminUsername,
@@ -267,7 +268,7 @@ const activate = async (userId) => {
     },
   });
 
-  logger.notice("USER_ACTIVATED", { userId, username: updatedUser.username });
+  await activityLog.notice("USER_ACTIVATED", { actionType: "AUTH", userId, username: updatedUser.username });
 
   return {
     message: `Akun ${updatedUser.username} berhasil diaktifkan`,
@@ -321,7 +322,8 @@ const deactivate = async (userId, adminUsername) => {
     },
   });
 
-  logger.notice("USER_DEACTIVATED", {
+  await activityLog.notice("USER_DEACTIVATED", {
+    actionType: "AUTH",
     userId,
     username: updatedUser.username,
     deactivatedBy: adminUsername,
@@ -538,7 +540,7 @@ const updateMyPassword = async (username, reqBody) => {
     await tx.session.deleteMany({ where: { userId: user.id } });
   });
 
-  logger.notice("USER_PASSWORD_CHANGED", { username });
+  await activityLog.notice("USER_PASSWORD_CHANGED", { actionType: "AUTH", username });
 
   return { message: "Password berhasil diubah. Silakan login kembali." };
 };
@@ -590,7 +592,8 @@ const updateMyAccount = async (username, reqBody) => {
     },
   });
 
-  logger.notice("USER_ACCOUNT_UPDATED", {
+  await activityLog.notice("USER_ACCOUNT_UPDATED", {
+    actionType: "UPDATE",
     username,
     updatedFields: Object.keys(updateData).join(","),
   });
@@ -645,7 +648,8 @@ const updateMyProfile = async (username, reqBody) => {
     },
   });
 
-  logger.notice("USER_PROFILE_UPDATED", {
+  await activityLog.notice("USER_PROFILE_UPDATED", {
+    actionType: "UPDATE",
     username,
     updatedFields: Object.keys(updateData).join(","),
   });
@@ -732,7 +736,8 @@ const resetTotp = async (userId, adminUsername, reqBody) => {
     await tx.session.deleteMany({ where: { userId } });
   });
 
-  logger.notice("USER_TOTP_RESET", {
+  await activityLog.notice("USER_TOTP_RESET", {
+    actionType: "AUTH",
     userId,
     username: targetUser.username,
     resetBy: adminUsername,
@@ -820,7 +825,8 @@ const adminUpdateUser = async (userId, reqBody, adminUsername) => {
     },
   });
 
-  logger.notice("USER_ADMIN_UPDATED", {
+  await activityLog.notice("USER_ADMIN_UPDATED", {
+    actionType: "UPDATE",
     userId,
     username: updated.username,
     updatedBy: adminUsername,

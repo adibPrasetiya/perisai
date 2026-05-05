@@ -33,9 +33,6 @@ model User {
   session            Session?
   profile            Profile?
 
-  @@index([email])
-  @@index([username])
-  @@index([isActive, isVerified])
   @@map("users")
 }
 
@@ -59,8 +56,6 @@ model UserRole {
   assignedAt DateTime @default(now())
 
   @@unique([userId, roleId])
-  @@index([userId])
-  @@index([roleId])
   @@map("user_roles")
 }
 
@@ -77,7 +72,6 @@ model Session {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  @@index([refreshToken])
   @@index([expiresAt])
   @@map("sessions")
 }
@@ -98,7 +92,6 @@ model UnitKerja {
   businessProcesses BusinessProcess[]
   workingPapers     WorkingPaper[]
 
-  @@index([code])
   @@map("unit_kerja")
 }
 
@@ -116,9 +109,6 @@ model Profile {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  @@index([userId])
-  @@index([unitKerjaId])
-  @@index([isVerified])
   @@map("profiles")
 }
 
@@ -156,9 +146,6 @@ model Asset {
   riskEntries   RiskEntry[]
 
   @@unique([unitKerjaId, code])
-  @@index([unitKerjaId])
-  @@index([categoryId])
-  @@index([status])
   @@map("assets")
 }
 
@@ -179,8 +166,6 @@ model BusinessProcess {
   riskEntries      RiskEntry[]
 
   @@unique([unitKerjaId, code])
-  @@index([unitKerjaId])
-  @@index([status])
   @@map("business_processes")
 }
 
@@ -203,8 +188,6 @@ model Framework {
   programFrameworks ProgramFramework[]
   riskContexts      RiskContext[]
 
-  @@index([code])
-  @@index([isActive])
   @@map("frameworks")
 }
 
@@ -225,7 +208,6 @@ model RiskProgram {
   workingPapers     WorkingPaper[]
 
   @@index([year])
-  @@index([status])
   @@map("risk_programs")
 }
 
@@ -248,9 +230,6 @@ model ProgramFramework {
 
   /// Satu program tidak boleh mendaftarkan framework yang sama dua kali
   @@unique([programId, frameworkId])
-  @@index([programId])
-  @@index([frameworkId])
-  @@index([status])
   @@map("program_frameworks")
 }
 
@@ -299,9 +278,6 @@ model RiskContext {
 
   /// Kode hanya unik dalam satu Framework
   @@unique([frameworkId, code])
-  @@index([frameworkId])
-  @@index([status])
-  @@index([contextType])
   @@index([periodStart, periodEnd])
   @@map("risk_contexts")
 }
@@ -318,8 +294,6 @@ model ProgramFrameworkContext {
   riskEntries        RiskEntry[]
 
   @@unique([programFrameworkId, riskContextId])
-  @@index([programFrameworkId])
-  @@index([riskContextId])
   @@map("program_framework_contexts")
 }
 
@@ -332,8 +306,6 @@ model ContextAsset {
   createdAt DateTime    @default(now())
 
   @@unique([contextId, assetId])
-  @@index([contextId])
-  @@index([assetId])
   @@map("context_assets")
 }
 
@@ -352,7 +324,6 @@ model RiskCategory {
 
   riskEntries RiskEntry[]
 
-  @@index([contextId])
   @@map("risk_categories")
 }
 
@@ -371,7 +342,6 @@ model ImpactArea {
   areaScores         AreaScore[]
   treatmentPlans     RiskTreatmentPlan[]
 
-  @@index([contextId])
   @@map("impact_areas")
 }
 
@@ -388,7 +358,6 @@ model ImpactCriteria {
   updatedAt    DateTime   @updatedAt
 
   @@unique([impactAreaId, level])
-  @@index([impactAreaId])
   @@map("impact_criteria")
 }
 
@@ -408,8 +377,6 @@ model LikelihoodCriteria {
   updatedAt    DateTime   @updatedAt
 
   @@unique([impactAreaId, level])
-  @@index([contextId])
-  @@index([impactAreaId])
   @@map("likelihood_criteria")
 }
 
@@ -427,7 +394,6 @@ model TreatmentOption {
 
   treatmentPlans RiskTreatmentPlan[]
 
-  @@index([contextId])
   @@map("treatment_options")
 }
 
@@ -451,7 +417,6 @@ model RiskLevel {
   /// Urutan dan nama harus unik per konteks
   @@unique([contextId, order])
   @@unique([contextId, name])
-  @@index([contextId])
   @@map("risk_levels")
 }
 
@@ -469,7 +434,6 @@ model MatrixCell {
   areaScores AreaScore[]
 
   @@unique([contextId, row, col])
-  @@index([contextId])
   @@map("matrix_cells")
 }
 
@@ -482,8 +446,6 @@ model ContextProcess {
   createdAt DateTime        @default(now())
 
   @@unique([contextId, processId])
-  @@index([contextId])
-  @@index([processId])
   @@map("context_processes")
 }
 
@@ -520,9 +482,6 @@ model WorkingPaper {
 
   /// Satu UnitKerja hanya boleh punya 1 kertas kerja per program
   @@unique([programId, unitKerjaId])
-  @@index([programId])
-  @@index([unitKerjaId])
-  @@index([status])
   @@map("working_papers")
 }
 
@@ -554,10 +513,6 @@ model RiskEntry {
   residualAssessment        RiskAssessment?         @relation("ResidualAssessment")
   treatmentPlans            RiskTreatmentPlan[]
 
-  @@index([workingPaperId])
-  @@index([programFrameworkContextId])
-  @@index([assetId])
-  @@index([businessProcessId])
   @@map("risk_entries")
 }
 
@@ -582,7 +537,6 @@ model RiskAssessment {
 
   areaScores      AreaScore[]
 
-  @@index([riskLevelId])
   @@map("risk_assessments")
 }
 
@@ -605,7 +559,6 @@ model AreaScore {
   score           Int
 
   @@unique([assessmentId, impactAreaId])
-  @@index([assessmentId])
   @@map("area_scores")
 }
 
@@ -623,7 +576,6 @@ model RiskControl {
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
 
-  @@index([riskEntryId])
   @@map("risk_controls")
 }
 
@@ -653,9 +605,6 @@ model RiskTreatmentPlan {
 
   monitoringLogs    TreatmentMonitoring[]
 
-  @@index([riskEntryId])
-  @@index([impactAreaId])
-  @@index([status])
   @@map("risk_treatment_plans")
 }
 
@@ -672,7 +621,6 @@ model TreatmentMonitoring {
   reportedBy  String?
   reportedAt  DateTime          @default(now())
 
-  @@index([planId])
   @@map("treatment_monitoring")
 }
 
@@ -693,6 +641,22 @@ model SystemConfig {
 
   @@index([group])
   @@map("system_configs")
+}
+
+model ActivityLog {
+  id         String          @id @default(cuid())
+  action     String          @db.VarChar(100)
+  actionType ActivityLogType
+  level      String          @db.VarChar(20)
+  userId     String?
+  username   String?         @db.VarChar(255)
+  metadata   Json?
+  createdAt  DateTime        @default(now())
+
+  @@index([action])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("activity_logs")
 }
 
 // =============================================================================
@@ -774,4 +738,11 @@ enum TreatmentStatus {
   CANCELLED
   SUBMITTED_FOR_REVIEW
   VERIFIED
+}
+
+enum ActivityLogType {
+  CREATE
+  UPDATE
+  DELETE
+  AUTH
 }
