@@ -13,9 +13,6 @@
 
       <!-- ─── Breadcrumb ────────────────────────────────────────────────────────── -->
       <div class="wpd-breadcrumb-row">
-        <button class="wpd-back-btn" type="button" @click="router.push({ name: 'working-papers' })">
-          <i class="pi pi-arrow-left" />
-        </button>
         <span class="wpd-breadcrumb-text" @click="router.push({ name: 'working-papers' })">
           Kertas Kerja
         </span>
@@ -265,14 +262,14 @@
               <th>Kerawanan</th>
               <th>Ancaman</th>
               <th>Kategori</th>
-              <th>Kem.</th>
-              <th>Damp.</th>
+              <th>Level Kemungkinan</th>
+              <th>Level Dampak</th>
               <th>Nilai</th>
               <th>Uraian</th>
               <th>Target</th>
               <th>PIC</th>
-              <th>Kem.</th>
-              <th>Damp.</th>
+              <th>Level Kemungkinan</th>
+              <th>Level Dampak</th>
               <th>Nilai</th>
             </tr>
           </thead>
@@ -430,7 +427,16 @@
                     </td>
                     <td class="wpd-rr-td-score wpd-rr-td-score-nilai">
                       <template v-if="areaScore && entry.residualAssessment?.areaScores?.find(r => r.impactAreaId === areaScore.impactAreaId)?.score != null">
-                        <span class="wpd-rr-score-pill wpd-rr-score-nilai">{{ entry.residualAssessment!.areaScores.find(r => r.impactAreaId === areaScore!.impactAreaId)!.score }}</span>
+                        <span
+                          class="wpd-rr-score-pill wpd-rr-score-nilai"
+                          :style="{
+                            borderColor: (entry.residualAssessment?.riskLevel?.color ?? 'var(--color-accent)'),
+                            color: (entry.residualAssessment?.riskLevel?.color ?? 'var(--color-accent)'),
+                            background: ((entry.residualAssessment?.riskLevel?.color ?? '#00e5b8') + '22')
+                          }"
+                        >
+                          {{ entry.residualAssessment!.areaScores.find(r => r.impactAreaId === areaScore!.impactAreaId)!.score }}<template v-if="entry.residualAssessment?.riskLevel?.name"> • {{ entry.residualAssessment.riskLevel.name }}</template>
+                        </span>
                       </template>
                       <span v-else class="wpd-rr-dash">—</span>
                     </td>
@@ -448,6 +454,7 @@
                         <div
                           v-if="activeActionMenu === entry.id"
                           class="wpd-action-menu-panel"
+                          :class="{ 'is-up': actionMenuDirection === 'up' }"
                           :style="{ top: actionMenuPos.top + 'px', right: actionMenuPos.right + 'px' }"
                           @click.stop
                         >
@@ -1140,7 +1147,10 @@
         </option>
       </select>
       <p v-if="treatmentSubSelectedOption?.isAcceptance" class="wpd-tp-acceptance-note">
-        <i class="pi pi-info-circle" /> Opsi ini menandakan risiko <strong>diterima</strong> — status mitigasi akan otomatis <strong>Selesai</strong> dan penilaian residual akan disalin dari inheren saat disimpan.
+        <i class="pi pi-info-circle" />
+        <span>
+          Opsi ini menandakan risiko <strong>Diterima</strong> — status mitigasi akan otomatis <strong>Selesai</strong> dan penilaian residual akan disalin dari inheren saat disimpan.
+        </span>
       </p>
     </div>
 
@@ -1705,6 +1715,7 @@ async function doVerifyPlan(planId: string) {
 
 const activeActionMenu = ref<string | null>(null)
 const actionMenuPos = ref({ top: 0, right: 0 })
+const actionMenuDirection = ref<'up' | 'down'>('down')
 
 function toggleActionMenu(entryId: string, event: MouseEvent) {
   if (activeActionMenu.value === entryId) {
@@ -1713,8 +1724,11 @@ function toggleActionMenu(entryId: string, event: MouseEvent) {
   }
   const btn = event.currentTarget as HTMLElement
   const rect = btn.getBoundingClientRect()
+  const estimatedMenuHeight = 260
+  const spaceBelow = window.innerHeight - rect.bottom
+  actionMenuDirection.value = spaceBelow < estimatedMenuHeight ? 'up' : 'down'
   actionMenuPos.value = {
-    top: rect.bottom + 4,
+    top: actionMenuDirection.value === 'up' ? rect.top - 4 : rect.bottom + 4,
     right: window.innerWidth - rect.right,
   }
   activeActionMenu.value = entryId
@@ -2293,27 +2307,6 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 1.75rem;
-}
-
-.wpd-back-btn {
-  width: 28px;
-  height: 28px;
-  background: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  transition: all 0.15s;
-  flex-shrink: 0;
-}
-
-.wpd-back-btn:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
 }
 
 .wpd-breadcrumb-text {
@@ -3327,8 +3320,8 @@ onUnmounted(() => {
 .col-ancaman  { width: 150px; }
 .col-dampak   { width: 110px; }
 .col-kategori { width: 100px; }
-.col-kem              { width: 52px; }
-.col-damp             { width: 52px; }
+.col-kem              { width: 120px; }
+.col-damp             { width: 120px; }
 .col-nilai            { width: 180px; }
 .col-kontrol-detail   { width: 180px; }
 .col-keputusan-detail  { width: 120px; }
@@ -3747,6 +3740,10 @@ onUnmounted(() => {
   padding: 0.25rem 0;
   display: flex;
   flex-direction: column;
+}
+
+.wpd-action-menu-panel.is-up {
+  transform: translateY(-100%);
 }
 
 .wpd-action-item {
@@ -4356,11 +4353,23 @@ onUnmounted(() => {
 .wpd-tp-acceptance-note {
   margin-top: 0.375rem;
   font-size: 11px;
-  color: var(--color-accent);
+  color: #34d399;
+  background: #34d39912;
+  border: 1px solid #34d39940;
+  border-radius: 6px;
+  padding: 0.375rem 0.5rem;
   display: flex;
   align-items: flex-start;
-  gap: 0.3rem;
+  gap: 0.375rem;
   line-height: 1.4;
+}
+
+.wpd-tp-acceptance-note i {
+  margin-top: 1px;
+}
+
+.wpd-tp-acceptance-note span {
+  flex: 1;
 }
 
 .wpd-tp-appetite-hint {
@@ -4463,4 +4472,3 @@ onUnmounted(() => {
 }
 
 </style>
-

@@ -27,6 +27,18 @@ const EDITABLE_STATUSES = [
   WORKING_PAPER_STATUSES.REVISION,
 ];
 
+function resolveRiskLevelOrThrow(context, finalScore, scope = "penilaian risiko") {
+  const riskLevel = context.riskLevels.find(
+    (rl) => finalScore >= rl.minScore && finalScore <= rl.maxScore,
+  );
+  if (riskLevel) return riskLevel;
+
+  throw new BadRequestError(
+    `Skor ${finalScore} pada ${scope} tidak memiliki level risiko pada konteks ini. ` +
+    `Periksa konfigurasi rentang min/max level risiko agar mencakup seluruh skor matriks.`,
+  );
+}
+
 const riskEntrySelect = {
   id: true,
   workingPaperId: true,
@@ -356,9 +368,7 @@ const create = async (workingPaperId, reqBody, user) => {
     }
 
     finalScore = Math.max(...areaScoreData.map((s) => s.score));
-    riskLevel = context.riskLevels.find(
-      (rl) => finalScore >= rl.minScore && finalScore <= rl.maxScore,
-    );
+    riskLevel = resolveRiskLevelOrThrow(context, finalScore, "penilaian inheren");
   }
 
   // ── Atomic transaction ────────────────────────────────────────────────────
@@ -939,9 +949,7 @@ const createOrUpdateInherentAssessment = async (entryId, reqBody, user) => {
   }
 
   const finalScore = Math.max(...areaScoreData.map((s) => s.score));
-  const riskLevel = context.riskLevels.find(
-    (rl) => finalScore >= rl.minScore && finalScore <= rl.maxScore,
-  );
+  const riskLevel = resolveRiskLevelOrThrow(context, finalScore, "penilaian inheren");
 
   const assessment = await prismaClient.$transaction(async (tx) => {
     // Delete existing inherent assessment if present (cascade deletes area scores)
@@ -1074,9 +1082,7 @@ const createOrUpdateResidualAssessment = async (entryId, reqBody, user) => {
   }
 
   const finalScore = Math.max(...areaScoreData.map((s) => s.score));
-  const riskLevel = context.riskLevels.find(
-    (rl) => finalScore >= rl.minScore && finalScore <= rl.maxScore,
-  );
+  const riskLevel = resolveRiskLevelOrThrow(context, finalScore, "penilaian residual");
 
   const assessment = await prismaClient.$transaction(async (tx) => {
     // Delete existing residual assessment (cascade deletes area scores)
@@ -1546,9 +1552,7 @@ const completeTreatmentPlan = async (entryId, planId, reqBody, user) => {
       select: { score: true },
     });
     const finalScore = Math.max(...allScores.map((s) => s.score));
-    const riskLevel = context.riskLevels.find(
-      (rl) => finalScore >= rl.minScore && finalScore <= rl.maxScore,
-    );
+    const riskLevel = resolveRiskLevelOrThrow(context, finalScore, "penilaian residual");
 
     await tx.riskAssessment.update({
       where: { id: residualAssessment.id },

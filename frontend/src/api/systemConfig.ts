@@ -24,9 +24,9 @@ export const systemConfigApi = {
     return apiClient.get<{ message: string; data: SystemConfigGroup[] }>('/system-config')
   },
 
-  update(key: string, value: string) {
+  update(key: string, value: string | number | boolean | null | undefined) {
     return apiClient.patch<{ message: string; data: SystemConfig }>(`/system-config/${key}`, {
-      value,
+      value: value == null ? '' : String(value),
     })
   },
 }

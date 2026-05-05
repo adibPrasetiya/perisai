@@ -10,13 +10,13 @@
       <button
         class="sc-save-btn"
         type="button"
-        :class="{ 'is-dirty': hasDirty }"
-        :disabled="!hasDirty || saving"
-        @click="saveAll"
+        :class="{ 'is-edit': isEditMode, 'is-dirty': isEditMode && hasDirty }"
+        :disabled="saving"
+        @click="handleHeaderAction"
       >
         <i v-if="saving" class="pi pi-spin pi-spinner" />
-        <i v-else class="pi pi-check" />
-        {{ saving ? 'Menyimpan...' : 'Simpan' }}
+        <i v-else :class="isEditMode ? 'pi pi-check' : 'pi pi-pencil'" />
+        {{ saving ? 'Menyimpan...' : (isEditMode ? 'Simpan' : 'Edit') }}
       </button>
     </div>
 
@@ -64,8 +64,8 @@
                   class="sc-toggle"
                   type="button"
                   :class="{ 'is-on': localValues[item.key] === 'true' }"
-                  :disabled="!item.isEditable"
-                  @click="item.isEditable && toggleBoolean(item.key)"
+                  :disabled="!isEditMode || !item.isEditable"
+                  @click="isEditMode && item.isEditable && toggleBoolean(item.key)"
                 >
                   <span class="sc-toggle-thumb" />
                 </button>
@@ -82,7 +82,7 @@
                   type="number"
                   min="0"
                   step="1"
-                  :disabled="!item.isEditable"
+                  :disabled="!isEditMode || !item.isEditable"
                   @input="markDirty(item.key)"
                 />
               </template>
@@ -93,7 +93,7 @@
                   v-model="localValues[item.key]"
                   class="sc-text-input"
                   type="text"
-                  :disabled="!item.isEditable"
+                  :disabled="!isEditMode || !item.isEditable"
                   @input="markDirty(item.key)"
                 />
               </template>
@@ -150,6 +150,7 @@ const loading = ref(false)
 const fetchError = ref('')
 const saving = ref(false)
 const saveError = ref('')
+const isEditMode = ref(false)
 
 const localValues = reactive<Record<string, string>>({})
 const originalValues: Record<string, string> = {}
@@ -164,6 +165,7 @@ async function fetchData() {
   fetchError.value = ''
   dirtyKeys.clear()
   saveError.value = ''
+  isEditMode.value = false
 
   try {
     const res = await systemConfigApi.getAll()
@@ -202,7 +204,16 @@ function toggleBoolean(key: string) {
 const toast = useToast()
 
 async function saveAll() {
-  if (!hasDirty.value) return
+  if (!hasDirty.value) {
+    isEditMode.value = false
+    toast.add({
+      severity: 'success',
+      summary: 'Berhasil',
+      detail: 'Tidak ada perubahan. Mode edit ditutup.',
+      life: 2500,
+    })
+    return
+  }
 
   saving.value = true
   saveError.value = ''
@@ -225,6 +236,7 @@ async function saveAll() {
   if (errors.length > 0) {
     saveError.value = errors.join(' • ')
   } else {
+    isEditMode.value = false
     toast.add({
       severity: 'success',
       summary: 'Berhasil',
@@ -232,6 +244,14 @@ async function saveAll() {
       life: 3000,
     })
   }
+}
+
+function handleHeaderAction() {
+  if (!isEditMode.value) {
+    isEditMode.value = true
+    return
+  }
+  saveAll()
 }
 
 // ─── Re-fetch when group prop changes ─────────────────────────────────────────
@@ -284,20 +304,24 @@ onMounted(fetchData)
   font-family: var(--font-body);
   font-weight: 500;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: var(--color-bg-input);
-  color: var(--color-text-muted);
-  cursor: not-allowed;
+  border: 1px solid rgba(96, 165, 250, 0.4);
+  background: rgba(96, 165, 250, 0.08);
+  color: #7fb4ff;
+  cursor: pointer;
   transition: all 0.15s;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
-.sc-save-btn.is-dirty {
+.sc-save-btn.is-edit {
   border-color: rgba(0, 229, 184, 0.4);
   background: rgba(0, 229, 184, 0.08);
   color: var(--color-accent);
-  cursor: pointer;
+}
+
+.sc-save-btn.is-edit:not(.is-dirty):disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .sc-save-btn.is-dirty:hover:not(:disabled) {
