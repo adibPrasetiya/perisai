@@ -536,7 +536,7 @@
                         <span class="mc-axis-side-text">LEVEL KEMUNGKINAN</span>
                       </td>
                       <td class="mc-row-header">
-                        <div class="mc-row-level">L{{ r }}</div>
+                        <div class="mc-row-level">K{{ r }}</div>
                       </td>
                       <td
                         v-for="c in form.matrixCols"
@@ -668,7 +668,7 @@
                 </thead>
                 <tbody>
                   <tr v-for="r in form.matrixRows" :key="`pmr-${r}`">
-                    <td class="s2-prev-row-h">L{{ r }}</td>
+                    <td class="s2-prev-row-h">K{{ r }}</td>
                     <td
                       v-for="c in form.matrixCols"
                       :key="`pmc-${r}-${c}`"
@@ -690,8 +690,8 @@
                         }"
                         :title="
                           matrixGrid[r - 1]?.[c - 1]?.value
-                            ? `L${r}×D${c} = ${matrixGrid[r - 1]![c - 1]!.value} (${cellMatchingLevel(matrixGrid[r - 1]![c - 1]!.value)?.name || '—'})`
-                            : `L${r}×D${c}`
+                            ? `K${r}×D${c} = ${matrixGrid[r - 1]![c - 1]!.value} (${cellMatchingLevel(matrixGrid[r - 1]![c - 1]!.value)?.name || '—'})`
+                            : `K${r}×D${c}`
                         "
                       >
                         <span
@@ -832,7 +832,7 @@
                         <span class="mc-axis-side-text">LEVEL KEMUNGKINAN</span>
                       </td>
                       <td class="mc-row-header">
-                        <div class="mc-row-level">L{{ r }}</div>
+                        <div class="mc-row-level">K{{ r }}</div>
                       </td>
                       <td
                         v-for="c in form.matrixCols"
