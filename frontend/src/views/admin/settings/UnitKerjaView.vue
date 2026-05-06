@@ -68,33 +68,31 @@
                 </div>
               </td>
             </tr>
-            <tr v-for="uk in unitKerjas" :key="uk.id">
+            <tr v-for="uk in unitKerjas" :key="uk.id" :class="{ 'is-menu-open': openActionMenuId === uk.id }">
               <td class="uk-td-name">{{ uk.name }}</td>
               <td>
                 <span class="uk-code-chip">{{ uk.code }}</span>
               </td>
               <td class="uk-td-dim">{{ uk.email }}</td>
               <td class="uk-td-actions">
-                <button
-                  class="btn-icon"
-                  type="button"
-                  title="Edit"
-                  @click="openEdit(uk)"
-                >
-                  <i class="pi pi-pencil" />
-                </button>
-                <button
-                  class="btn-icon btn-icon-danger"
-                  type="button"
-                  title="Hapus"
-                  @click="openDelete(uk)"
-                >
-                  <i class="pi pi-trash" />
-                </button>
+                <div class="uk-action-menu-wrap">
+                  <button class="uk-row-action-btn" type="button" @click.stop="toggleActionMenu(uk.id, $event)">
+                    Aksi <i class="pi pi-chevron-down" />
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
+        <div
+          v-if="activeActionUnitKerja"
+          class="uk-row-menu uk-row-menu-floating"
+          :style="{ top: `${actionMenuPosition.top}px`, left: `${actionMenuPosition.left}px` }"
+          @click.stop
+        >
+          <button class="uk-row-menu-item" type="button" @click="openEditFromMenu(activeActionUnitKerja)">Edit</button>
+          <button class="uk-row-menu-item is-danger" type="button" @click="openDeleteFromMenu(activeActionUnitKerja)">Hapus</button>
+        </div>
 
         <!-- Pagination -->
         <div
@@ -265,7 +263,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, onBeforeUnmount, computed } from "vue";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import ProgressSpinner from "primevue/progressspinner";
@@ -282,6 +280,8 @@ const toast = useToast();
 // ─── List state ───────────────────────────────────────────────────────────────
 
 const unitKerjas = ref<UnitKerja[]>([]);
+const openActionMenuId = ref<string | null>(null);
+const actionMenuPosition = ref({ top: 0, left: 0 });
 const loading = ref(false);
 const fetchError = ref("");
 const searchQuery = ref("");
@@ -339,8 +339,39 @@ function clearSearch() {
 }
 
 function changePage(page: number) {
+  openActionMenuId.value = null;
   currentPage.value = page;
   fetchData();
+}
+
+const activeActionUnitKerja = computed(
+  () => unitKerjas.value.find((uk) => uk.id === openActionMenuId.value) ?? null,
+);
+
+function toggleActionMenu(id: string, event: MouseEvent) {
+  if (openActionMenuId.value === id) {
+    openActionMenuId.value = null;
+    return;
+  }
+  const btn = event.currentTarget as HTMLElement | null;
+  if (btn) {
+    const rect = btn.getBoundingClientRect();
+    actionMenuPosition.value = {
+      top: rect.bottom + 6,
+      left: Math.max(8, rect.right - 170),
+    };
+  }
+  openActionMenuId.value = id;
+}
+
+function openEditFromMenu(uk: UnitKerja) {
+  openActionMenuId.value = null;
+  openEdit(uk);
+}
+
+function openDeleteFromMenu(uk: UnitKerja) {
+  openActionMenuId.value = null;
+  openDelete(uk);
 }
 
 // ─── Create / Edit ────────────────────────────────────────────────────────────
@@ -479,7 +510,18 @@ async function submitDelete() {
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
-onMounted(fetchData);
+onMounted(() => {
+  fetchData();
+  document.addEventListener("click", closeActionMenu);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener("click", closeActionMenu);
+});
+
+function closeActionMenu() {
+  openActionMenuId.value = null;
+}
 </script>
 
 <style scoped>
@@ -581,7 +623,7 @@ onMounted(fetchData);
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .uk-table {
@@ -617,6 +659,11 @@ onMounted(fetchData);
   background: rgba(0, 229, 184, 0.02);
 }
 
+.uk-table tbody tr.is-menu-open {
+  position: relative;
+  z-index: 2147483646;
+}
+
 .uk-th-actions {
   width: 80px;
   text-align: center;
@@ -634,6 +681,72 @@ onMounted(fetchData);
 .uk-td-actions {
   text-align: center;
   white-space: nowrap;
+  overflow: visible;
+  position: relative;
+}
+
+.uk-td-actions.is-menu-open {
+  z-index: 2147483646;
+}
+
+.uk-action-menu-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.uk-action-menu-wrap.is-open {
+  z-index: 2147483646;
+}
+
+.uk-row-action-btn {
+  height: 30px;
+  min-width: 110px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(117, 138, 170, 0.5);
+  background: rgba(15, 28, 50, 0.9);
+  color: var(--color-text-dim);
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.uk-row-menu {
+  position: absolute;
+  min-width: 160px;
+  background: #061833;
+  border: 1px solid rgba(52, 80, 116, 0.8);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 2147483646;
+}
+
+.uk-row-menu-floating {
+  position: fixed;
+  right: auto;
+  top: auto;
+}
+
+.uk-row-menu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #c0d6f1;
+  text-align: left;
+  font-size: 13px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.uk-row-menu-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.uk-row-menu-item.is-danger {
+  color: #ff7f96;
 }
 
 .uk-code-chip {
@@ -830,3 +943,6 @@ onMounted(fetchData);
 }
 
 </style>
+
+
+

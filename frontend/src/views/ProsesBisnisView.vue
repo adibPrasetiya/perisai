@@ -137,42 +137,45 @@
                   </span>
                 </td>
                 <td v-if="canWrite" class="asset-td-actions">
-                  <button
-                    v-if="item.status !== 'ARCHIVED'"
-                    class="btn-icon"
-                    type="button"
-                    title="Edit"
-                    @click="openEdit(item)"
-                  >
-                    <i class="pi pi-pencil" />
-                  </button>
-                  <button
-                    v-if="item.status === 'INACTIVE'"
-                    class="btn-icon btn-icon-success"
-                    type="button"
-                    title="Aktifkan"
-                    @click="openStatusChange(item, 'activate')"
-                  >
-                    <i class="pi pi-play" />
-                  </button>
-                  <button
-                    v-if="item.status === 'ACTIVE'"
-                    class="btn-icon btn-icon-warn"
-                    type="button"
-                    title="Nonaktifkan"
-                    @click="openStatusChange(item, 'deactivate')"
-                  >
-                    <i class="pi pi-pause" />
-                  </button>
-                  <button
-                    v-if="item.status === 'INACTIVE'"
-                    class="btn-icon btn-icon-danger"
-                    type="button"
-                    title="Arsipkan"
-                    @click="openArchive(item)"
-                  >
-                    <i class="pi pi-box" />
-                  </button>
+                  <div class="asset-action-menu-wrap">
+                    <button class="asset-row-action-btn" type="button" @click="toggleActionMenu(item.id)">
+                      Aksi <i class="pi pi-chevron-down" />
+                    </button>
+                    <div v-if="openActionMenuId === item.id" class="asset-row-menu">
+                      <button
+                        v-if="item.status !== 'ARCHIVED'"
+                        class="asset-row-menu-item"
+                        type="button"
+                        @click="openEditFromMenu(item)"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        v-if="item.status === 'INACTIVE'"
+                        class="asset-row-menu-item"
+                        type="button"
+                        @click="openStatusFromMenu(item, 'activate')"
+                      >
+                        Aktifkan
+                      </button>
+                      <button
+                        v-if="item.status === 'ACTIVE'"
+                        class="asset-row-menu-item"
+                        type="button"
+                        @click="openStatusFromMenu(item, 'deactivate')"
+                      >
+                        Nonaktifkan
+                      </button>
+                      <button
+                        v-if="item.status === 'INACTIVE'"
+                        class="asset-row-menu-item is-danger"
+                        type="button"
+                        @click="openArchiveFromMenu(item)"
+                      >
+                        Arsipkan
+                      </button>
+                    </div>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -438,6 +441,7 @@ async function loadUnitKerjas() {
 // ─── List state ───────────────────────────────────────────────────────────────
 
 const items = ref<ProsesBisnis[]>([])
+const openActionMenuId = ref<string | null>(null)
 const loading = ref(false)
 const fetchError = ref('')
 const filterName = ref('')
@@ -496,8 +500,28 @@ function clearNameFilter() {
 }
 
 function changePage(page: number) {
+  openActionMenuId.value = null
   currentPage.value = page
   fetchItems()
+}
+
+function toggleActionMenu(id: string) {
+  openActionMenuId.value = openActionMenuId.value === id ? null : id
+}
+
+function openEditFromMenu(item: ProsesBisnis) {
+  openActionMenuId.value = null
+  openEdit(item)
+}
+
+function openStatusFromMenu(item: ProsesBisnis, action: 'activate' | 'deactivate') {
+  openActionMenuId.value = null
+  openStatusChange(item, action)
+}
+
+function openArchiveFromMenu(item: ProsesBisnis) {
+  openActionMenuId.value = null
+  openArchive(item)
 }
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
@@ -943,7 +967,7 @@ onMounted(() => {
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .asset-table {
@@ -1013,6 +1037,57 @@ onMounted(() => {
 .asset-td-actions {
   text-align: center;
   white-space: nowrap;
+  overflow: visible;
+}
+
+.asset-action-menu-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.asset-row-action-btn {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(117, 138, 170, 0.5);
+  background: rgba(15, 28, 50, 0.9);
+  color: var(--color-text-dim);
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.asset-row-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 180px;
+  background: #061833;
+  border: 1px solid rgba(52, 80, 116, 0.8);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 2147483646;
+}
+
+.asset-row-menu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #c0d6f1;
+  text-align: left;
+  font-size: 13px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.asset-row-menu-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.asset-row-menu-item.is-danger {
+  color: #ff7f96;
 }
 
 .asset-code-chip {

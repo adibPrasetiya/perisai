@@ -137,46 +137,55 @@
                   </span>
                 </td>
                 <td v-if="canWrite" class="asset-td-actions">
-                  <button
-                    v-if="item.status !== 'ARCHIVED'"
-                    class="btn-icon"
-                    type="button"
-                    title="Edit"
-                    @click="openEdit(item)"
-                  >
-                    <i class="pi pi-pencil" />
-                  </button>
-                  <button
-                    v-if="item.status === 'INACTIVE'"
-                    class="btn-icon"
-                    type="button"
-                    title="Aktifkan"
-                    @click="openStatusChange(item, 'activate')"
-                  >
-                    <i class="pi pi-check-circle" />
-                  </button>
-                  <button
-                    v-if="item.status === 'ACTIVE'"
-                    class="btn-icon btn-icon-ban"
-                    type="button"
-                    title="Nonaktifkan"
-                    @click="openStatusChange(item, 'deactivate')"
-                  >
-                    <i class="pi pi-ban" />
-                  </button>
-                  <button
-                    v-if="item.status === 'INACTIVE'"
-                    class="btn-icon btn-icon-danger"
-                    type="button"
-                    title="Arsipkan"
-                    @click="openArchive(item)"
-                  >
-                    <i class="pi pi-box" />
-                  </button>
+                  <div class="asset-action-menu-wrap">
+                    <button class="asset-row-action-btn" type="button" @click.stop="toggleActionMenu(item.id, $event)">
+                      Aksi <i class="pi pi-chevron-down" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
           </table>
+
+          <div
+            v-if="activeActionItem"
+            class="asset-row-menu asset-row-menu-floating"
+            :style="{ top: `${actionMenuPosition.top}px`, left: `${actionMenuPosition.left}px` }"
+            @click.stop
+          >
+            <button
+              v-if="activeActionItem.status !== 'ARCHIVED'"
+              class="asset-row-menu-item"
+              type="button"
+              @click="openEditFromMenu(activeActionItem)"
+            >
+              Edit
+            </button>
+            <button
+              v-if="activeActionItem.status === 'INACTIVE'"
+              class="asset-row-menu-item"
+              type="button"
+              @click="openStatusFromMenu(activeActionItem, 'activate')"
+            >
+              Aktifkan
+            </button>
+            <button
+              v-if="activeActionItem.status === 'ACTIVE'"
+              class="asset-row-menu-item"
+              type="button"
+              @click="openStatusFromMenu(activeActionItem, 'deactivate')"
+            >
+              Nonaktifkan
+            </button>
+            <button
+              v-if="activeActionItem.status === 'INACTIVE'"
+              class="asset-row-menu-item is-danger"
+              type="button"
+              @click="openArchiveFromMenu(activeActionItem)"
+            >
+              Arsipkan
+            </button>
+          </div>
 
           <!-- Pagination -->
           <div v-if="pagination && pagination.totalPages > 1" class="asset-pagination">
@@ -384,12 +393,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import ProgressSpinner from 'primevue/progressspinner'
 import { useToast } from 'primevue/usetoast'
-import { KegiatanApi, type Kegiatan, type KegiatanStatus } from '@/api/Kegiatan'
+import { KegiatanApi, type Kegiatan, type KegiatanStatus } from '@/api/kegiatan'
 import { unitKerjaApi, type UnitKerja } from '@/api/unitKerja'
 import { useAuthStore } from '@/stores/auth'
 import { usersApi } from '@/api/users'
@@ -438,6 +447,8 @@ async function loadUnitKerjas() {
 // ─── List state ───────────────────────────────────────────────────────────────
 
 const items = ref<Kegiatan[]>([])
+const openActionMenuId = ref<string | null>(null)
+const actionMenuPosition = ref({ top: 0, left: 0 })
 const loading = ref(false)
 const fetchError = ref('')
 const filterName = ref('')
@@ -496,8 +507,44 @@ function clearNameFilter() {
 }
 
 function changePage(page: number) {
+  openActionMenuId.value = null
   currentPage.value = page
   fetchItems()
+}
+
+const activeActionItem = computed(
+  () => items.value.find((item) => item.id === openActionMenuId.value) ?? null
+)
+
+function toggleActionMenu(id: string, event: MouseEvent) {
+  if (openActionMenuId.value === id) {
+    openActionMenuId.value = null
+    return
+  }
+  const btn = event.currentTarget as HTMLElement | null
+  if (btn) {
+    const rect = btn.getBoundingClientRect()
+    actionMenuPosition.value = {
+      top: rect.bottom + 6,
+      left: Math.max(8, rect.right - 190),
+    }
+  }
+  openActionMenuId.value = id
+}
+
+function openEditFromMenu(item: Kegiatan) {
+  openActionMenuId.value = null
+  openEdit(item)
+}
+
+function openStatusFromMenu(item: Kegiatan, action: 'activate' | 'deactivate') {
+  openActionMenuId.value = null
+  openStatusChange(item, action)
+}
+
+function openArchiveFromMenu(item: Kegiatan) {
+  openActionMenuId.value = null
+  openArchive(item)
 }
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
@@ -667,7 +714,16 @@ async function submitArchive() {
 
 onMounted(() => {
   loadUnitKerjas()
+  document.addEventListener('click', closeActionMenu)
 })
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', closeActionMenu)
+})
+
+function closeActionMenu() {
+  openActionMenuId.value = null
+}
 </script>
 
 <style scoped>
@@ -943,7 +999,7 @@ onMounted(() => {
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .asset-table {
@@ -1013,6 +1069,66 @@ onMounted(() => {
 .asset-td-actions {
   text-align: center;
   white-space: nowrap;
+  overflow: visible;
+}
+
+.asset-td-actions.is-menu-open {
+  position: relative;
+  z-index: 2147483646;
+}
+
+.asset-action-menu-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.asset-row-action-btn {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(117, 138, 170, 0.5);
+  background: rgba(15, 28, 50, 0.9);
+  color: var(--color-text-dim);
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.asset-row-menu {
+  position: absolute;
+  min-width: 180px;
+  background: #061833;
+  border: 1px solid rgba(52, 80, 116, 0.8);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 2147483646;
+}
+
+.asset-row-menu-floating {
+  position: fixed;
+  right: auto;
+  top: auto;
+}
+
+.asset-row-menu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #c0d6f1;
+  text-align: left;
+  font-size: 13px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.asset-row-menu-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.asset-row-menu-item.is-danger {
+  color: #ff7f96;
 }
 
 .asset-code-chip {
@@ -1382,6 +1498,7 @@ onMounted(() => {
   max-width: 340px;
 }
 </style>
+
 
 
 

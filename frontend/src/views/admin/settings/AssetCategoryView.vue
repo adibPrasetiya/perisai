@@ -59,7 +59,7 @@
                 </div>
               </td>
             </tr>
-            <tr v-for="cat in categories" :key="cat.id">
+            <tr v-for="cat in categories" :key="cat.id" :class="{ 'is-menu-open': openActionMenuId === cat.id }">
               <td class="ac-td-name">{{ cat.name }}</td>
               <td class="ac-td-desc">
                 <span v-if="cat.description">{{ cat.description }}</span>
@@ -69,21 +69,24 @@
                 <span class="ac-count-badge">{{ cat._count?.assets ?? 0 }}</span>
               </td>
               <td class="ac-td-actions">
-                <button class="btn-icon" type="button" title="Edit" @click="openEdit(cat)">
-                  <i class="pi pi-pencil" />
-                </button>
-                <button
-                  class="btn-icon btn-icon-danger"
-                  type="button"
-                  title="Hapus"
-                  @click="openDelete(cat)"
-                >
-                  <i class="pi pi-trash" />
-                </button>
+                <div class="ac-action-menu-wrap">
+                  <button class="ac-row-action-btn" type="button" @click.stop="toggleActionMenu(cat.id, $event)">
+                    Aksi <i class="pi pi-chevron-down" />
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
+        <div
+          v-if="activeActionCategory"
+          class="ac-row-menu ac-row-menu-floating"
+          :style="{ top: `${actionMenuPosition.top}px`, left: `${actionMenuPosition.left}px` }"
+          @click.stop
+        >
+          <button class="ac-row-menu-item" type="button" @click="openEditFromMenu(activeActionCategory)">Edit</button>
+          <button class="ac-row-menu-item is-danger" type="button" @click="openDeleteFromMenu(activeActionCategory)">Hapus</button>
+        </div>
 
         <!-- Pagination -->
         <div v-if="pagination && pagination.totalPages > 1" class="ac-pagination">
@@ -217,7 +220,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onBeforeUnmount, computed } from 'vue'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import ProgressSpinner from 'primevue/progressspinner'
@@ -231,6 +234,8 @@ const toast = useToast()
 // ─── List state ───────────────────────────────────────────────────────────────
 
 const categories = ref<AssetCategory[]>([])
+const openActionMenuId = ref<string | null>(null)
+const actionMenuPosition = ref({ top: 0, left: 0 })
 const loading = ref(false)
 const fetchError = ref('')
 const searchQuery = ref('')
@@ -287,8 +292,39 @@ function clearSearch() {
 }
 
 function changePage(page: number) {
+  openActionMenuId.value = null
   currentPage.value = page
   fetchData()
+}
+
+const activeActionCategory = computed(
+  () => categories.value.find((cat) => cat.id === openActionMenuId.value) ?? null
+)
+
+function toggleActionMenu(id: string, event: MouseEvent) {
+  if (openActionMenuId.value === id) {
+    openActionMenuId.value = null
+    return
+  }
+  const btn = event.currentTarget as HTMLElement | null
+  if (btn) {
+    const rect = btn.getBoundingClientRect()
+    actionMenuPosition.value = {
+      top: rect.bottom + 6,
+      left: Math.max(8, rect.right - 170),
+    }
+  }
+  openActionMenuId.value = id
+}
+
+function openEditFromMenu(cat: AssetCategory) {
+  openActionMenuId.value = null
+  openEdit(cat)
+}
+
+function openDeleteFromMenu(cat: AssetCategory) {
+  openActionMenuId.value = null
+  openDelete(cat)
 }
 
 // ─── Create / Edit ────────────────────────────────────────────────────────────
@@ -384,7 +420,18 @@ async function submitDelete() {
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
-onMounted(fetchData)
+onMounted(() => {
+  fetchData()
+  document.addEventListener('click', closeActionMenu)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', closeActionMenu)
+})
+
+function closeActionMenu() {
+  openActionMenuId.value = null
+}
 </script>
 
 <style scoped>
@@ -486,7 +533,7 @@ onMounted(fetchData)
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .ac-table {
@@ -520,6 +567,11 @@ onMounted(fetchData)
 
 .ac-table tbody tr:hover td {
   background: rgba(0, 229, 184, 0.02);
+}
+
+.ac-table tbody tr.is-menu-open {
+  position: relative;
+  z-index: 2147483646;
 }
 
 .ac-th-count {
@@ -570,6 +622,68 @@ onMounted(fetchData)
 .ac-td-actions {
   text-align: center;
   white-space: nowrap;
+  overflow: visible;
+  position: relative;
+}
+
+.ac-action-menu-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.ac-action-menu-wrap.is-open {
+  z-index: 2147483646;
+}
+
+.ac-row-action-btn {
+  height: 30px;
+  min-width: 110px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(117, 138, 170, 0.5);
+  background: rgba(15, 28, 50, 0.9);
+  color: var(--color-text-dim);
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.ac-row-menu {
+  position: absolute;
+  min-width: 160px;
+  background: #061833;
+  border: 1px solid rgba(52, 80, 116, 0.8);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 2147483646;
+}
+
+.ac-row-menu-floating {
+  position: fixed;
+  right: auto;
+  top: auto;
+}
+
+.ac-row-menu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #c0d6f1;
+  text-align: left;
+  font-size: 13px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.ac-row-menu-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ac-row-menu-item.is-danger {
+  color: #ff7f96;
 }
 
 .ac-empty {
@@ -758,3 +872,5 @@ onMounted(fetchData)
 }
 
 </style>
+
+

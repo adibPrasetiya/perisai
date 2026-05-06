@@ -131,7 +131,7 @@
                 v-for="pf in programFrameworks"
                 :key="pf.id"
                 class="rpd-fw-row"
-                :class="{ 'row-inactive': pf.status !== 'ACTIVE' }"
+                :class="{ 'row-inactive': pf.status !== 'ACTIVE', 'is-menu-open': openActionMenuId === pf.id }"
               >
                 <!-- Left: info -->
                 <div class="rpd-fw-row-left">
@@ -172,26 +172,24 @@
                     Kelola Konteks <i class="pi pi-arrow-right" />
                   </button>
                   <div class="rpd-fw-row-icons">
-                    <button
-                      class="btn-icon"
-                      title="Edit Status"
-                      type="button"
-                      @click="openEditFramework(pf)"
-                    >
-                      <i class="pi pi-cog" />
-                    </button>
-                    <button
-                      class="btn-icon btn-icon-danger"
-                      title="Hapus dari Program"
-                      type="button"
-                      @click="openDeleteFramework(pf)"
-                    >
-                      <i class="pi pi-trash" />
-                    </button>
+                    <div class="rpd-action-menu-wrap">
+                      <button class="rpd-row-action-btn" type="button" @click.stop="toggleActionMenu(pf.id, $event)">
+                        Aksi <i class="pi pi-chevron-down" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </li>
             </ul>
+            <div
+              v-if="activeActionFramework"
+              class="rpd-row-menu rpd-row-menu-floating"
+              :style="{ top: `${actionMenuPosition.top}px`, left: `${actionMenuPosition.left}px` }"
+              @click.stop
+            >
+              <button class="rpd-row-menu-item" type="button" @click="openEditFrameworkFromMenu(activeActionFramework)">Edit Status</button>
+              <button class="rpd-row-menu-item is-danger" type="button" @click="openDeleteFrameworkFromMenu(activeActionFramework)">Hapus dari Program</button>
+            </div>
           </section>
         </main>
       </div>
@@ -421,7 +419,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
@@ -481,6 +479,8 @@ async function loadProgram() {
 const programFrameworks = ref<ProgramFramework[]>([]);
 const fwLoading = ref(false);
 const fwError = ref("");
+const openActionMenuId = ref<string | null>(null);
+const actionMenuPosition = ref({ top: 0, left: 0 });
 
 async function loadFrameworks() {
   fwLoading.value = true;
@@ -493,6 +493,26 @@ async function loadFrameworks() {
   } finally {
     fwLoading.value = false;
   }
+}
+
+const activeActionFramework = computed(
+  () => programFrameworks.value.find((pf) => pf.id === openActionMenuId.value) ?? null,
+);
+
+function toggleActionMenu(id: string, event: MouseEvent) {
+  if (openActionMenuId.value === id) {
+    openActionMenuId.value = null;
+    return;
+  }
+  const btn = event.currentTarget as HTMLElement | null;
+  if (btn) {
+    const rect = btn.getBoundingClientRect();
+    actionMenuPosition.value = {
+      top: rect.bottom + 6,
+      left: Math.max(8, rect.right - 200),
+    };
+  }
+  openActionMenuId.value = id;
 }
 
 // ─── All frameworks (for add dropdown) ───────────────────────────────────────
@@ -638,6 +658,11 @@ function openEditFramework(pf: ProgramFramework) {
   showEditFw.value = true;
 }
 
+function openEditFrameworkFromMenu(pf: ProgramFramework) {
+  openActionMenuId.value = null;
+  openEditFramework(pf);
+}
+
 async function submitEditFramework() {
   if (!editFwTarget.value) return;
   editFwLoading.value = true;
@@ -674,6 +699,11 @@ function openDeleteFramework(pf: ProgramFramework) {
   showDeleteFw.value = true;
 }
 
+function openDeleteFrameworkFromMenu(pf: ProgramFramework) {
+  openActionMenuId.value = null;
+  openDeleteFramework(pf);
+}
+
 async function submitDeleteFramework() {
   if (!deleteFwTarget.value) return;
   deleteFwLoading.value = true;
@@ -702,7 +732,16 @@ onMounted(() => {
   loadProgram();
   loadFrameworks();
   loadAllFrameworks();
+  document.addEventListener("click", closeActionMenu);
 });
+
+onBeforeUnmount(() => {
+  document.removeEventListener("click", closeActionMenu);
+});
+
+function closeActionMenu() {
+  openActionMenuId.value = null;
+}
 </script>
 
 <style scoped>
@@ -1011,6 +1050,11 @@ onMounted(() => {
   opacity: 0.55;
 }
 
+.rpd-fw-row.is-menu-open {
+  position: relative;
+  z-index: 2147483646;
+}
+
 /* Row left */
 .rpd-fw-row-left {
   display: flex;
@@ -1128,6 +1172,68 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 2px;
+  position: relative;
+  overflow: visible;
+}
+
+.rpd-action-menu-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.rpd-action-menu-wrap.is-open {
+  z-index: 2147483646;
+}
+
+.rpd-row-action-btn {
+  height: 30px;
+  min-width: 130px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(117, 138, 170, 0.5);
+  background: rgba(15, 28, 50, 0.9);
+  color: var(--color-text-dim);
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.rpd-row-menu {
+  position: absolute;
+  min-width: 190px;
+  background: #061833;
+  border: 1px solid rgba(52, 80, 116, 0.8);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 2147483646;
+}
+
+.rpd-row-menu-floating {
+  position: fixed;
+  right: auto;
+  top: auto;
+}
+
+.rpd-row-menu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #c0d6f1;
+  text-align: left;
+  font-size: 13px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.rpd-row-menu-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.rpd-row-menu-item.is-danger {
+  color: #ff7f96;
 }
 
 /* ─── States ──────────────────────────────────────────────────────────────── */

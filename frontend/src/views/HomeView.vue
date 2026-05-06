@@ -129,6 +129,12 @@ const menuSections = [
         desc: "Konfigurasi sistem dan preferensi.",
         to: "/admin/settings",
       },
+      {
+        icon: "pi pi-history",
+        label: "Log Aktivitas",
+        desc: "Pantau jejak aktivitas perubahan dan autentikasi sistem.",
+        to: "/admin/activity-logs",
+      },
     ],
   },
 ];

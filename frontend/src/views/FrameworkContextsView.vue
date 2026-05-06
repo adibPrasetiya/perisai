@@ -171,48 +171,39 @@
 
               <!-- Right: actions -->
               <div class="fcv-row-actions">
-                <button
-                  class="fcv-manage-btn"
-                  type="button"
-                  @click="
-                    router.push({
-                      name: 'risk-context-detail',
-                      params: { contextId: ctx.id },
-                    })
-                  "
-                >
-                  Kelola <i class="pi pi-arrow-right" />
-                </button>
-                <div class="fcv-icon-group">
-                  <button class="btn-icon" title="Edit" @click="openEdit(ctx)">
-                    <i class="pi pi-pencil" />
-                  </button>
-                  <button
-                    v-if="ctx.status !== 'ACTIVE'"
-                    class="btn-icon btn-icon-accent"
-                    title="Aktifkan"
-                    @click="openActivate(ctx)"
-                  >
-                    <i class="pi pi-check-circle" />
-                  </button>
-                  <button
-                    v-if="ctx.status === 'ACTIVE'"
-                    class="btn-icon btn-icon-warn"
-                    title="Nonaktifkan"
-                    @click="openDeactivate(ctx)"
-                  >
-                    <i class="pi pi-ban" />
-                  </button>
-                  <button
-                    class="btn-icon btn-icon-danger"
-                    title="Hapus"
-                    @click="openDelete(ctx)"
-                  >
-                    <i class="pi pi-trash" />
+                <div class="fcv-action-menu-wrap">
+                  <button class="fcv-row-action-btn" type="button" @click.stop="toggleActionMenu(ctx.id, $event)">
+                    Aksi <i class="pi pi-chevron-down" />
                   </button>
                 </div>
               </div>
             </div>
+          </div>
+          <div
+            v-if="activeActionContext"
+            class="fcv-row-menu fcv-row-menu-floating"
+            :style="{ top: `${actionMenuPosition.top}px`, left: `${actionMenuPosition.left}px` }"
+            @click.stop
+          >
+            <button class="fcv-row-menu-item" type="button" @click="openManageFromMenu(activeActionContext.id)">Kelola</button>
+            <button class="fcv-row-menu-item" type="button" @click="openEditFromMenu(activeActionContext)">Edit</button>
+            <button
+              v-if="activeActionContext.status !== 'ACTIVE'"
+              class="fcv-row-menu-item"
+              type="button"
+              @click="openActivateFromMenu(activeActionContext)"
+            >
+              Aktifkan
+            </button>
+            <button
+              v-if="activeActionContext.status === 'ACTIVE'"
+              class="fcv-row-menu-item"
+              type="button"
+              @click="openDeactivateFromMenu(activeActionContext)"
+            >
+              Nonaktifkan
+            </button>
+            <button class="fcv-row-menu-item is-danger" type="button" @click="openDeleteFromMenu(activeActionContext)">Hapus</button>
           </div>
         </main>
       </div>
@@ -466,7 +457,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
@@ -509,6 +500,8 @@ async function loadFramework() {
 // ─── Contexts ─────────────────────────────────────────────────────────────────
 
 const contexts = ref<RiskContext[]>([]);
+const openActionMenuId = ref<string | null>(null);
+const actionMenuPosition = ref({ top: 0, left: 0 });
 const loading = ref(false);
 const error = ref("");
 
@@ -527,6 +520,51 @@ async function loadContexts() {
   } finally {
     loading.value = false;
   }
+}
+
+const activeActionContext = computed(
+  () => contexts.value.find((ctx) => ctx.id === openActionMenuId.value) ?? null,
+);
+
+function toggleActionMenu(id: string, event: MouseEvent) {
+  if (openActionMenuId.value === id) {
+    openActionMenuId.value = null;
+    return;
+  }
+  const btn = event.currentTarget as HTMLElement | null;
+  if (btn) {
+    const rect = btn.getBoundingClientRect();
+    actionMenuPosition.value = {
+      top: rect.bottom + 6,
+      left: Math.max(8, rect.right - 170),
+    };
+  }
+  openActionMenuId.value = id;
+}
+
+function openManageFromMenu(contextId: string) {
+  openActionMenuId.value = null;
+  router.push({ name: "risk-context-detail", params: { contextId } });
+}
+
+function openEditFromMenu(ctx: RiskContext) {
+  openActionMenuId.value = null;
+  openEdit(ctx);
+}
+
+function openActivateFromMenu(ctx: RiskContext) {
+  openActionMenuId.value = null;
+  openActivate(ctx);
+}
+
+function openDeactivateFromMenu(ctx: RiskContext) {
+  openActionMenuId.value = null;
+  openDeactivate(ctx);
+}
+
+function openDeleteFromMenu(ctx: RiskContext) {
+  openActionMenuId.value = null;
+  openDelete(ctx);
 }
 
 // ─── Edit ─────────────────────────────────────────────────────────────────────
@@ -743,7 +781,16 @@ async function submitDelete() {
 onMounted(() => {
   loadFramework();
   loadContexts();
+  document.addEventListener("click", closeActionMenu);
 });
+
+onBeforeUnmount(() => {
+  document.removeEventListener("click", closeActionMenu);
+});
+
+function closeActionMenu() {
+  openActionMenuId.value = null;
+}
 </script>
 
 <style scoped>
@@ -1071,76 +1118,64 @@ onMounted(() => {
 .fcv-row-actions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
   flex-shrink: 0;
+  margin-top: 6px;
 }
 
-.fcv-manage-btn {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
-  background: transparent;
-  border: 1px solid var(--color-border);
+.fcv-action-menu-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.fcv-row-action-btn {
+  height: 30px;
+  min-width: 126px;
+  padding: 0 10px;
   border-radius: var(--radius-sm);
+  border: 1px solid rgba(117, 138, 170, 0.5);
+  background: rgba(15, 28, 50, 0.9);
   color: var(--color-text-dim);
-  font-size: 11px;
-  font-family: var(--font-body);
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-
-.fcv-manage-btn:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-  background: rgba(0, 229, 184, 0.05);
-}
-
-.fcv-icon-group {
-  display: flex;
-  gap: 2px;
-}
-
-/* ─── Icon buttons ────────────────────────────────────────────────────────── */
-
-.btn-icon {
-  width: 28px;
-  height: 28px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-size: 12px;
-  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
 }
 
-.btn-icon:hover {
-  background: var(--color-bg-input);
-  border-color: var(--color-border);
-  color: var(--color-text);
+.fcv-row-menu {
+  position: absolute;
+  min-width: 170px;
+  background: #061833;
+  border: 1px solid rgba(52, 80, 116, 0.8);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 2147483646;
 }
 
-.btn-icon-accent:hover {
-  background: rgba(0, 229, 184, 0.1);
-  border-color: rgba(0, 229, 184, 0.3);
-  color: var(--color-accent);
+.fcv-row-menu-floating {
+  position: fixed;
+  right: auto;
+  top: auto;
 }
 
-.btn-icon-warn:hover {
-  background: rgba(245, 158, 11, 0.1);
-  border-color: rgba(245, 158, 11, 0.3);
-  color: #fbbf24;
+.fcv-row-menu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #c0d6f1;
+  text-align: left;
+  font-size: 13px;
+  padding: 10px 12px;
+  cursor: pointer;
 }
 
-.btn-icon-danger:hover {
-  background: var(--color-danger-dim);
-  border-color: rgba(255, 77, 109, 0.3);
-  color: #ff8fa3;
+.fcv-row-menu-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.fcv-row-menu-item.is-danger {
+  color: #ff7f96;
 }
 
 /* ─── Empty state ─────────────────────────────────────────────────────────── */
@@ -1417,4 +1452,3 @@ onMounted(() => {
   color: var(--color-accent);
 }
 </style>
-<<<<<<< HEAD ======= >>>>>>> 34c523e603f6d66ea861238b031cd77994f52169

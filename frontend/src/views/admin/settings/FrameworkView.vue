@@ -69,7 +69,7 @@
                 </div>
               </td>
             </tr>
-            <tr v-for="fw in frameworks" :key="fw.id">
+            <tr v-for="fw in frameworks" :key="fw.id" :class="{ 'is-menu-open': openActionMenuId === fw.id }">
               <td class="fw-td-code">
                 <span class="fw-code-badge">{{ fw.code }}</span>
               </td>
@@ -87,39 +87,27 @@
                 </span>
               </td>
               <td class="fw-td-actions">
-                <button class="btn-icon" type="button" title="Edit" @click="openEdit(fw)">
-                  <i class="pi pi-pencil" />
-                </button>
-                <button
-                  v-if="fw.isActive"
-                  class="btn-icon btn-icon-warn"
-                  type="button"
-                  title="Nonaktifkan"
-                  @click="openToggle(fw, false)"
-                >
-                  <i class="pi pi-ban" />
-                </button>
-                <button
-                  v-else
-                  class="btn-icon btn-icon-success"
-                  type="button"
-                  title="Aktifkan"
-                  @click="openToggle(fw, true)"
-                >
-                  <i class="pi pi-check-circle" />
-                </button>
-                <button
-                  class="btn-icon btn-icon-danger"
-                  type="button"
-                  title="Hapus"
-                  @click="openDelete(fw)"
-                >
-                  <i class="pi pi-trash" />
-                </button>
+                <div class="fw-action-menu-wrap">
+                  <button class="fw-row-action-btn" type="button" @click.stop="toggleActionMenu(fw.id, $event)">
+                    Aksi <i class="pi pi-chevron-down" />
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
+        <div
+          v-if="activeActionFramework"
+          class="fw-row-menu fw-row-menu-floating"
+          :style="{ top: `${actionMenuPosition.top}px`, left: `${actionMenuPosition.left}px` }"
+          @click.stop
+        >
+          <button class="fw-row-menu-item" type="button" @click="openEditFromMenu(activeActionFramework)">Edit</button>
+          <button class="fw-row-menu-item" type="button" @click="openToggleFromMenu(activeActionFramework, !activeActionFramework.isActive)">
+            {{ activeActionFramework.isActive ? 'Nonaktifkan' : 'Aktifkan' }}
+          </button>
+          <button class="fw-row-menu-item is-danger" type="button" @click="openDeleteFromMenu(activeActionFramework)">Hapus</button>
+        </div>
 
         <!-- Pagination -->
         <div v-if="pagination && pagination.totalPages > 1" class="fw-pagination">
@@ -321,7 +309,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import ProgressSpinner from 'primevue/progressspinner'
@@ -334,6 +322,8 @@ const toast = useToast()
 // ─── List state ───────────────────────────────────────────────────────────────
 
 const frameworks = ref<Framework[]>([])
+const openActionMenuId = ref<string | null>(null)
+const actionMenuPosition = ref({ top: 0, left: 0 })
 const pagination = ref<PaginationMeta | null>(null)
 const loading = ref(false)
 const fetchError = ref('')
@@ -407,8 +397,44 @@ function clearSearch() {
 }
 
 function changePage(page: number) {
+  openActionMenuId.value = null
   currentPage.value = page
   fetchData()
+}
+
+const activeActionFramework = computed(
+  () => frameworks.value.find((fw) => fw.id === openActionMenuId.value) ?? null
+)
+
+function toggleActionMenu(id: string, event: MouseEvent) {
+  if (openActionMenuId.value === id) {
+    openActionMenuId.value = null
+    return
+  }
+  const btn = event.currentTarget as HTMLElement | null
+  if (btn) {
+    const rect = btn.getBoundingClientRect()
+    actionMenuPosition.value = {
+      top: rect.bottom + 6,
+      left: Math.max(8, rect.right - 180),
+    }
+  }
+  openActionMenuId.value = id
+}
+
+function openEditFromMenu(fw: Framework) {
+  openActionMenuId.value = null
+  openEdit(fw)
+}
+
+function openToggleFromMenu(fw: Framework, activate: boolean) {
+  openActionMenuId.value = null
+  openToggle(fw, activate)
+}
+
+function openDeleteFromMenu(fw: Framework) {
+  openActionMenuId.value = null
+  openDelete(fw)
 }
 
 // ─── Pagination numbers ───────────────────────────────────────────────────────
@@ -568,7 +594,18 @@ async function submitDelete() {
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
-onMounted(fetchData)
+onMounted(() => {
+  fetchData()
+  document.addEventListener('click', closeActionMenu)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', closeActionMenu)
+})
+
+function closeActionMenu() {
+  openActionMenuId.value = null
+}
 </script>
 
 <style scoped>
@@ -691,7 +728,7 @@ onMounted(fetchData)
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .fw-table {
@@ -725,6 +762,11 @@ onMounted(fetchData)
 
 .fw-table tbody tr:hover td {
   background: rgba(0, 229, 184, 0.02);
+}
+
+.fw-table tbody tr.is-menu-open {
+  position: relative;
+  z-index: 2147483646;
 }
 
 .fw-th-count,
@@ -819,6 +861,68 @@ onMounted(fetchData)
 .fw-td-actions {
   text-align: center;
   white-space: nowrap;
+  overflow: visible;
+  position: relative;
+}
+
+.fw-action-menu-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.fw-action-menu-wrap.is-open {
+  z-index: 2147483646;
+}
+
+.fw-row-action-btn {
+  height: 30px;
+  min-width: 110px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(117, 138, 170, 0.5);
+  background: rgba(15, 28, 50, 0.9);
+  color: var(--color-text-dim);
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.fw-row-menu {
+  position: absolute;
+  min-width: 170px;
+  background: #061833;
+  border: 1px solid rgba(52, 80, 116, 0.8);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 2147483646;
+}
+
+.fw-row-menu-floating {
+  position: fixed;
+  right: auto;
+  top: auto;
+}
+
+.fw-row-menu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #c0d6f1;
+  text-align: left;
+  font-size: 13px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.fw-row-menu-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.fw-row-menu-item.is-danger {
+  color: #ff7f96;
 }
 
 .fw-empty {
@@ -1011,3 +1115,5 @@ onMounted(fetchData)
 }
 
 </style>
+
+

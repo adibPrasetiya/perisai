@@ -84,7 +84,7 @@
                 </div>
               </td>
             </tr>
-            <tr v-for="rp in programs" :key="rp.id">
+            <tr v-for="rp in programs" :key="rp.id" :class="{ 'is-menu-open': openActionMenuId === rp.id }">
               <td class="rp-td-name">
                 <span class="rp-name">{{ rp.name }}</span>
                 <span v-if="rp.description" class="rp-desc-snippet">{{
@@ -109,64 +109,53 @@
                 </span>
               </td>
               <td class="rp-td-center rp-td-actions">
-                <button
-                  class="btn-icon"
-                  type="button"
-                  title="Kelola Framework"
-                  @click="goToDetail(rp.id)"
-                >
-                  <i class="pi pi-cog" />
-                </button>
-                <button
-                  class="btn-icon"
-                  type="button"
-                  title="Edit"
-                  @click="openEdit(rp)"
-                >
-                  <i class="pi pi-pencil" />
-                </button>
-                <button
-                  v-if="rp.status === 'DRAFT'"
-                  class="btn-icon"
-                  type="button"
-                  title="Aktifkan"
-                  :disabled="statusActionLoading === rp.id"
-                  @click="doActivate(rp)"
-                >
-                  <i class="pi pi-check-circle" />
-                </button>
-                <button
-                  v-if="rp.status === 'ACTIVE'"
-                  class="btn-icon btn-icon-ban"
-                  type="button"
-                  title="Nonaktifkan"
-                  :disabled="statusActionLoading === rp.id"
-                  @click="doDeactivate(rp)"
-                >
-                  <i class="pi pi-ban" />
-                </button>
-                <button
-                  v-if="rp.status === 'ACTIVE' || rp.status === 'CLOSED'"
-                  class="btn-icon"
-                  type="button"
-                  title="Kembalikan ke Draft"
-                  :disabled="statusActionLoading === rp.id"
-                  @click="doSetDraft(rp)"
-                >
-                  <i class="pi pi-undo" />
-                </button>
-                <button
-                  class="btn-icon btn-icon-danger"
-                  type="button"
-                  title="Hapus"
-                  @click="openDelete(rp)"
-                >
-                  <i class="pi pi-trash" />
-                </button>
+                <div class="rp-action-menu-wrap">
+                  <button class="rp-row-action-btn" type="button" @click.stop="toggleActionMenu(rp.id, $event)">
+                    Aksi <i class="pi pi-chevron-down" />
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
+
+        <div
+          v-if="activeActionProgram"
+          class="rp-row-menu rp-row-menu-floating"
+          :style="{ top: `${actionMenuPosition.top}px`, left: `${actionMenuPosition.left}px` }"
+          @click.stop
+        >
+          <button class="rp-row-menu-item" type="button" @click="openDetailFromMenu(activeActionProgram.id)">Kelola Framework</button>
+          <button class="rp-row-menu-item" type="button" @click="openEditFromMenu(activeActionProgram)">Edit</button>
+          <button
+            v-if="activeActionProgram.status === 'DRAFT'"
+            class="rp-row-menu-item"
+            type="button"
+            :disabled="statusActionLoading === activeActionProgram.id"
+            @click="doActivateFromMenu(activeActionProgram)"
+          >
+            Aktifkan
+          </button>
+          <button
+            v-if="activeActionProgram.status === 'ACTIVE'"
+            class="rp-row-menu-item"
+            type="button"
+            :disabled="statusActionLoading === activeActionProgram.id"
+            @click="doDeactivateFromMenu(activeActionProgram)"
+          >
+            Nonaktifkan
+          </button>
+          <button
+            v-if="activeActionProgram.status === 'ACTIVE' || activeActionProgram.status === 'CLOSED'"
+            class="rp-row-menu-item"
+            type="button"
+            :disabled="statusActionLoading === activeActionProgram.id"
+            @click="doSetDraftFromMenu(activeActionProgram)"
+          >
+            Kembalikan ke Draft
+          </button>
+          <button class="rp-row-menu-item is-danger" type="button" @click="openDeleteFromMenu(activeActionProgram)">Hapus</button>
+        </div>
 
         <!-- Pagination -->
         <div
@@ -340,7 +329,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
@@ -369,6 +358,8 @@ const yearOptions = computed(() => {
 // ─── List state ───────────────────────────────────────────────────────────────
 
 const programs = ref<RiskProgram[]>([]);
+const openActionMenuId = ref<string | null>(null);
+const actionMenuPosition = ref({ top: 0, left: 0 });
 const loading = ref(false);
 const fetchError = ref("");
 const searchQuery = ref("");
@@ -451,8 +442,59 @@ function clearSearch() {
 }
 
 function changePage(page: number) {
+  openActionMenuId.value = null;
   currentPage.value = page;
   fetchData();
+}
+
+const activeActionProgram = computed(
+  () => programs.value.find((p) => p.id === openActionMenuId.value) ?? null,
+);
+
+function toggleActionMenu(id: string, event: MouseEvent) {
+  if (openActionMenuId.value === id) {
+    openActionMenuId.value = null;
+    return;
+  }
+  const btn = event.currentTarget as HTMLElement | null;
+  if (btn) {
+    const rect = btn.getBoundingClientRect();
+    actionMenuPosition.value = {
+      top: rect.bottom + 6,
+      left: Math.max(8, rect.right - 210),
+    };
+  }
+  openActionMenuId.value = id;
+}
+
+function openDetailFromMenu(id: string) {
+  openActionMenuId.value = null;
+  goToDetail(id);
+}
+
+function openEditFromMenu(rp: RiskProgram) {
+  openActionMenuId.value = null;
+  openEdit(rp);
+}
+
+function doActivateFromMenu(rp: RiskProgram) {
+  openActionMenuId.value = null;
+  doActivate(rp);
+}
+
+function doDeactivateFromMenu(rp: RiskProgram) {
+  openActionMenuId.value = null;
+  doDeactivate(rp);
+}
+
+function doSetDraftFromMenu(rp: RiskProgram) {
+  openActionMenuId.value = null;
+  doSetDraft(rp);
+}
+
+function openDeleteFromMenu(rp: RiskProgram) {
+  openActionMenuId.value = null;
+  openDelete(rp);
 }
 
 // ─── Create / Edit ────────────────────────────────────────────────────────────
@@ -659,7 +701,16 @@ async function submitDelete() {
 
 onMounted(() => {
   fetchData();
+  document.addEventListener("click", closeActionMenu);
 });
+
+onBeforeUnmount(() => {
+  document.removeEventListener("click", closeActionMenu);
+});
+
+function closeActionMenu() {
+  openActionMenuId.value = null;
+}
 </script>
 
 <style scoped>
@@ -787,7 +838,7 @@ onMounted(() => {
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .rp-table {
@@ -812,6 +863,11 @@ onMounted(() => {
   text-align: center;
 }
 
+.rp-table th:last-child,
+.rp-table td:last-child {
+  text-align: center;
+}
+
 .rp-table td {
   padding: 12px 16px;
   color: var(--color-text);
@@ -825,6 +881,11 @@ onMounted(() => {
 
 .rp-table tbody tr:hover td {
   background: rgba(0, 229, 184, 0.02);
+}
+
+.rp-table tbody tr.is-menu-open {
+  position: relative;
+  z-index: 2147483646;
 }
 
 .rp-td-name {
@@ -853,6 +914,77 @@ onMounted(() => {
 
 .rp-td-actions {
   white-space: nowrap;
+  overflow: visible;
+  position: relative;
+  width: 170px;
+}
+
+.rp-td-actions.is-menu-open {
+  z-index: 2147483646;
+}
+
+.rp-action-menu-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.rp-action-menu-wrap.is-open {
+  z-index: 2147483646;
+}
+
+.rp-row-action-btn {
+  height: 30px;
+  min-width: 130px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(117, 138, 170, 0.5);
+  background: rgba(15, 28, 50, 0.9);
+  color: var(--color-text-dim);
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.rp-row-menu {
+  position: absolute;
+  min-width: 170px;
+  width: max-content;
+  max-width: 240px;
+  background: #061833;
+  border: 1px solid rgba(52, 80, 116, 0.8);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 2147483646;
+}
+
+.rp-row-menu-floating {
+  position: fixed;
+  right: auto;
+  top: auto;
+}
+
+.rp-row-menu-item {
+  width: auto;
+  min-width: 100%;
+  border: none;
+  background: transparent;
+  color: #c0d6f1;
+  text-align: left;
+  font-size: 13px;
+  padding: 10px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.rp-row-menu-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.rp-row-menu-item.is-danger {
+  color: #ff7f96;
 }
 
 .rp-year-badge {
@@ -1157,3 +1289,5 @@ onMounted(() => {
   border-color: rgba(251, 191, 36, 0.35);
 }
 </style>
+
+

@@ -38,20 +38,12 @@
         </div>
         <div class="rcd-header-actions">
           <button
-            v-if="context.status !== 'ACTIVE' && canWrite"
-            class="rcd-activate-btn"
-            type="button"
-            @click="openActivate"
-          >
-            <i class="pi pi-check-circle" /> Aktifkan
-          </button>
-          <button
             v-if="context.status === 'ACTIVE' && canWrite"
             class="rcd-deactivate-btn"
             type="button"
             @click="openDeactivate"
           >
-            <i class="pi pi-pause-circle" /> Nonaktifkan
+            <i class="pi pi-ban" /> Nonaktifkan
           </button>
         </div>
       </div>
@@ -85,7 +77,7 @@
               :class="
                 context.status === 'ACTIVE'
                   ? 'pi pi-check-circle'
-                  : 'pi pi-pause-circle'
+                  : 'pi pi-ban'
               "
             />
             <div>
@@ -123,7 +115,7 @@
             type="button"
             @click="openDeactivate"
           >
-            <i class="pi pi-pause-circle" /> Nonaktifkan
+            <i class="pi pi-ban" /> Nonaktifkan
           </button>
         </div>
 
@@ -871,94 +863,113 @@
 
           <!-- ── 30%: Visualisasi Risk Matrix ── -->
           <div class="rl-matrix-preview">
-            <div class="rl-mx-title">Visualisasi Risk Matrix</div>
-            <div v-if="context.matrixCells.length === 0" class="rl-mx-empty">
-              <i class="pi pi-table" />
-              <span>Matriks belum diisi</span>
-              <span class="rl-mx-empty-hint"
-                >Isi matriks di tab "Matriks" untuk melihat visualisasi</span
-              >
-            </div>
-            <div v-else class="rl-mx-wrap">
-              <table class="rl-mx-table">
-                <thead>
-                  <tr>
-                    <th class="rl-mx-corner"></th>
-                    <th
-                      v-for="c in context.matrixCols"
-                      :key="`rl-ch-${c}`"
-                      class="rl-mx-col-hdr"
-                    >
-                      D{{ c }}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="r in context.matrixRows" :key="`rl-row-${r}`">
-                    <td class="rl-mx-row-hdr">L{{ r }}</td>
-                    <td
-                      v-for="c in context.matrixCols"
-                      :key="`rl-cell-${r}-${c}`"
-                      class="rl-mx-cell"
-                    >
-                      <div
-                        class="rl-mx-cell-inner"
-                        :style="{
-                          background: matchingRiskLevel(
-                            ovGetCell(r, c)?.value ?? 0,
-                          )?.color
-                            ? matchingRiskLevel(ovGetCell(r, c)?.value ?? 0)!
-                                .color + '30'
-                            : 'rgba(255,255,255,0.03)',
-                          borderColor:
-                            matchingRiskLevel(ovGetCell(r, c)?.value ?? 0)
-                              ?.color || 'var(--color-border)',
-                        }"
-                        :title="
-                          ovGetCell(r, c)
-                            ? `L${r}×D${c} = ${ovGetCell(r, c)!.value}${matchingRiskLevel(ovGetCell(r, c)!.value)?.name ? ' (' + matchingRiskLevel(ovGetCell(r, c)!.value)!.name + ')' : ''}`
-                            : `L${r}×D${c} — kosong`
-                        "
-                      >
-                        <span
-                          class="rl-mx-cell-val"
-                          :style="{
-                            color:
-                              matchingRiskLevel(ovGetCell(r, c)?.value ?? 0)
-                                ?.color || 'var(--color-text-dim)',
-                          }"
-                          >{{ ovGetCell(r, c)?.value ?? "" }}</span
-                        >
-                        <span
-                          v-if="matchingRiskLevel(ovGetCell(r, c)?.value ?? 0)"
-                          class="rl-mx-cell-lbl"
-                          :style="{
-                            color:
-                              matchingRiskLevel(ovGetCell(r, c)?.value ?? 0)!
-                                .color || 'var(--color-text-muted)',
-                          }"
-                          >{{
-                            matchingRiskLevel(ovGetCell(r, c)?.value ?? 0)!.name
-                          }}</span
-                        >
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-              <div class="rl-mx-legend">
-                <span
-                  v-for="lvl in context.riskLevels"
-                  :key="lvl.id"
-                  class="rl-mx-legend-item"
-                >
-                  <span
-                    class="rl-mx-legend-dot"
-                    :style="{ background: lvl.color || '#64748b' }"
-                  />
-                  {{ lvl.name }}
+            <div class="imp-card">
+              <div class="imp-card-header">
+                <span class="imp-card-title">
+                  <i class="pi pi-table" />
+                  Visualisasi Risk Matrix
                 </span>
+                <span class="imp-card-badge"
+                  >{{ context.matrixRows }}×{{ context.matrixCols }}</span
+                >
               </div>
+
+              <div v-if="context.matrixCells.length === 0" class="imp-card-empty">
+                <i class="pi pi-table" />
+                <span>Matriks belum diisi</span>
+                <span class="imp-card-empty-sub"
+                  >Isi matriks di tab "Matriks" untuk melihat visualisasi</span
+                >
+              </div>
+
+              <template v-else>
+                <div class="imp-grid-wrap">
+                  <div class="imp-axis-row">
+                    <div class="imp-axis-spacer" />
+                    <div class="imp-axis-label-h">Dampak →</div>
+                  </div>
+
+                  <div class="imp-grid-body">
+                    <div class="imp-axis-label-v">↑ Kemungkinan</div>
+
+                    <table class="imp-table">
+                      <thead>
+                        <tr>
+                          <th class="imp-corner">
+                            <span class="imp-corner-k">K</span>
+                            <div class="imp-corner-line" />
+                            <span class="imp-corner-d">D</span>
+                          </th>
+                          <th
+                            v-for="c in context.matrixCols"
+                            :key="`rl-ch-${c}`"
+                            class="imp-col-hdr"
+                          >
+                            D{{ c }}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="r in context.matrixRows" :key="`rl-row-${r}`">
+                          <td class="imp-row-hdr">L{{ r }}</td>
+                          <td
+                            v-for="c in context.matrixCols"
+                            :key="`rl-cell-${r}-${c}`"
+                            class="imp-cell"
+                            :style="{
+                              background: matchingRiskLevel(ovGetCell(r, c)?.value ?? 0)?.color
+                                ? matchingRiskLevel(ovGetCell(r, c)?.value ?? 0)!.color + '30'
+                                : 'rgba(255,255,255,0.03)',
+                              borderColor:
+                                matchingRiskLevel(ovGetCell(r, c)?.value ?? 0)?.color || 'var(--color-border)',
+                            }"
+                            :title="
+                              ovGetCell(r, c)
+                                ? `L${r}×D${c} = ${ovGetCell(r, c)!.value}${matchingRiskLevel(ovGetCell(r, c)!.value)?.name ? ' (' + matchingRiskLevel(ovGetCell(r, c)!.value)!.name + ')' : ''}`
+                                : `L${r}×D${c} — kosong`
+                            "
+                          >
+                            <span
+                              class="imp-cell-val"
+                              :style="{
+                                color: matchingRiskLevel(ovGetCell(r, c)?.value ?? 0)?.color || 'var(--color-text-dim)',
+                              }"
+                              >{{ ovGetCell(r, c)?.value ?? "" }}</span
+                            >
+                            <span
+                              v-if="matchingRiskLevel(ovGetCell(r, c)?.value ?? 0)"
+                              class="imp-cell-lbl"
+                              :style="{
+                                color: matchingRiskLevel(ovGetCell(r, c)?.value ?? 0)!.color || 'var(--color-text-muted)',
+                              }"
+                              >{{ matchingRiskLevel(ovGetCell(r, c)?.value ?? 0)!.name }}</span
+                            >
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div class="imp-legend">
+                  <div
+                    v-for="lvl in context.riskLevels"
+                    :key="`rl-lg-${lvl.id}`"
+                    class="imp-legend-item"
+                    :style="{
+                      borderColor: lvl.color || '#64748b',
+                      color: lvl.color || 'var(--color-text-dim)',
+                    }"
+                  >
+                    <span
+                      class="imp-legend-dot"
+                      :style="{ background: lvl.color || '#64748b' }"
+                    />
+                    <span class="imp-legend-name">{{ lvl.name }}</span>
+                    <span class="imp-legend-range">{{ lvl.minScore }}–{{ lvl.maxScore }}</span>
+                  </div>
+                </div>
+              </template>
             </div>
           </div>
         </div>
@@ -1546,10 +1557,24 @@
             class="rcd-add-btn"
             type="button"
             :disabled="matrixSaving"
-            @click="saveMatrix"
+            @click="toggleMatrixEditOrSave"
           >
-            <i :class="matrixSaving ? 'pi pi-spin pi-spinner' : 'pi pi-save'" />
-            {{ matrixSaving ? "Menyimpan…" : "Simpan Matriks" }}
+            <i
+              :class="
+                matrixSaving
+                  ? 'pi pi-spin pi-spinner'
+                  : matrixEditMode
+                    ? 'pi pi-save'
+                    : 'pi pi-pencil'
+              "
+            />
+            {{
+              matrixSaving
+                ? "Menyimpan…"
+                : matrixEditMode
+                  ? "Simpan Matriks"
+                  : "Edit"
+            }}
           </button>
         </div>
 
@@ -1600,7 +1625,10 @@
                     v-for="cell in row"
                     :key="`cell-${cell.row}-${cell.col}`"
                     class="mx-cell-td"
-                    :class="{ 'mx-cell-selected': selectedCell === cell }"
+                    :class="{
+                      'mx-cell-readonly': !matrixEditMode,
+                      'mx-cell-selected': selectedCell === cell,
+                    }"
                     @click="selectCell(cell)"
                   >
                     <div
@@ -1673,6 +1701,7 @@
                     class="rcd-input"
                     type="number"
                     min="0"
+                    :disabled="!matrixEditMode"
                   />
                   <!-- Risk level suggestion -->
                   <div
@@ -1698,6 +1727,7 @@
                     </div>
                     <button
                       type="button"
+                      :disabled="!matrixEditMode"
                       class="mx-apply-level"
                       @click="
                         applyRiskLevel(
@@ -1731,6 +1761,7 @@
                     v-if="context.riskLevels.length > 0"
                     v-model="selectedCell.label"
                     class="rcd-input"
+                    :disabled="!matrixEditMode"
                   >
                     <option value="">— Tidak ada label —</option>
                     <option
@@ -1747,6 +1778,7 @@
                     class="rcd-input"
                     type="text"
                     placeholder="mis. Rendah, Sedang, Tinggi"
+                    :disabled="!matrixEditMode"
                   />
                 </div>
                 <div class="form-group">
@@ -1767,6 +1799,7 @@
                           'preset-active': selectedCell.color === lvl.color,
                         }"
                         type="button"
+                        :disabled="!matrixEditMode"
                         @click="selectedCell.color = lvl.color || '#334155'"
                       />
                     </div>
@@ -1781,6 +1814,7 @@
                           'preset-active': selectedCell.color === preset.value,
                         }"
                         type="button"
+                        :disabled="!matrixEditMode"
                         @click="selectedCell.color = preset.value"
                       />
                     </div>
@@ -1789,11 +1823,13 @@
                       class="rcd-input mx-color-hex"
                       type="text"
                       placeholder="#334155"
+                      :disabled="!matrixEditMode"
                     />
                     <input
                       v-model="selectedCell.color"
                       type="color"
                       class="mx-color-picker"
+                      :disabled="!matrixEditMode"
                     />
                   </div>
                   <div
@@ -1856,7 +1892,7 @@
             </span>
           </template>
           <span v-if="canModify" class="mx-legend-hint"
-            >· Klik sel untuk mengedit · Simpan setelah selesai</span
+            >· Klik Edit untuk mulai mengubah · Simpan setelah selesai</span
           >
         </div>
       </div>
@@ -2030,7 +2066,7 @@
       :style="{ width: '400px' }"
     >
       <div class="del-body">
-        <div class="deact-icon-wrap"><i class="pi pi-pause-circle" /></div>
+        <div class="deact-icon-wrap"><i class="pi pi-ban" /></div>
         <p class="del-text">
           Nonaktifkan konteks <strong>{{ context?.name }}</strong
           >?
@@ -2747,7 +2783,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { useRoute } from "vue-router";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import ProgressSpinner from "primevue/progressspinner";
@@ -2767,7 +2803,6 @@ import {
 import { extractApiError } from "@/utils/apiError";
 import { useAuthStore } from "@/stores/auth";
 
-const router = useRouter();
 const route = useRoute();
 const toast = useToast();
 const auth = useAuthStore();
@@ -3744,6 +3779,7 @@ const matrixGrid = ref<EditableCell[][]>([]);
 const matrixSaving = ref(false);
 const matrixSaveError = ref("");
 const selectedCell = ref<EditableCell | null>(null);
+const matrixEditMode = ref(false);
 
 const colorPresets = [
   { label: "Sangat Rendah", value: "#22c55e" },
@@ -3755,7 +3791,17 @@ const colorPresets = [
 ];
 
 function selectCell(cell: EditableCell) {
+  if (!matrixEditMode.value) return;
   selectedCell.value = selectedCell.value === cell ? null : cell;
+}
+
+async function toggleMatrixEditOrSave() {
+  if (!matrixEditMode.value) {
+    matrixEditMode.value = true;
+    matrixSaveError.value = "";
+    return;
+  }
+  await saveMatrix();
 }
 
 function matchingRiskLevel(score: number): RiskLevel | undefined {
@@ -3810,6 +3856,8 @@ function initMatrix() {
     grid.push(row);
   }
   matrixGrid.value = grid;
+  selectedCell.value = null;
+  matrixEditMode.value = false;
 }
 
 async function saveMatrix() {
@@ -3831,6 +3879,8 @@ async function saveMatrix() {
       detail: "Matriks risiko berhasil disimpan",
       life: 3000,
     });
+    matrixEditMode.value = false;
+    selectedCell.value = null;
     loadContext();
   } catch (err: any) {
     matrixSaveError.value = extractApiError(err, "Gagal menyimpan matriks.");
@@ -5672,6 +5722,10 @@ onMounted(loadContext);
   cursor: pointer;
 }
 
+.mx-cell-readonly {
+  cursor: default;
+}
+
 .mx-cell-inner {
   width: 70px;
   height: 56px;
@@ -5686,7 +5740,7 @@ onMounted(loadContext);
   position: relative;
 }
 
-.mx-cell-td:hover .mx-cell-inner {
+.mx-cell-td:not(.mx-cell-readonly):hover .mx-cell-inner {
   filter: brightness(1.15);
   transform: scale(1.04);
 }
@@ -5704,10 +5758,14 @@ onMounted(loadContext);
 }
 
 .mx-cell-lbl {
+  display: block;
+  width: 100%;
+  text-align: center;
   font-size: 8px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   opacity: 0.8;
+  line-height: 1.2;
 }
 
 .mx-cell-empty {
@@ -7008,3 +7066,4 @@ onMounted(loadContext);
   color: var(--color-text-muted);
 }
 </style>
+

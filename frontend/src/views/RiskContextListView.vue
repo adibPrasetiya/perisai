@@ -76,36 +76,24 @@
               </span>
             </div>
             <div class="rcl-card-actions">
-              <button
-                class="btn-icon"
-                title="Kelola Konteks"
-                @click="
-                  router.push({
-                    name: 'risk-context-detail',
-                    params: { contextId: ctx.id },
-                  })
-                "
-              >
-                <i class="pi pi-cog" />
-              </button>
-              <button class="btn-icon" title="Edit" @click="openEdit(ctx)">
-                <i class="pi pi-pencil" />
-              </button>
-              <button
-                v-if="ctx.status !== 'ACTIVE'"
-                class="btn-icon btn-icon-accent"
-                title="Aktifkan"
-                @click="openActivate(ctx)"
-              >
-                <i class="pi pi-check-circle" />
-              </button>
-              <button
-                class="btn-icon btn-icon-danger"
-                title="Hapus"
-                @click="openDelete(ctx)"
-              >
-                <i class="pi pi-trash" />
-              </button>
+              <div class="rcl-action-menu-wrap">
+                <button class="rcl-row-action-btn" type="button" @click="toggleActionMenu(ctx.id)">
+                  Aksi <i class="pi pi-chevron-down" />
+                </button>
+                <div v-if="openActionMenuId === ctx.id" class="rcl-row-menu">
+                  <button class="rcl-row-menu-item" type="button" @click="openManageFromMenu(ctx.id)">Kelola Konteks</button>
+                  <button class="rcl-row-menu-item" type="button" @click="openEditFromMenu(ctx)">Edit</button>
+                  <button
+                    v-if="ctx.status !== 'ACTIVE'"
+                    class="rcl-row-menu-item"
+                    type="button"
+                    @click="openActivateFromMenu(ctx)"
+                  >
+                    Aktifkan
+                  </button>
+                  <button class="rcl-row-menu-item is-danger" type="button" @click="openDeleteFromMenu(ctx)">Hapus</button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -491,6 +479,7 @@ async function loadFramework() {
 // ─── Contexts (linked to program-framework) ───────────────────────────────────
 
 const contexts = ref<ProgramFrameworkContext[]>([]);
+const openActionMenuId = ref<string | null>(null);
 const loading = ref(false);
 const error = ref("");
 
@@ -596,6 +585,30 @@ function openEdit(ctx: RiskContext) {
   });
   editApiError.value = "";
   showEdit.value = true;
+}
+
+function toggleActionMenu(id: string) {
+  openActionMenuId.value = openActionMenuId.value === id ? null : id;
+}
+
+function openManageFromMenu(contextId: string) {
+  openActionMenuId.value = null;
+  router.push({ name: "risk-context-detail", params: { contextId } });
+}
+
+function openEditFromMenu(ctx: RiskContext) {
+  openActionMenuId.value = null;
+  openEdit(ctx);
+}
+
+function openActivateFromMenu(ctx: RiskContext) {
+  openActionMenuId.value = null;
+  openActivate(ctx);
+}
+
+function openDeleteFromMenu(ctx: RiskContext) {
+  openActionMenuId.value = null;
+  openDelete(ctx);
 }
 
 async function submitEdit() {
@@ -854,6 +867,7 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1rem;
+  overflow: visible;
 }
 
 .rcl-card {
@@ -865,6 +879,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  overflow: visible;
 }
 
 .rcl-card.card-active {
@@ -917,6 +932,60 @@ onMounted(() => {
   display: flex;
   gap: 3px;
   flex-shrink: 0;
+  position: relative;
+  overflow: visible;
+}
+
+.rcl-action-menu-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.rcl-row-action-btn {
+  height: 30px;
+  min-width: 128px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(117, 138, 170, 0.5);
+  background: rgba(15, 28, 50, 0.9);
+  color: var(--color-text-dim);
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.rcl-row-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 180px;
+  background: #061833;
+  border: 1px solid rgba(52, 80, 116, 0.8);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 2147483646;
+}
+
+.rcl-row-menu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #c0d6f1;
+  text-align: left;
+  font-size: 13px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.rcl-row-menu-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.rcl-row-menu-item.is-danger {
+  color: #ff7f96;
 }
 
 .rcl-ctx-name {

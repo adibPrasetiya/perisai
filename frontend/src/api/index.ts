@@ -1,4 +1,5 @@
 export * from './asset'
+export * from './activityLog'
 export * from './assetCategory'
 export * from './auth'
 export * from './client'

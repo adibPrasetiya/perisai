@@ -44,6 +44,17 @@ const router = createRouter({
           },
         },
         {
+          path: "admin/activity-logs",
+          name: "admin-activity-logs",
+          component: () => import("@/views/admin/settings/ActivityLogView.vue"),
+          meta: {
+            requiresAdmin: true,
+            breadcrumb: "Log Aktivitas",
+            showBack: true,
+            backTo: "home",
+          },
+        },
+        {
           path: "assets",
           name: "assets",
           component: () => import("@/views/AssetsView.vue"),

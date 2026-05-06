@@ -30,7 +30,7 @@ export const corsOptions = {
   credentials: true,
 
   // Hanya metode yang benar-benar dipakai aplikasi
-  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS", "PUT"],
 
   // Hanya izinkan header yang diperlukan dari client
   allowedHeaders: ["Content-Type"],

@@ -513,11 +513,14 @@
                 <table class="mc-table">
                   <thead>
                     <tr>
-                      <th class="mc-corner">
-                        <span class="mc-corner-row">Kemungkinan</span>
-                        <div class="mc-corner-line" />
-                        <span class="mc-corner-col">Dampak</span>
+                      <th class="mc-axis-spacer" colspan="2" />
+                      <th class="mc-axis-top" :colspan="form.matrixCols">
+                        LEVEL DAMPAK
                       </th>
+                    </tr>
+                    <tr>
+                      <th class="mc-axis-side-head" />
+                      <th class="mc-row-head-spacer" />
                       <th
                         v-for="c in form.matrixCols"
                         :key="`ch-${c}`"
@@ -529,6 +532,9 @@
                   </thead>
                   <tbody>
                     <tr v-for="r in form.matrixRows" :key="`mr-${r}`">
+                      <td v-if="r === 1" class="mc-axis-side" :rowspan="form.matrixRows">
+                        <span class="mc-axis-side-text">LEVEL KEMUNGKINAN</span>
+                      </td>
                       <td class="mc-row-header">
                         <div class="mc-row-level">L{{ r }}</div>
                       </td>
@@ -803,11 +809,14 @@
                 <table class="mc-table">
                   <thead>
                     <tr>
-                      <th class="mc-corner">
-                        <span class="mc-corner-row">Kemungkinan</span>
-                        <div class="mc-corner-line" />
-                        <span class="mc-corner-col">Dampak</span>
+                      <th class="mc-axis-spacer" colspan="2" />
+                      <th class="mc-axis-top" :colspan="form.matrixCols">
+                        LEVEL DAMPAK
                       </th>
+                    </tr>
+                    <tr>
+                      <th class="mc-axis-side-head" />
+                      <th class="mc-row-head-spacer" />
                       <th
                         v-for="c in form.matrixCols"
                         :key="`ch3-${c}`"
@@ -819,6 +828,9 @@
                   </thead>
                   <tbody>
                     <tr v-for="r in form.matrixRows" :key="`mr3-${r}`">
+                      <td v-if="r === 1" class="mc-axis-side" :rowspan="form.matrixRows">
+                        <span class="mc-axis-side-text">LEVEL KEMUNGKINAN</span>
+                      </td>
                       <td class="mc-row-header">
                         <div class="mc-row-level">L{{ r }}</div>
                       </td>
@@ -2367,9 +2379,21 @@ onMounted(() => {
 /* ─── Matrix size section ─────────────────────────────────────────────────── */
 
 .rcc-matrix-inputs {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 0.75rem 1rem;
+  align-items: start;
+}
+
+.rcc-matrix-inputs .form-label {
+  display: block;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .rcc-matrix-inputs {
+    grid-template-columns: 1fr;
+  }
 }
 
 .rcc-stepper {
@@ -2378,6 +2402,8 @@ onMounted(() => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   overflow: hidden;
+  width: fit-content;
+  margin: 0 auto;
 }
 
 .rcc-step-btn {
@@ -2424,6 +2450,7 @@ onMounted(() => {
   font-size: 11px;
   color: var(--color-text-muted);
   margin-top: 0.25rem;
+  grid-column: 1 / -1;
 }
 .mx-size-badge {
   font-family: var(--font-mono);
@@ -2591,52 +2618,65 @@ onMounted(() => {
 
 .mc-wrap {
   overflow-x: auto;
-  padding: 1rem 1.5rem;
+  padding: 1rem 1.5rem 1rem 0.75rem;
 }
 
 .mc-table {
   border-collapse: separate;
   border-spacing: 4px;
   min-width: max-content;
+  margin-left: -0.4rem;
 }
 
-.mc-corner {
+.mc-axis-spacer {
+  width: 86px;
+  min-width: 86px;
+  background: transparent;
+}
+
+.mc-axis-side-head {
+  width: 26px;
+  min-width: 26px;
+  background: transparent;
+}
+
+.mc-row-head-spacer {
   width: 60px;
   min-width: 60px;
-  position: relative;
-  padding: 6px;
+  background: transparent;
+}
+
+.mc-axis-top {
+  text-align: center;
+  padding: 2px 4px 6px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.mc-axis-side {
+  width: 26px;
+  min-width: 26px;
+  padding: 0;
+  text-align: center;
   vertical-align: middle;
   background: transparent;
 }
-.mc-corner-row {
-  position: absolute;
-  bottom: 8px;
-  left: 8px;
-  font-size: 8px;
-  color: var(--color-text-muted);
+
+.mc-axis-side-text {
+  display: inline-block;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  font-size: 10px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-.mc-corner-col {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  font-size: 8px;
   color: var(--color-text-muted);
-  text-transform: uppercase;
-}
-.mc-corner-line {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    to bottom right,
-    transparent calc(50% - 0.5px),
-    var(--color-border) calc(50% - 0.5px),
-    var(--color-border) calc(50% + 0.5px),
-    transparent calc(50% + 0.5px)
-  );
+  font-family: var(--font-mono);
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .mc-col-header {
@@ -2653,8 +2693,11 @@ onMounted(() => {
 }
 
 .mc-row-header {
-  padding: 0 10px 0 0;
+  width: 60px;
+  min-width: 60px;
+  padding: 0 8px 0 0;
   vertical-align: middle;
+  text-align: center;
 }
 .mc-row-level {
   font-family: var(--font-mono);
@@ -3082,4 +3125,3 @@ onMounted(() => {
   border-radius: var(--radius-md);
 }
 </style>
-<<<<<<< HEAD ======= >>>>>>> 34c523e603f6d66ea861238b031cd77994f52169

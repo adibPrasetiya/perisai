@@ -177,46 +177,45 @@
                   </span>
                 </td>
                 <td class="asset-td-actions">
-                  <!-- Edit -->
-                  <button
-                    v-if="asset.status !== 'ARCHIVED'"
-                    class="btn-icon"
-                    type="button"
-                    title="Edit"
-                    @click="openEdit(asset)"
-                  >
-                    <i class="pi pi-pencil" />
-                  </button>
-                  <!-- Activate (only when INACTIVE) -->
-                  <button
-                    v-if="asset.status === 'INACTIVE'"
-                    class="btn-icon"
-                    type="button"
-                    title="Aktifkan"
-                    @click="openStatusChange(asset, 'activate')"
-                  >
-                    <i class="pi pi-check-circle" />
-                  </button>
-                  <!-- Deactivate (only when ACTIVE) -->
-                  <button
-                    v-if="asset.status === 'ACTIVE'"
-                    class="btn-icon btn-icon-ban"
-                    type="button"
-                    title="Nonaktifkan"
-                    @click="openStatusChange(asset, 'deactivate')"
-                  >
-                    <i class="pi pi-ban" />
-                  </button>
-                  <!-- Archive (only when INACTIVE) -->
-                  <button
-                    v-if="asset.status === 'INACTIVE'"
-                    class="btn-icon btn-icon-danger"
-                    type="button"
-                    title="Arsipkan"
-                    @click="openArchive(asset)"
-                  >
-                    <i class="pi pi-box" />
-                  </button>
+                  <div class="asset-action-menu-wrap">
+                    <button class="asset-row-action-btn" type="button" @click="toggleActionMenu(asset.id)">
+                      Aksi <i class="pi pi-chevron-down" />
+                    </button>
+                    <div v-if="openActionMenuId === asset.id" class="asset-row-menu">
+                      <button
+                        v-if="asset.status !== 'ARCHIVED'"
+                        class="asset-row-menu-item"
+                        type="button"
+                        @click="openEditFromMenu(asset)"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        v-if="asset.status === 'INACTIVE'"
+                        class="asset-row-menu-item"
+                        type="button"
+                        @click="openStatusFromMenu(asset, 'activate')"
+                      >
+                        Aktifkan
+                      </button>
+                      <button
+                        v-if="asset.status === 'ACTIVE'"
+                        class="asset-row-menu-item"
+                        type="button"
+                        @click="openStatusFromMenu(asset, 'deactivate')"
+                      >
+                        Nonaktifkan
+                      </button>
+                      <button
+                        v-if="asset.status === 'INACTIVE'"
+                        class="asset-row-menu-item is-danger"
+                        type="button"
+                        @click="openArchiveFromMenu(asset)"
+                      >
+                        Arsipkan
+                      </button>
+                    </div>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -542,6 +541,7 @@ async function loadCategories() {
 // ─── Asset list state ─────────────────────────────────────────────────────────
 
 const assets = ref<Asset[]>([]);
+const openActionMenuId = ref<string | null>(null);
 const loading = ref(false);
 const fetchError = ref("");
 const filterName = ref("");
@@ -603,8 +603,28 @@ function clearNameFilter() {
 }
 
 function changePage(page: number) {
+  openActionMenuId.value = null;
   currentPage.value = page;
   fetchAssets();
+}
+
+function toggleActionMenu(id: string) {
+  openActionMenuId.value = openActionMenuId.value === id ? null : id;
+}
+
+function openEditFromMenu(asset: Asset) {
+  openActionMenuId.value = null;
+  openEdit(asset);
+}
+
+function openStatusFromMenu(asset: Asset, action: "activate" | "deactivate") {
+  openActionMenuId.value = null;
+  openStatusChange(asset, action);
+}
+
+function openArchiveFromMenu(asset: Asset) {
+  openActionMenuId.value = null;
+  openArchive(asset);
 }
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
@@ -1110,7 +1130,7 @@ onMounted(() => {
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .asset-table {
@@ -1180,6 +1200,57 @@ onMounted(() => {
 .asset-td-actions {
   text-align: center;
   white-space: nowrap;
+  overflow: visible;
+}
+
+.asset-action-menu-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.asset-row-action-btn {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(117, 138, 170, 0.5);
+  background: rgba(15, 28, 50, 0.9);
+  color: var(--color-text-dim);
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.asset-row-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 180px;
+  background: #061833;
+  border: 1px solid rgba(52, 80, 116, 0.8);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 2147483646;
+}
+
+.asset-row-menu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #c0d6f1;
+  text-align: left;
+  font-size: 13px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.asset-row-menu-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.asset-row-menu-item.is-danger {
+  color: #ff7f96;
 }
 
 .asset-code-chip {

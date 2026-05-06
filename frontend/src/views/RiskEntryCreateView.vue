@@ -680,7 +680,7 @@ import { programFrameworkApi } from "@/api/programFramework";
 import { riskContextApi, type RiskContextDetail } from "@/api/riskContext";
 import { riskEntryApi, type ControlEffectiveness } from "@/api/riskEntry";
 import { assetApi, type Asset } from "@/api/asset";
-import { KegiatanApi, type Kegiatan } from "@/api/Kegiatan";
+import { KegiatanApi, type Kegiatan } from "@/api/kegiatan";
 import { extractApiError } from "@/utils/apiError";
 
 const router = useRouter();

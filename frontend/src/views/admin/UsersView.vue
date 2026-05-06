@@ -236,36 +236,13 @@
               </button>
 
               <button
-                v-if="user.isActive && user.username !== auth.user?.username"
-                class="action-btn btn-deactivate"
-                title="Nonaktifkan akun"
-                :disabled="actionLoadingId === user.id"
-                @click="openAction('deactivate', user)"
-              >
-                <i class="pi pi-ban" />
-                <span>Nonaktifkan</span>
-              </button>
-
-              <button
-                v-if="user.totpEnabled && user.username !== auth.user?.username"
-                class="action-btn btn-reset-totp"
-                title="Reset TOTP"
-                :disabled="actionLoadingId === user.id"
-                @click="openResetTotp(user)"
-              >
-                <i class="pi pi-shield" />
-                <span>Reset TOTP</span>
-              </button>
-
-              <button
                 v-if="user.username !== auth.user?.username"
-                class="action-btn btn-edit"
-                title="Edit unit kerja & peran"
+                class="action-menu-btn"
+                type="button"
                 :disabled="actionLoadingId === user.id"
-                @click="openEditDialog(user)"
+                @click.stop="toggleActionMenu(user, $event)"
               >
-                <i class="pi pi-pencil" />
-                <span>Edit</span>
+                Aksi <i class="pi pi-chevron-down" />
               </button>
 
               <span
@@ -282,6 +259,37 @@
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <div
+    v-if="openActionMenuUser"
+    class="action-dropdown action-dropdown-floating"
+    :style="{ top: `${actionMenuPosition.top}px`, left: `${actionMenuPosition.left}px` }"
+    @click.stop
+  >
+    <button
+      class="action-dropdown-item"
+      type="button"
+      :disabled="!openActionMenuUser.isActive"
+      @click="openDropdownAction('deactivate', openActionMenuUser)"
+    >
+      Nonaktifkan
+    </button>
+    <button
+      class="action-dropdown-item"
+      type="button"
+      :disabled="!openActionMenuUser.totpEnabled"
+      @click="openDropdownResetTotp(openActionMenuUser)"
+    >
+      Reset TOTP
+    </button>
+    <button
+      class="action-dropdown-item"
+      type="button"
+      @click="openDropdownEdit(openActionMenuUser)"
+    >
+      Edit
+    </button>
   </div>
 
   <!-- ─── Pagination ─── -->
@@ -693,7 +701,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from "vue";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import ProgressSpinner from "primevue/progressspinner";
@@ -835,6 +843,9 @@ type ActionType = "verify" | "activate" | "deactivate";
 const showConfirmDialog = ref(false);
 const actionLoading = ref(false);
 const actionLoadingId = ref<string | null>(null);
+const openActionMenuId = ref<string | null>(null);
+const openActionMenuUser = ref<UserItem | null>(null);
+const actionMenuPosition = ref({ top: 0, left: 0 });
 const pendingAction = ref<{ type: ActionType; user: UserItem } | null>(null);
 const userDetail = ref<UserItem | null>(null);
 const detailLoading = ref(false);
@@ -873,6 +884,7 @@ const confirmConfig = computed(() => {
 });
 
 async function openAction(type: ActionType, user: UserItem) {
+  closeActionMenu();
   pendingAction.value = { type, user };
   userDetail.value = null;
   detailLoading.value = true;
@@ -885,6 +897,41 @@ async function openAction(type: ActionType, user: UserItem) {
   } finally {
     detailLoading.value = false;
   }
+}
+
+function closeActionMenu() {
+  openActionMenuId.value = null;
+  openActionMenuUser.value = null;
+}
+
+function toggleActionMenu(user: UserItem, event: MouseEvent) {
+  if (openActionMenuId.value === user.id) {
+    closeActionMenu();
+    return;
+  }
+  const target = event.currentTarget as HTMLElement;
+  const rect = target.getBoundingClientRect();
+  openActionMenuId.value = user.id;
+  openActionMenuUser.value = user;
+  actionMenuPosition.value = {
+    top: rect.bottom + 6,
+    left: rect.right - 170,
+  };
+}
+
+function openDropdownAction(type: ActionType, user: UserItem) {
+  closeActionMenu();
+  openAction(type, user);
+}
+
+function openDropdownResetTotp(user: UserItem) {
+  closeActionMenu();
+  openResetTotp(user);
+}
+
+function openDropdownEdit(user: UserItem) {
+  closeActionMenu();
+  openEditDialog(user);
 }
 
 function onDialogHide() {
@@ -1049,7 +1096,14 @@ function formatDate(iso: string) {
 
 // ─── Init ────────────────────────────────────────────────────────────────────
 
-onMounted(() => loadUsers(1));
+onMounted(() => {
+  loadUsers(1);
+  document.addEventListener("click", closeActionMenu);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener("click", closeActionMenu);
+});
 </script>
 
 <style scoped>
@@ -1194,9 +1248,10 @@ onMounted(() => loadUsers(1));
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow: visible;
   position: relative;
   min-height: 200px;
+  z-index: 1;
 }
 
 .table-loading,
@@ -1527,12 +1582,16 @@ onMounted(() => loadUsers(1));
 .action-cell {
   white-space: nowrap;
   vertical-align: middle !important;
+  position: relative;
+  overflow: visible;
+  z-index: 2;
 }
 
 .action-buttons {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  align-items: flex-start;
 }
 
 .action-btn {
@@ -1588,6 +1647,58 @@ onMounted(() => loadUsers(1));
 .btn-deactivate:not(:disabled):hover {
   background: rgba(255, 77, 109, 0.15);
   border-color: #ff8fa3;
+}
+
+.action-menu-btn {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(117, 138, 170, 0.5);
+  background: rgba(15, 28, 50, 0.9);
+  color: var(--color-text-dim);
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.action-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 130px;
+  background: #061833;
+  border: 1px solid rgba(52, 80, 116, 0.8);
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 2147483646;
+}
+
+.action-dropdown-floating {
+  position: fixed;
+  right: auto;
+  top: auto;
+}
+
+.action-dropdown-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #c0d6f1;
+  text-align: left;
+  font-size: 13px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.action-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.action-dropdown-item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 /* ─── Dialog: loading ─── */

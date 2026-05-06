@@ -74,43 +74,20 @@
 
             <!-- Right: actions -->
             <div class="fw-item-right">
-              <button
-                class="fw-action-btn fw-action-context"
-                type="button"
-                @click="goToContexts(fw)"
-              >
-                <i class="pi pi-list" /> Kelola Konteks
-              </button>
               <div class="fw-item-icons">
-                <button class="btn-icon" type="button" title="Edit" @click="openEdit(fw)">
-                  <i class="pi pi-pencil" />
-                </button>
-                <button
-                  v-if="fw.isActive"
-                  class="btn-icon btn-icon-warn"
-                  type="button"
-                  title="Nonaktifkan"
-                  @click="openToggle(fw, false)"
-                >
-                  <i class="pi pi-ban" />
-                </button>
-                <button
-                  v-else
-                  class="btn-icon btn-icon-success"
-                  type="button"
-                  title="Aktifkan"
-                  @click="openToggle(fw, true)"
-                >
-                  <i class="pi pi-check-circle" />
-                </button>
-                <button
-                  class="btn-icon btn-icon-danger"
-                  type="button"
-                  title="Hapus"
-                  @click="openDelete(fw)"
-                >
-                  <i class="pi pi-trash" />
-                </button>
+                <div class="fw-action-menu-wrap">
+                  <button class="fw-row-action-btn" type="button" @click="toggleActionMenu(fw.id)">
+                    Aksi <i class="pi pi-chevron-down" />
+                  </button>
+                  <div v-if="openActionMenuId === fw.id" class="fw-row-menu">
+                    <button class="fw-row-menu-item" type="button" @click="goToContextsFromMenu(fw)">Kelola Konteks</button>
+                    <button class="fw-row-menu-item" type="button" @click="openEditFromMenu(fw)">Edit</button>
+                    <button class="fw-row-menu-item" type="button" @click="openToggleFromMenu(fw, !fw.isActive)">
+                      {{ fw.isActive ? 'Nonaktifkan' : 'Aktifkan' }}
+                    </button>
+                    <button class="fw-row-menu-item is-danger" type="button" @click="openDeleteFromMenu(fw)">Hapus</button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -283,6 +260,7 @@ const toast = useToast()
 // ─── List state ───────────────────────────────────────────────────────────────
 
 const frameworks = ref<Framework[]>([])
+const openActionMenuId = ref<string | null>(null)
 const loading = ref(false)
 const fetchError = ref('')
 const searchQuery = ref('')
@@ -343,7 +321,31 @@ function onSearchInput() {
 
 function onFilterChange() { currentPage.value = 1; fetchData() }
 function clearSearch() { searchQuery.value = ''; currentPage.value = 1; fetchData() }
-function changePage(page: number) { currentPage.value = page; fetchData() }
+function changePage(page: number) { openActionMenuId.value = null; currentPage.value = page; fetchData() }
+
+function toggleActionMenu(id: string) {
+  openActionMenuId.value = openActionMenuId.value === id ? null : id
+}
+
+function goToContextsFromMenu(fw: Framework) {
+  openActionMenuId.value = null
+  goToContexts(fw)
+}
+
+function openEditFromMenu(fw: Framework) {
+  openActionMenuId.value = null
+  openEdit(fw)
+}
+
+function openToggleFromMenu(fw: Framework, activate: boolean) {
+  openActionMenuId.value = null
+  openToggle(fw, activate)
+}
+
+function openDeleteFromMenu(fw: Framework) {
+  openActionMenuId.value = null
+  openDelete(fw)
+}
 
 // ─── Create / Edit ────────────────────────────────────────────────────────────
 
@@ -585,7 +587,7 @@ onMounted(fetchData)
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .fw-item {
@@ -700,6 +702,7 @@ onMounted(fetchData)
   align-items: flex-end;
   gap: 0.6rem;
   flex-shrink: 0;
+  margin-top: 25px;
 }
 
 .fw-action-btn {
@@ -732,6 +735,59 @@ onMounted(fetchData)
   display: flex;
   align-items: center;
   gap: 3px;
+  position: relative;
+}
+
+.fw-action-menu-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.fw-row-action-btn {
+  height: 30px;
+  min-width: 126px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(117, 138, 170, 0.5);
+  background: rgba(15, 28, 50, 0.9);
+  color: var(--color-text-dim);
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.fw-row-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 170px;
+  background: #061833;
+  border: 1px solid rgba(52, 80, 116, 0.8);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 2147483646;
+}
+
+.fw-row-menu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #c0d6f1;
+  text-align: left;
+  font-size: 13px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.fw-row-menu-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.fw-row-menu-item.is-danger {
+  color: #ff7f96;
 }
 
 /* ─── States ──────────────────────────────────────────────────────────────── */

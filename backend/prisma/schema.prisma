@@ -33,12 +33,6 @@ model User {
   session            Session?
   profile            Profile?
 
-<<<<<<< HEAD
-=======
-  @@index([email])
-  @@index([username])
-  @@index([isActive, isVerified])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("users")
 }
 
@@ -62,11 +56,6 @@ model UserRole {
   assignedAt DateTime @default(now())
 
   @@unique([userId, roleId])
-<<<<<<< HEAD
-=======
-  @@index([userId])
-  @@index([roleId])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("user_roles")
 }
 
@@ -83,10 +72,6 @@ model Session {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-<<<<<<< HEAD
-=======
-  @@index([refreshToken])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@index([expiresAt])
   @@map("sessions")
 }
@@ -107,10 +92,6 @@ model UnitKerja {
   businessProcesses BusinessProcess[]
   workingPapers     WorkingPaper[]
 
-<<<<<<< HEAD
-=======
-  @@index([code])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("unit_kerja")
 }
 
@@ -128,12 +109,6 @@ model Profile {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-<<<<<<< HEAD
-=======
-  @@index([userId])
-  @@index([unitKerjaId])
-  @@index([isVerified])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("profiles")
 }
 
@@ -171,12 +146,6 @@ model Asset {
   riskEntries   RiskEntry[]
 
   @@unique([unitKerjaId, code])
-<<<<<<< HEAD
-=======
-  @@index([unitKerjaId])
-  @@index([categoryId])
-  @@index([status])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("assets")
 }
 
@@ -197,11 +166,6 @@ model BusinessProcess {
   riskEntries      RiskEntry[]
 
   @@unique([unitKerjaId, code])
-<<<<<<< HEAD
-=======
-  @@index([unitKerjaId])
-  @@index([status])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("business_processes")
 }
 
@@ -224,11 +188,6 @@ model Framework {
   programFrameworks ProgramFramework[]
   riskContexts      RiskContext[]
 
-<<<<<<< HEAD
-=======
-  @@index([code])
-  @@index([isActive])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("frameworks")
 }
 
@@ -249,10 +208,6 @@ model RiskProgram {
   workingPapers     WorkingPaper[]
 
   @@index([year])
-<<<<<<< HEAD
-=======
-  @@index([status])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("risk_programs")
 }
 
@@ -275,22 +230,12 @@ model ProgramFramework {
 
   /// Satu program tidak boleh mendaftarkan framework yang sama dua kali
   @@unique([programId, frameworkId])
-<<<<<<< HEAD
-=======
-  @@index([programId])
-  @@index([frameworkId])
-  @@index([status])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("program_frameworks")
 }
 
 /// Template konteks risiko yang dimiliki oleh Framework (global).
 /// Contoh: SPBE context → "Infrastruktur Server", "Aplikasi Internal"
-<<<<<<< HEAD
 ///         ISO 27001 context → "Information Asset", "Business Process"
-=======
-///         ISO 27001 context → "Information Asset", "Kegiatan"
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
 model RiskContext {
   id                      String             @id @default(cuid())
   name                    String             @db.VarChar(255)
@@ -333,12 +278,6 @@ model RiskContext {
 
   /// Kode hanya unik dalam satu Framework
   @@unique([frameworkId, code])
-<<<<<<< HEAD
-=======
-  @@index([frameworkId])
-  @@index([status])
-  @@index([contextType])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@index([periodStart, periodEnd])
   @@map("risk_contexts")
 }
@@ -355,11 +294,6 @@ model ProgramFrameworkContext {
   riskEntries        RiskEntry[]
 
   @@unique([programFrameworkId, riskContextId])
-<<<<<<< HEAD
-=======
-  @@index([programFrameworkId])
-  @@index([riskContextId])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("program_framework_contexts")
 }
 
@@ -372,11 +306,6 @@ model ContextAsset {
   createdAt DateTime    @default(now())
 
   @@unique([contextId, assetId])
-<<<<<<< HEAD
-=======
-  @@index([contextId])
-  @@index([assetId])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("context_assets")
 }
 
@@ -395,10 +324,6 @@ model RiskCategory {
 
   riskEntries RiskEntry[]
 
-<<<<<<< HEAD
-=======
-  @@index([contextId])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("risk_categories")
 }
 
@@ -417,10 +342,6 @@ model ImpactArea {
   areaScores         AreaScore[]
   treatmentPlans     RiskTreatmentPlan[]
 
-<<<<<<< HEAD
-=======
-  @@index([contextId])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("impact_areas")
 }
 
@@ -437,10 +358,6 @@ model ImpactCriteria {
   updatedAt    DateTime   @updatedAt
 
   @@unique([impactAreaId, level])
-<<<<<<< HEAD
-=======
-  @@index([impactAreaId])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("impact_criteria")
 }
 
@@ -460,11 +377,6 @@ model LikelihoodCriteria {
   updatedAt    DateTime   @updatedAt
 
   @@unique([impactAreaId, level])
-<<<<<<< HEAD
-=======
-  @@index([contextId])
-  @@index([impactAreaId])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("likelihood_criteria")
 }
 
@@ -482,10 +394,6 @@ model TreatmentOption {
 
   treatmentPlans RiskTreatmentPlan[]
 
-<<<<<<< HEAD
-=======
-  @@index([contextId])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("treatment_options")
 }
 
@@ -509,10 +417,6 @@ model RiskLevel {
   /// Urutan dan nama harus unik per konteks
   @@unique([contextId, order])
   @@unique([contextId, name])
-<<<<<<< HEAD
-=======
-  @@index([contextId])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("risk_levels")
 }
 
@@ -530,10 +434,6 @@ model MatrixCell {
   areaScores AreaScore[]
 
   @@unique([contextId, row, col])
-<<<<<<< HEAD
-=======
-  @@index([contextId])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("matrix_cells")
 }
 
@@ -546,11 +446,6 @@ model ContextProcess {
   createdAt DateTime        @default(now())
 
   @@unique([contextId, processId])
-<<<<<<< HEAD
-=======
-  @@index([contextId])
-  @@index([processId])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("context_processes")
 }
 
@@ -587,12 +482,6 @@ model WorkingPaper {
 
   /// Satu UnitKerja hanya boleh punya 1 kertas kerja per program
   @@unique([programId, unitKerjaId])
-<<<<<<< HEAD
-=======
-  @@index([programId])
-  @@index([unitKerjaId])
-  @@index([status])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("working_papers")
 }
 
@@ -624,13 +513,6 @@ model RiskEntry {
   residualAssessment        RiskAssessment?         @relation("ResidualAssessment")
   treatmentPlans            RiskTreatmentPlan[]
 
-<<<<<<< HEAD
-=======
-  @@index([workingPaperId])
-  @@index([programFrameworkContextId])
-  @@index([assetId])
-  @@index([businessProcessId])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("risk_entries")
 }
 
@@ -655,10 +537,6 @@ model RiskAssessment {
 
   areaScores      AreaScore[]
 
-<<<<<<< HEAD
-=======
-  @@index([riskLevelId])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("risk_assessments")
 }
 
@@ -681,10 +559,6 @@ model AreaScore {
   score           Int
 
   @@unique([assessmentId, impactAreaId])
-<<<<<<< HEAD
-=======
-  @@index([assessmentId])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("area_scores")
 }
 
@@ -702,10 +576,6 @@ model RiskControl {
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
 
-<<<<<<< HEAD
-=======
-  @@index([riskEntryId])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("risk_controls")
 }
 
@@ -735,12 +605,6 @@ model RiskTreatmentPlan {
 
   monitoringLogs    TreatmentMonitoring[]
 
-<<<<<<< HEAD
-=======
-  @@index([riskEntryId])
-  @@index([impactAreaId])
-  @@index([status])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("risk_treatment_plans")
 }
 
@@ -757,10 +621,6 @@ model TreatmentMonitoring {
   reportedBy  String?
   reportedAt  DateTime          @default(now())
 
-<<<<<<< HEAD
-=======
-  @@index([planId])
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
   @@map("treatment_monitoring")
 }
 
@@ -783,7 +643,6 @@ model SystemConfig {
   @@map("system_configs")
 }
 
-<<<<<<< HEAD
 model ActivityLog {
   id         String          @id @default(cuid())
   action     String          @db.VarChar(100)
@@ -800,8 +659,6 @@ model ActivityLog {
   @@map("activity_logs")
 }
 
-=======
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
 // =============================================================================
 // ENUMS
 // =============================================================================
@@ -883,12 +740,9 @@ enum TreatmentStatus {
   VERIFIED
 }
 
-<<<<<<< HEAD
 enum ActivityLogType {
   CREATE
   UPDATE
   DELETE
   AUTH
 }
-=======
->>>>>>> 34c523e603f6d66ea861238b031cd77994f52169
